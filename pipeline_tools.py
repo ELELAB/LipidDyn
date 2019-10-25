@@ -821,13 +821,11 @@ class TrajCommandModified:
                  trajectory,
                  topology,
                  headgroups_ndx_file,
-                 thread
                  ):
     
         self.trajectory = trajectory
         self.topology = topology
         self.headgroups_ndx_file = headgroups_ndx_file
-        self.thread = thread
 
 
     def leaflets(self):
@@ -837,20 +835,6 @@ class TrajCommandModified:
         # make an .ndx that cointains both it then split them in specific 
         # index that will be used later
         
-
-        # Fatslim always creates a file that is [name]_0000.ndx
-
-        starting_directory = os.getcwd()
-
-        if os.path.isfile('true_bilayer.ndx'):
-            print()
-        else:
-            
-            fatslim = FatslimCommands(self.topology,
-                                      self.headgroups_ndx_file,
-                                      self.thread)
-            fatslim.membranes(out_file = starting_directory +"/bilayer.ndx")
-            os.rename('bilayer_0000.ndx', 'true_bilayer.ndx')
 
         
         if os.path.isfile('index_lower_leaflet_res.ndx'):
@@ -978,14 +962,13 @@ class TrajCommandModified:
             os.system('printf  "# File created on $(date)\n# Created by $(whoami) \n# For the analysis of membranes\n" \
                    > Merged_coord_upper_leaflet.txt'  )
             os.system("cat *.xvg >> Merged_coord_upper_leaflet.txt")
-            os.system("mv Merged_coord_upper_leaflet.txt ../")
+            shutil.move("Merged_coord_upper_leaflet.txt",starting_directory)
             shutil.rmtree(dirct)
         elif "lower" in dir_name :
             os.system('printf  "# File created on $(date)\n# Created by $(whoami) \n# For the analysis of membranes\n" \
                    > Merged_coord_lower_leaflet.txt'  )
             os.system("cat *.xvg >> Merged_coord_lower_leaflet.txt")
-            os.system("mv Merged_coord_lower_leaflet.txt ../")
+            shutil.move("Merged_coord_lower_leaflet.txt ",starting_directory)
             shutil.rmtree(dirct)
 
-        os.chdir(starting_directory) # Go back at the starting directory
 

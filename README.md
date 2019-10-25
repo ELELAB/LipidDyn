@@ -85,7 +85,7 @@ Install MDAnalysis [x] with pip
 pip install MDAnalysis
 ```
 
-For the installation of Gromacs software we refer to [x]
+For the installation of Gromacs software we refer to [x].
 To deactivate the virtual environment just tipe the following
 command into the terminal
 

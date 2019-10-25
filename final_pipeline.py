@@ -30,10 +30,13 @@ import os
 import argparse
 import shutil
 from pathlib import Path
-import pipeline_tools
-import MDAnalysis as mda
-from pathlib import Path
+import glob
 
+#Import the classes and functions 
+import pipeline_tools
+
+#Import MDanalysis
+import MDAnalysis as mda
 
 # Import GROMACS-related modules
 import gromacs
@@ -42,6 +45,14 @@ import gromacs.setup as setup
 
 # set-up GROMACS
 gromacs.config.setup()
+
+#Import Loguru for log files
+from loguru import logger
+logger.debug("Debugger,let's hope!")
+logger.add("Log_criteria.log")
+
+
+
 
 
 _start_time = time.time()
@@ -60,7 +71,7 @@ def tac():
 
 
 def data_pre_processing(u,
-	                      trajectory_file,
+	                    trajectory_file,
                         tpr_file,
                         starting_directory,
                         checkpoint_file,
@@ -110,7 +121,10 @@ def data_pre_processing(u,
         os.mkdir((directory_name))
 
 
-    # Create an index of only the lipids of  the system .  
+    # Create an index of only the lipids of the system .  
+    
+    # Selection of most molecules that can constitutes the 
+    # solvent and solutes 
     solv = u.select_atoms(" resname TIP3") + \
            u.select_atoms(" resname HT") + \
            u.select_atoms(" resname HT") + \
@@ -130,14 +144,19 @@ def data_pre_processing(u,
            u.select_atoms(" resname CLA")
 
     system = u.select_atoms("all") 
+     
+    # In case of only membrane :
+    # (everything)- (all solvent + solute) = only membrane
+    # In case of presence of protein :
+    # (everything)-(all solvent + solute) the protein = membrane + protein
+ 
+    memb = system.difference(solv) 
+    memb.write(filename= "system_no_solvent.ndx", name = "system_no_solvent")
 
-    memb = system.difference(solv) # (everything but protein )- (all solvent + solute) = only membrane
-                                   # and in case of presence of protein , the protein 
 
-    memb.write(filename= "index_no_solvent.ndx", name = "All_but_solvent")
 
     # If the user choose to skip ps on the trajectory or prefer to analyze 
-    # its entirety ,cutting or not via --begin or --end
+    # it all, cutting or not via --begin or --end
     # Create the .gro associated with the trajectory with only the last frame in it 
     processed_traj = 'processed_traj.xtc'
     gro_file = 'last_frame.gro'
@@ -153,7 +172,7 @@ def data_pre_processing(u,
             trjconv = tools.Trjconv(f = trajectory_file, \
 		                            s = tpr_file, \
 		                            ur = 'compact', \
-		                            n = 'index_no_solvent.ndx', \
+		                            n = 'system_no_solvent.ndx', \
 		                            pbc = 'mol', \
 		                            o = processed_traj, \
 		                            )
@@ -198,7 +217,9 @@ def data_pre_processing(u,
 		                            skip = skip
 		                            )
             trjconv.run()
-
+        
+        # Generate a gro with the last frame, used later
+        # for the computation of thickness and Area per lipid
         trjconv = tools.Trjconv(f = checkpoint_file, \
                                 s = tpr_file, \
                                 ur = 'compact', \
@@ -257,8 +278,6 @@ def module_fatslim(processed_traj_file,
   
     # Begins of the fatslim analysis 
     
-
-
     fatslim = pipeline_tools.FatslimCommands(gro_file,
                                              index_headgroups,
                                              '2'
@@ -286,7 +305,7 @@ def module_fatslim(processed_traj_file,
     # fatslim.raw_AreaPerLipid(trajectory = processed_traj_file,
     #                          cutoff = apl_cutoff,
     # 	                     out_file = analysis_fatlism +
-    #                                     '/fatslim_apl/raw_apl')
+    #                                     '/fatslim_apl/raw_apl.csv')
 
     
 
@@ -305,7 +324,7 @@ def module_densmap(processed_traj_file,
     Parameters
     ----------
     processed_traj_file : str
-                                Name of the processed .xtc file.
+                        Name of the processed .xtc file.
     """
 
 
@@ -364,15 +383,6 @@ def module_movements(processed_traj_file,
     
     # Creates different folder in which the output is stored
 
-    analysis_traj = directory_name + "/Movements/"
-
-    if not os.path.exists(analysis_traj):
-        try:
-            os.mkdir((analysis_traj))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
-
     """From the imported module uses these function to extract the trajectories
     associated with each lipids of both upper and lower leaflet
 
@@ -388,15 +398,25 @@ def module_movements(processed_traj_file,
             Name of the index file
     """
 
+    analysis_traj = directory_name + "/Movements/"
+
+    if not os.path.exists(analysis_traj):
+        try:
+            os.mkdir((analysis_traj))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+    
+
     starting_directory = os.getcwd()
 
-    index_lower_leaflet_res = starting_directory + '/' + 'index_lower_leaflet_res.ndx'
-    index_upper_leaflet_res = starting_directory + '/' + 'index_upper_leaflet_res.ndx'
+    index_lower_leaflet_res = starting_directory + '/index_lower_leaflet_res.ndx'
+    index_upper_leaflet_res = starting_directory + '/index_upper_leaflet_res.ndx'
 
     traj_cmd_modified = pipeline_tools.TrajCommandModified(processed_traj_file,
                                                            gro_file,
                                                            index_headgroups,
-                                                           "4"
                                                            )
     traj_cmd_modified.leaflets() 
     os.mkdir('upper_leaflet') # create the folder
@@ -415,17 +435,8 @@ def module_movements(processed_traj_file,
 
     os.chdir(starting_directory)
     
-                  
-  
-    a = subprocess.call(['mv',
-                         'Merged_coord_lower_leaflet.txt',
-                          analysis_traj],
-                        )
-    
-    a = subprocess.call(['mv',
-                         'Merged_coord_upper_leaflet.txt',
-                          analysis_traj],
-                        )
+    for filename in glob("*.txt") :
+        shutil.move(filename,analysis_traj)
 
 
 
@@ -450,10 +461,8 @@ def module_order_parameter(processed_traj_file,
 
     
     """ 
-    Execute the python script for the order parameter for 
-    all the .def files
-    To work it uses the .def files which contains all the 
-    information in the format :
+    Execute the python script for the order parameter 
+    To work it uses the information in the format :
       
     OP_name1 Residue Carbon_name Hydrogen_name
     OP_name2 Residue Carbon_name Hydrogen_name
@@ -469,6 +478,8 @@ def module_order_parameter(processed_traj_file,
     g2_1 POPC C2 HS
     g1_1 POPC C3 HX
     g1_2 POPC C3 HY 
+    
+    present in  pipeline_tools.py
     
     Parameters
     ----------
@@ -725,7 +736,7 @@ def main():
         u = mda.Universe(tpr_file,trajectory_file)
 
         data_pre_processing(u,
-        	            trajectory_file,
+        	               trajectory_file,
                             tpr_file,
                             starting_directory,
                             checkpoint_file,
@@ -740,9 +751,7 @@ def main():
         # therefore it is used by the different modules, if not used the 
         # xtc file with all the trajectory 
 
-        # P is for all phopholipids 
-        # resname CHOL to check for cholesterol
-        # resname ERG to check for ergosterol
+
 
         
 
@@ -752,34 +761,42 @@ def main():
         # means a protein is embedded in the bilayer
         if args.prot :
 
-        	# index for the fatslim analysis
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
             g = u.select_atoms("name P") + \
                 u.select_atoms("resname ERG and name O3") +  \
                 u.select_atoms("resname CHL1 and name O3")
-            p = u.select_atoms("protein and not name H*")
-            g.write(filename= "index_headgroups.ndx",name="headgroups",mode ="a")
-            p.write(filename= "index_headgroups.ndx",name="protein",mode = "a")
+            p = u.select_atoms("protein")
+            g.write(filename= "index_headgroups.ndx", name="headgroups", mode ="a")
+            p.write(filename= "index_headgroups.ndx", name="protein", mode = "a")
 
 
             # Sometimes Fatslim has problem with ndx written by MDAnalysis
             # so we use make_ndx to reconvert it, we use MDAnalysis because
             # we can have more control over the selections of headgroups 
             make_ndx = tools.Make_ndx(f = tpr_file, \
-            	                      n = "index_headgroups.ndx",\
+            	                        n = "index_headgroups.ndx",\
                                       o = "index_headgroups_corrected.ndx", \
                                       input = ('q')
                                       )
             make_ndx.run()
         else:
+            
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
             g = u.select_atoms("name P") + \
                 u.select_atoms("resname ERG and name O3") +  \
                 u.select_atoms("resname CHL1 and name O3")
-            g.write(filename= "index_headgroups.ndx",name="headgroups")
+            g.write(filename= "index_headgroups.ndx", name="headgroups")
 
 
             # same applies here
             make_ndx = tools.Make_ndx(f = tpr_file, \
-            	                      n = "index_headgroups.ndx",\
+            	                        n = "index_headgroups.ndx",\
                                       o = "index_headgroups_corrected.ndx", \
                                       input = ('q')
                                       )
@@ -790,7 +807,7 @@ def main():
         # index file of headgroups
         index_headgroups = 'index_headgroups_corrected.ndx'
 
-        # Call Fatslim class
+        # Initiate Fatslim class
         fatslim = pipeline_tools.FatslimCommands(gro_file,
                                                  index_headgroups,
                                                  '2'
@@ -801,15 +818,15 @@ def main():
 
         home_dir = os.getcwd()
 
-        fatslim.membranes(out_file = home_dir +"/bilayer.ndx")
-        os.rename('bilayer_0000.ndx', 'true_bilayer.ndx')
-        a = subprocess.call(['rm bilayer_*.ndx'], shell = True)
+        fatslim.membranes(out_file = home_dir +"/bilayer.ndx") # one per frame 
+        os.rename('bilayer_0000.ndx', 'true_bilayer.ndx') 
+        for filename in glob("bilayer_*.ndx"):
+            os.remove(filename)
+        
         
         
 
-        # means that the user selected the -all flag 
-        # and he/she wants all the pipeline to be
-        # executed
+        # The user selected the -all flag for all the analysis
 
         if args.all_modules :
 
@@ -836,7 +853,6 @@ def main():
                                    )
             
         else:
-
 
             if args.mod_fat : 
             	module_fatslim(processed_traj_file,
