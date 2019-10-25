@@ -60,7 +60,7 @@ def tac():
 
 
 def data_pre_processing(u,
-	                trajectory_file,
+	                      trajectory_file,
                         tpr_file,
                         starting_directory,
                         checkpoint_file,
@@ -143,7 +143,10 @@ def data_pre_processing(u,
     gro_file = 'last_frame.gro'
     
     if os.path.isfile(processed_traj) and os.path.isfile(gro_file):
-        print() # path exists
+        print("The files 'processed traj' and 'last_frame.gro' are \
+               are already present, please check the folder so that \
+               no files is gonna be overwritten and you lose data")
+        quit() # path exists
     else:
         if skip == None and (begin == None and end == None):
         # There is no ps to skip
