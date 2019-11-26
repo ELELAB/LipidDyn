@@ -381,8 +381,9 @@ sn1_C17b NSM C17S H17T\n\
 sn1_C18a NSM C18S H18S\n\
 sn1_C18b NSM C18S H18T")
         }
-
-bond_len_max=1.5  # in Angstroms, max distance between atoms for reasonable OP calculation (PBC and sanity check)
+# In Angstroms, max distance between atoms for reasonable OP 
+# calculation (PBC and sanity check)
+bond_len_max=1.5  
 bond_len_max_sq=bond_len_max**2
 
 class OrderParameter:
@@ -829,16 +830,15 @@ class TrajCommandModified:
 
 
     def leaflets(self):
-        
-        
-        # It uses fatslim program to find upper and lower leaflet  and 
-        # make an .ndx that cointains both it then split them in specific 
-        # index that will be used later
-        
+          
+        """Creates two index files from the true_bilayer.ndx :
+           index_lower_leaflet_res.ndx : index with lipid residues of lower l.
+           index_upper_leaflet_res.ndx : index with lipid residues of upper l.
+        """        
 
         
         if os.path.isfile('index_lower_leaflet_res.ndx'):
-            print()
+            pass
         else:
             # Lower Leaflet index
             make_ndx = tools.Make_ndx(f = self.topology, \
@@ -890,7 +890,6 @@ class TrajCommandModified:
             keep_parsing = True
             for line in f:
                 if "[" in line:
-                    print(line)
                     header = line.strip("\n").strip("[").strip("]").strip(" ").split("_")[2] \
                     + "_" +  line.strip("\n").strip("[").strip("]").strip(" ").split("_")[3]
                     keep_parsing = False
