@@ -22,7 +22,7 @@ It allows to compute :
 The method to compute 3) was originally developed by J. Melcr. with the contribution 
 from  H. Antila for NMRlipids project and readapted for the purpose of this work
 """
-
+# import packages
 import time
 import errno
 import subprocess
@@ -32,7 +32,7 @@ import shutil
 from pathlib import Path
 import glob
 
-#Import the classes and functions 
+#Import the classes and functions from the pipeline_tools
 import pipeline_tools
 
 #Import MDanalysis
@@ -46,7 +46,7 @@ import gromacs.setup as setup
 # set-up GROMACS
 gromacs.config.setup()
 
-#Import Loguru for log files
+# Import Loguru for log files
 from loguru import logger
 logger.debug("Debugger,let's hope!")
 logger.add("Log_criteria.log")
@@ -161,73 +161,69 @@ def data_pre_processing(u,
     processed_traj = 'processed_traj.xtc'
     gro_file = 'last_frame.gro'
     
-    if os.path.isfile(processed_traj) and os.path.isfile(gro_file):
-        print("The files 'processed traj' and 'last_frame.gro' are \
-               are already present, please check the folder so that \
-               no files is gonna be overwritten and you lose data")
-        quit() # path exists
-    else:
-        if skip == None and (begin == None and end == None):
-        # There is no ps to skip
-            trjconv = tools.Trjconv(f = trajectory_file, \
-		                            s = tpr_file, \
-		                            ur = 'compact', \
-		                            n = 'system_no_solvent.ndx', \
-		                            pbc = 'mol', \
-		                            o = processed_traj, \
-		                            )
-            trjconv.run()
+    
 
-        elif skip == None and (begin is not None and end is not None): 
-        # Only cutting the traj and creating a new processed .xtc file
-            trjconv = tools.Trjconv(f = trajectory_file, \
-		                            s = tpr_file, \
-		                            ur = 'compact', \
-		                            n = 'index_no_solvent.ndx', \
-		                            pbc = 'mol', \
-		                            o = processed_traj, \
-		                            b = begin, \
-		                            e = end 
-		                            )
-            trjconv.run()
-
-        elif skip is not None and (begin is not None and end is not None): 
-        #skipping and cutting the traj and again create a new processed .xtc file
-            trjconv = tools.Trjconv(f = trajectory_file, \
-		                            s = tpr_file, \
-		                            ur = 'compact', \
-		                            n = 'index_no_solvent.ndx', \
-		                            pbc = 'mol', \
-		                            o = processed_traj, \
-		                            b = begin, \
-		                            e = end ,\
-		                            skip = skip
-		                            )
-            trjconv.run()
-
-        elif skip is not None and (begin == None and end == None): 
-
-        # The user is only skipping ps in the traj
-            trjconv = tools.Trjconv(f = trajectory_file, \
-		                            s = tpr_file, \
-		                            ur = 'compact', \
-		                            n = 'index_no_solvent.ndx', \
-		                            pbc = 'mol', \
-		                            o = processed_traj, \
-		                            skip = skip
-		                            )
-            trjconv.run()
-        
-        # Generate a gro with the last frame, used later
-        # for the computation of thickness and Area per lipid
-        trjconv = tools.Trjconv(f = checkpoint_file, \
-                                s = tpr_file, \
-                                ur = 'compact', \
-                                n = 'index_no_solvent.ndx', \
-                                pbc = 'mol', \
-                                o = gro_file, \
-                                )
+    if skip == None and (begin == None and end == None):
+    # There is no ps to skip
+        trjconv = tools.Trjconv(f = trajectory_file, \
+	                            s = tpr_file, \
+	                            ur = 'compact', \
+	                            n = 'system_no_solvent.ndx', \
+	                            pbc = 'mol', \
+	                            o = processed_traj, \
+	                            )
         trjconv.run()
+
+    elif skip == None and (begin is not None and end is not None): 
+    # Only cutting the traj and creating a new processed .xtc file
+        trjconv = tools.Trjconv(f = trajectory_file, \
+	                            s = tpr_file, \
+	                            ur = 'compact', \
+	                            n = 'system_no_solvent.ndx', \
+	                            pbc = 'mol', \
+	                            o = processed_traj, \
+	                            b = begin, \
+	                            e = end 
+	                            )
+        trjconv.run()
+
+    elif skip is not None and (begin is not None and end is not None): 
+    #skipping and cutting the traj and again create a new processed .xtc file
+        trjconv = tools.Trjconv(f = trajectory_file, \
+	                            s = tpr_file, \
+	                            ur = 'compact', \
+	                            n = 'system_no_solvent.ndx', \
+	                            pbc = 'mol', \
+	                            o = processed_traj, \
+	                            b = begin, \
+	                            e = end ,\
+	                            skip = skip
+	                            )
+        trjconv.run()
+
+    elif skip is not None and (begin == None and end == None): 
+
+    # The user is only skipping ps in the traj
+        trjconv = tools.Trjconv(f = trajectory_file, \
+	                            s = tpr_file, \
+	                            ur = 'compact', \
+	                            n = 'system_no_solvent.ndx', \
+	                            pbc = 'mol', \
+	                            o = processed_traj, \
+	                            skip = skip
+	                            )
+        trjconv.run()
+    
+    # Generate a gro with the last frame, used later
+    # for the computation of thickness and Area per lipid
+    trjconv = tools.Trjconv(f = checkpoint_file, \
+                            s = tpr_file, \
+                            ur = 'compact', \
+                            n = 'system_no_solvent.ndx', \
+                            pbc = 'mol', \
+                            o = gro_file, \
+                            )
+    trjconv.run()
 
     
     
@@ -242,7 +238,9 @@ def module_fatslim(processed_traj_file,
                    index_headgroups,
                    directory_name,
                    apl_cutoff,
-                   tck_cutoff
+                   tck_cutoff,
+                   raw,
+                   nthread
                    ):
     
     print('---------------------------------------------------\n')
@@ -254,9 +252,21 @@ def module_fatslim(processed_traj_file,
     Parameters
     ----------
     processed_traj_file : str
-                            Name of the processed .xtc file.
+            Name of the processed .xtc file.
     gro_file : str 
             Name of the last producte .gro file.
+    index_headgroups : str
+            Filename of the index containing all the headgroups
+    directory_name : str
+            Name of the output folder
+    apl_cutoff : float
+            Number representing the cut-off for the APL
+    tck_cutoff : float
+            Number representing the cut-off for the thickness
+    raw : True/False
+            Value to include or not the raw output
+    nthread : int
+            Number of cores for parallelization             
     """
 
 
@@ -278,38 +288,32 @@ def module_fatslim(processed_traj_file,
   
     # Begins of the fatslim analysis 
     
-    fatslim = pipeline_tools.FatslimCommands(gro_file,
+    fatslim = pipeline_tools.FatslimCommands(processed_traj_file,
+                                             gro_file,
                                              index_headgroups,
-                                             '2'
-                                            )
+                                             nthread,
+                                             apl_cutoff,
+                                             tck_cutoff
+                                             )
     
 
-    fatslim.thickness(trajectory = processed_traj_file,
-                      cutoff = tck_cutoff,
-    	              out_file = analysis_fatlism + \
-                                  '/thickness.xvg'
-
+    fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
                      )
      
-    # fatslim.raw_thickness(trajectory = processed_traj_file,
-    #                       cutoff = tck_cutoff,
-    # 	                  out_file = analysis_fatlism + \
-    #                              '/fatslim_thickness/raw_thickness.csv'
-    #                       )
-
-    fatslim.AreaPerLipid(trajectory = processed_traj_file,
-                         cutoff = apl_cutoff,
-    	                 out_file = analysis_fatlism + \
-                                   '/apl.xvg')
-
-    # fatslim.raw_AreaPerLipid(trajectory = processed_traj_file,
-    #                          cutoff = apl_cutoff,
-    # 	                     out_file = analysis_fatlism +
-    #                                     '/fatslim_apl/raw_apl.csv')
-
     
+    fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
 
-    
+    if raw : 
+        fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
+                                 '/fatslim_apl/raw_apl.csv')
+
+        
+        fatslim.raw_thickness(out_file = analysis_fatlism + \
+                              '/fatslim_thickness/raw_thickness.csv'
+                              )
+    else:
+        pass
+
    
     
 
@@ -324,7 +328,9 @@ def module_densmap(processed_traj_file,
     Parameters
     ----------
     processed_traj_file : str
-                        Name of the processed .xtc file.
+            Name of the processed .xtc file.
+    directory_name : str
+            Name of the output folder
     """
 
 
@@ -376,7 +382,8 @@ def module_densmap(processed_traj_file,
 def module_movements(processed_traj_file,
                      gro_file,
                      index_headgroups,
-                     directory_name
+                     directory_name,
+                     nthread
 	                 ):
      
     print('---------------------------------------------------\n')
@@ -389,13 +396,15 @@ def module_movements(processed_traj_file,
     Parameters
     ----------
     processed_traj_file : str
-                            Name of the processed .xtc file. 
+            Name of the processed .xtc file. 
     gro_file : str 
             Name of the last producte .gro file.
-    tpr_file : str
-            Name of the .tpr file.
     index_headgroups : str
-            Name of the index file
+            Filename of the index containing all the headgroups
+    directory_name : str
+            Name of the output folder
+    nthread : int
+            Number of cores for parallelization 
     """
 
     analysis_traj = directory_name + "/Movements/"
@@ -417,6 +426,7 @@ def module_movements(processed_traj_file,
     traj_cmd_modified = pipeline_tools.TrajCommandModified(processed_traj_file,
                                                            gro_file,
                                                            index_headgroups,
+                                                           nthread
                                                            )
     traj_cmd_modified.leaflets() 
     os.mkdir('upper_leaflet') # create the folder
@@ -435,7 +445,7 @@ def module_movements(processed_traj_file,
 
     os.chdir(starting_directory)
     
-    for filename in glob("*.txt") :
+    for filename in glob.glob("*.txt") :
         shutil.move(filename,analysis_traj)
 
 
@@ -445,6 +455,18 @@ def module_order_parameter(processed_traj_file,
 	                       gro_file,
                            directory_name
 	                       ):
+    
+    """
+
+    Parameters
+    ----------
+    processed_traj_file : str
+            Name of the processed .xtc file. 
+    gro_file : str 
+            Name of the last producte .gro file.
+    directory_name : str
+            Name of the output folder
+    """
 
     print('---------------------------------------------------\n')
     
@@ -531,15 +553,15 @@ def cleaning_all():
 
 
     print('---------------------------------------------------\n')
-
-    a = subprocess.call(['rm', 'index_no_solvent.ndx'],)
-    a = subprocess.call(['rm', 'index_headgroups.ndx'],)
-    a = subprocess.call(['rm', 'index_lower_leaflet_res.ndx'],)
-    a = subprocess.call(['rm', 'index_upper_leaflet_res.ndx'],)
-    a = subprocess.call(['rm bilayer_*'], shell = True)
-    a = subprocess.call(['rm', 'true_bilayer.ndx'],)
-    a = subprocess.call(['rm \#_*'], shell = True)
-
+    for filename in glob.glob("bilayer_*.ndx"):
+            os.remove(filename)
+    os.remove('system_no_solvent.ndx')
+    os.remove('index_headgroups.ndx')
+    os.remove('index_lower_leaflet_res.ndx')
+    os.remove('index_upper_leaflet_res.ndx')
+    os.remove('true_bilayer.ndx')
+    os.remove('index_headgroups_corrected.ndx')
+    
 
 
 
@@ -553,22 +575,11 @@ def main():
     description= "Pipeline that calculates four different parameter for a MD simulation \
     of a lipid membrane coming from gromacs"
 
-    usage = "python3 pipeline.py -t ["".xtc/trr] \
-                                 -f ["".tpr] \
-                                 -g [*.cpt]\
-                                 -s [skip ps] \
-                                 -b [begin]\
-                                 -e[end]\
-                                 -all [True/False]\
-                                 -clean  \
-                                 -fatslim\
-                                 -2d\
-                                 -mov\
-                                 -ordpar\
-                                 -d [directory name] "
+    usage = "python3 pipeline.py -t ["".xtc/trr] -f ["".tpr] -g [*.cpt] -s [skip ps] \
+    -b [begin] -e[end] -all [True/False] -c -fatslim -2d -mov -ordpar -d [directory name]"
              
 
-    parser = argparse.ArgumentParser(description='', usage=usage)
+    parser = argparse.ArgumentParser(description=description, usage=usage)
 
     parser.add_argument('-t',
                         '--trajectory',
@@ -711,32 +722,50 @@ def main():
                         help='Specify if a protein is embedded in the membrane'
                        )
 
+    parser.add_argument('-nthread',
+                        '--mpi',
+                        default = 2,
+                        dest='core',
+                        required = False,
+                        help='Specify on how many core you want for parallelization'
+                       )
+
+    parser.add_argument('-raw',
+                        '--raw',
+                        action='store_true',
+                        dest='raw',
+                        required = False,
+                        help='Get the raw value of thickness and apl for each frame'
+                       )
+
     args = parser.parse_args()
 
     if args is None:
-        print("Are you sure you followed the instruction? Please follow them and retry")
-        pass
+        print("Are you sure you followed the instruction? \
+               Please follow them and retry")
+        quit()
     else:
         
         trajectory_file = args.trajectory
         tpr_file = args.topology
         checkpoint_file = args.checkpoint
         directory_name = args.directory
+        nthread = args.core
         begin = args.begin  
         end = args.end  
         skip = args.skip
         starting_directory = os.getcwd()
         cleaning = args.clean
-        apl_cutoff = args.apl_cutoff
-        tck_cutoff = args.tck_cutoff
-        
+        apl_cutoff = float(args.apl_cutoff)
+        tck_cutoff = float(args.tck_cutoff)
+        raw = args.raw
 
         tic()
         
         u = mda.Universe(tpr_file,trajectory_file)
 
         data_pre_processing(u,
-        	               trajectory_file,
+        	                trajectory_file,
                             tpr_file,
                             starting_directory,
                             checkpoint_file,
@@ -751,12 +780,8 @@ def main():
         # therefore it is used by the different modules, if not used the 
         # xtc file with all the trajectory 
 
-
-
-        
-
-        processed_traj_file = 'processed_traj.xtc'
-        gro_file = 'last_frame.gro'
+        processed_traj_file = starting_directory + '/processed_traj.xtc'
+        gro_file = starting_directory +'/last_frame.gro'
         
         # means a protein is embedded in the bilayer
         if args.prot :
@@ -777,7 +802,7 @@ def main():
             # so we use make_ndx to reconvert it, we use MDAnalysis because
             # we can have more control over the selections of headgroups 
             make_ndx = tools.Make_ndx(f = tpr_file, \
-            	                        n = "index_headgroups.ndx",\
+            	                      n = "index_headgroups.ndx",\
                                       o = "index_headgroups_corrected.ndx", \
                                       input = ('q')
                                       )
@@ -796,7 +821,7 @@ def main():
 
             # same applies here
             make_ndx = tools.Make_ndx(f = tpr_file, \
-            	                        n = "index_headgroups.ndx",\
+            	                      n = "index_headgroups.ndx",\
                                       o = "index_headgroups_corrected.ndx", \
                                       input = ('q')
                                       )
@@ -805,23 +830,25 @@ def main():
 
         
         # index file of headgroups
-        index_headgroups = 'index_headgroups_corrected.ndx'
+        index_headgroups = starting_directory +'/index_headgroups_corrected.ndx'
 
         # Initiate Fatslim class
-        fatslim = pipeline_tools.FatslimCommands(gro_file,
+        fatslim = pipeline_tools.FatslimCommands(processed_traj_file,
+                                                 gro_file,
                                                  index_headgroups,
-                                                 '2'
+                                                 nthread,
+                                                 apl_cutoff,
+                                                 tck_cutoff
                                                 )
 
         # Create an index file in which the different layers of the membrane
         # are listed 
 
-        home_dir = os.getcwd()
+        
 
-        fatslim.membranes(out_file = home_dir +"/bilayer.ndx") # one per frame 
+        fatslim.membranes(out_file = starting_directory +"/bilayer.ndx") # one per frame 
         os.rename('bilayer_0000.ndx', 'true_bilayer.ndx') 
-        for filename in glob("bilayer_*.ndx"):
-            os.remove(filename)
+        
         
         
         
@@ -835,7 +862,9 @@ def main():
                            index_headgroups,
                            directory_name,
                            apl_cutoff,
-                           tck_cutoff
+                           tck_cutoff,
+                           raw,
+                           nthread
                            )
 
             module_densmap(processed_traj_file,
@@ -844,7 +873,8 @@ def main():
             module_movements(processed_traj_file,
                              gro_file,
                              index_headgroups,
-                             directory_name
+                             directory_name,
+                             nthread
                             )
 
             module_order_parameter(processed_traj_file,
@@ -860,7 +890,9 @@ def main():
                                index_headgroups,
                                directory_name,
                                apl_cutoff,
-                               tck_cutoff
+                               tck_cutoff,
+                               raw,
+                               nthread
                                )
 
             if args.mod_maps :
@@ -871,8 +903,8 @@ def main():
             	module_movements(processed_traj_file,
                                  gro_file,
                                  index_headgroups,
-                                 directory_name
-                                 )
+                                 directory_name,
+                                 nthread)
             if args.mod_ord :
             	module_order_parameter(processed_traj_file,
                                        gro_file,

@@ -40,6 +40,7 @@ import errno
 import subprocess
 import argparse
 import shutil
+from multiprocessing import Pool
 
 # Import GROMACS-related modules
 import gromacs
@@ -508,7 +509,7 @@ class OrderParameter:
         # error estimation
         
         # convert to numpy array
-        return (np.mean(self.traj), np.std(self.traj))
+        return(np.mean(self.traj), np.std(self.traj))
 
 
     @property
@@ -518,7 +519,7 @@ class OrderParameter:
         # all OPs in self.traj
         
         self.means = np.mean(self.traj, axis=0)
-        return ( np.mean(self.traj), 
+        return( np.mean(self.traj), 
                  np.std(self.means), 
                  np.std(self.means)/np.sqrt(len(self.means)) )  
 
@@ -619,15 +620,36 @@ def parse_op_input(resname):
 class FatslimCommands:
      
     def __init__ (self,
+                  trajectory,
                   gro,
                   headgroups_ndx_file,
-                  thread,
+                  nthread,
+                  apl_cutoff,
+                  thk_cutoff
                   ):
 
-        self.gro = gro
-        self.thread = thread
-        self.headgroups_ndx_file = headgroups_ndx_file
+        """Initialize the class 
 
+        Parameters
+        -------------
+        trajectory : file 
+            Name of the .xtc file.
+        gro : file 
+            Name of the gro file 
+        headgroups_ndx_file =  file
+            Name of the ndx file containing the lipids headgroup
+        nthread : str
+            Number of core to parallelize the future metods
+        apl_cutoff/thk_cutoff : float
+            Float for the cutoff of apl or thickness command         
+        """
+
+        self.trajectory = trajectory
+        self.gro = gro
+        self.headgroups_ndx_file = headgroups_ndx_file
+        self.nthread = nthread
+        self.apl_cutoff = float(apl_cutoff)
+        self.thk_cutoff = float(thk_cutoff)
     
     def membranes(self,
                   out_file):
@@ -646,57 +668,50 @@ class FatslimCommands:
                              '-c',self.gro,
                              '-t',self.gro,
                              '-n',self.headgroups_ndx_file,
-                             '--nthreads',self.thread,
+                             '--nthreads', self.nthread,
                              '--output-index','bilayer.ndx'],
                             ) 
 
-    # def raw_thickness(self,
-    #                   trajectory,
-    #                   cutoff, 
-    #                   out_file):
+    def raw_thickness(self,
+                      out_file):
 
-    #     """Execute the thickness command of fatslim,
-    #     which compute the average thickness of lower,
-    #     upper leaflet and the entire membrane in a
-    #     ''.xvg file.
-    #     In this case we compute the raw values for 
-    #     each frame of the trajectory, creating multiple
-    #     files.
+        """Execute the thickness command of fatslim,
+        which compute the average thickness of lower,
+        upper leaflet and the entire membrane in a
+        ''.xvg file.
+        In this case we compute the raw values for 
+        each frame of the trajectory, creating multiple
+        files.
     
-    #     Parameters
-    #     ----------
-    #     trajectory : str 
-    #         Name of the .xtc file.
-    #     out_file : str 
-    #             Name of the output file.
-    #     """
-    #     cutoff = float(cutoff)
-    #     cutoff =str(cutoff)
+        Parameters
+        ----------
+        out_file : str 
+                Name of the output file.
+        """
+        
              
-    #     # the user modified the cut-off
-    #     if cutoff != 2.0:
-    #         a = subprocess.call(['fatslim', 'thickness',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-thickness-raw', out_file,
-    #                              '--thickness-cutoff',cutoff]
-    #                             )
-    #     # default cut-off
-    #     else: 
-    #         a = subprocess.call(['fatslim', 'thickness',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-thickness-raw', out_file],
-    #                             )
+        # the user modified the cut-off
+        if self.thk_cutoff != 2.0:
+            a = subprocess.call(['fatslim', 'thickness',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthreads',self.nthread,
+                                 '--export-thickness-raw', out_file,
+                                 '--thickness-cutoff',str(self.thk_cutoff)]
+                                )
+        # default cut-off
+        else: 
+            a = subprocess.call(['fatslim', 'thickness',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthreads',self.nthread,
+                                 '--export-thickness-raw', out_file],
+                                )
 
 
     def thickness(self,
-                  trajectory,
-                  cutoff, 
                   out_file):
 
         """Execute the thickness command of fatslim,
@@ -706,77 +721,67 @@ class FatslimCommands:
     
         Parameters
         ----------
-        trajectory : str 
-            Name of the .xtc file.
         out_file : str 
                 Name of the output file.
         """
-        cutoff = float(cutoff)
-        cutoff =str(cutoff)
-        if cutoff != 2.0:
+        
+        if self.thk_cutoff != 2.0: 
             a = subprocess.call(['fatslim', 'thickness',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
+                                 '-t',self.trajectory,
+                                 '--nthreads', self.nthread,
                                  '--plot-thickness', out_file,
-                                 '--thickness-cutoff',cutoff]
+                                 '--thickness-cutoff',str(self.thk_cutoff)]
                                 )
         else:
             a = subprocess.call(['fatslim',
                                  'thickness',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
-                                 '--plot-thickness',out_file],
+                                 '-t',self.trajectory,
+                                 '--nthreads',self.nthread,
+                                 '--plot-thickness', out_file],
                                 )
 
 
-    # def raw_AreaPerLipid(self,
-    #                      trajectory,
-    #                      cutoff, 
-    #                      out_file):
+    def raw_AreaPerLipid(self,
+                         out_file):
 
-    #     """Execute the APL command of fatslim,
-    #     which compute the area per lipid thickness 
-    #     of lower,upper leaflet and the entire membrane
-    #     in a''.xvg file.
-    #     In this case we compute the raw values for 
-    #     each frame of the trajectory, creating multiple
-    #     files.
+        """Execute the APL command of fatslim,
+        which compute the area per lipid thickness 
+        of lower,upper leaflet and the entire membrane
+        in a''.xvg file.
+        In this case we compute the raw values for 
+        each frame of the trajectory, creating multiple
+        files.
     
-    #     Parameters
-    #     ----------
-    #     trajectory : str 
-    #         Name of the .xtc file.
-    #     out_file : str 
-    #             Name of the output file.
-    #     """
-    #     cutoff = float(cutoff)
-    #     cutoff =str(cutoff)
-    #     if cutoff != 3.0:
-    #         a = subprocess.call(['fatslim', 'apl',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-apl-raw',out_file,
-    #                              '--apl-cutoff',cutoff],
-    #                             )
-    #     else:
-    #         a = subprocess.call(['fatslim', 'apl',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-apl-raw',out_file]
-    #                             )
+        Parameters
+        ----------
+        out_file : str 
+                Name of the output file.
+        """
+
+        if self.apl_cutoff != 3.0:
+            a = subprocess.call(['fatslim', 'apl',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthreads',self.nthread,
+                                 '--export-apl-raw',out_file,
+                                 '--apl-cutoff',str(self.apl_cutoff)],
+                                )
+        else:
+            a = subprocess.call(['fatslim', 'apl',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthreads',self.nthread,
+                                 '--export-apl-raw',out_file]
+                                )
 
 
     def AreaPerLipid(self,
-                     trajectory,
-                     cutoff, 
                      out_file):
 
         """Execute the APL command of fatslim,
@@ -786,29 +791,25 @@ class FatslimCommands:
     
         Parameters
         ----------
-        trajectory : str 
-            Name of the .xtc file.
         out_file : str 
                 Name of the output file.
         """
-        cutoff = float(cutoff)
-        cutoff =str(cutoff)
-        if cutoff != 3.0:
 
+        if self.apl_cutoff != 3.0:
             a = subprocess.call(['fatslim', 'apl',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
+                                 '-t',self.trajectory,
+                                 '--nthreads',self.nthread,
                                  '--plot-apl',out_file,
-                                 '--apl-cutoff', cutoff],
+                                 '--apl-cutoff', str(self.apl_cutoff)],
                                 )
         else:
             a = subprocess.call(['fatslim', 'apl',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
+                                 '-t',self.trajectory,
+                                 '--nthreads',self.nthread,
                                  '--plot-apl',out_file],
                                 )
 
@@ -822,11 +823,37 @@ class TrajCommandModified:
                  trajectory,
                  topology,
                  headgroups_ndx_file,
+                 nthread
                  ):
     
         self.trajectory = trajectory
         self.topology = topology
         self.headgroups_ndx_file = headgroups_ndx_file
+        self.nthread = int(nthread)
+
+    def traj(self,
+             list_ndx):
+        
+        """Execute the traj command of gromacs,
+        which extract x,y,z coordinates of a selection
+        given by the index; in our case we pass lipids
+        residues in loop. 
+    
+        Parameters
+        ----------
+        list_ndx : list 
+                List of index files of lipid residues
+        """
+
+        for ndx_file in list_ndx:
+
+
+            traj = tools.Traj(f = self.trajectory,
+                          s = self.topology,
+                          ox = ndx_file.split('.')[0] + '.xvg',
+                          com = True,
+                          n = ndx_file)
+            traj.run()
 
 
     def leaflets(self):
@@ -867,6 +894,8 @@ class TrajCommandModified:
                                                'q')
                                       )
             make_ndx.run()
+
+
 
 
     def get_lipids_indexes(self,
@@ -926,48 +955,55 @@ class TrajCommandModified:
 
         starting_directory = os.getcwd() 
 
-        dirct = os.getcwd()+'/'+ dir_name # get the path
+        dirct = starting_directory +'/'+ dir_name # get the path
 
         os.chdir(dirct)
-      
+        
+        l_ndx = []
+        
         for i in os.listdir(dirct):
-
+            
             if i.endswith('.ndx'): #Execute the traj command for each file in the folder
                 
-                traj = tools.Traj(f = starting_directory+'/'+ self.trajectory,
-                                  s = starting_directory+'/'+ self.topology,
-                                  ox = i.split('.')[0] + '.xvg',
-                                  com = True,
-                                  n = dirct + '/' + i)
-                traj.run()
+                l_ndx.append(i)
         
+        chunks = [l_ndx[i::self.nthread] for i in range(self.nthread)] # divide in chunks to parallelize
+        
+        # Execute the parallelization 
+        pool = Pool(processes = self.nthread)
+        result = pool.map(self.traj, chunks)
+        pool.close()
+        pool.join()
 
         # Modifies the xvg to remove the first  25 lines
         # and substitute the first line with the name of
         # the lipid residue and its number
-        os.system("for i in *.xvg ;\
-                   do var=`echo $i | sed 's/.xvg//'` ; \
-                   sed -i '1,25d' $var.xvg ; \
-                   perl -pi -e 's/^(.*)/'$var'/ \
-                   if $.==1' $var.xvg ; \
-                   done"
-                  )
+        os.system('for i in *.xvg ;\
+                   do var=`echo $i | sed "s/.xvg//"` ; \
+                   sed -i "1,24d" ${var}.xvg ; \
+                   sed -i "1 s/.*/$var/g" ${var}.xvg;\
+                   done'
+                   )
 
         # If in the directory is present the either the word 
         # upper or lower then create and append to the Merged 
         # file each xvg, in order to have a novel xvg file
         # to be plotted 
         if "upper" in dir_name : 
-            os.system('printf  "# File created on $(date)\n# Created by $(whoami) \n# For the analysis of membranes\n" \
-                   > Merged_coord_upper_leaflet.txt'  )
+            os.system('printf  "# File created on $(date)\n\
+                                # Created by $(whoami) \n\
+                                # For the analysis of membranes\n" \
+                                > Merged_coord_upper_leaflet.txt'  )
             os.system("cat *.xvg >> Merged_coord_upper_leaflet.txt")
             shutil.move("Merged_coord_upper_leaflet.txt",starting_directory)
             shutil.rmtree(dirct)
         elif "lower" in dir_name :
-            os.system('printf  "# File created on $(date)\n# Created by $(whoami) \n# For the analysis of membranes\n" \
-                   > Merged_coord_lower_leaflet.txt'  )
+            os.system('printf  "# File created on $(date)\n\
+                                # Created by $(whoami) \n\
+                                # For the analysis of membranes\n" \
+                                > Merged_coord_lower_leaflet.txt'  )
             os.system("cat *.xvg >> Merged_coord_lower_leaflet.txt")
-            shutil.move("Merged_coord_lower_leaflet.txt ",starting_directory)
+            shutil.move("Merged_coord_lower_leaflet.txt",starting_directory)
             shutil.rmtree(dirct)
 
 
