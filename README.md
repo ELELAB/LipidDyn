@@ -141,11 +141,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 [4] Mark James Abraham, Teemu Murtola, Roland Schulz, Szilárd Páll, Jeremy C. Smith, Berk Hess, Erik Lindahl,GROMACS: High performance molecular simulations through multi-level parallelism from laptops to supercomputers,SoftwareX,Volumes 1–2,2015,Pages 19-25,https://doi.org/10.1016/j.softx.2015.06.001. <br/>
 
-## Acknowledgments
 
-Hat tip to anyone whose code was used
-* Inspiration
-* etc
 
 
 
