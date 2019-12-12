@@ -7,12 +7,12 @@ The framework is divided into four independent modules that can be run separatel
 depending on the user choice. Each performs a different analysis able to account 
 for embedded proteins into the membrane. <br/>
 LipidDyn has been developed to include parameters that can be used to validate 
-simulation ensembles against experimental data[x].<br/>
+simulation ensembles against experimental data.<br/>
 One module estimates the thickness of the membrane ( usually defined as the 
 distance between phosphorus atoms in two leaflets ) and the area per lipid 
 (the surface of the cross-section of the cylindrical hydrocarbon part of 
 the lipid), providing information about the fluidity of the system. <br/>
-The software employed is FatSlim [x].<br/>
+The software employed is FatSlim [1].<br/>
 A second module computes 2D density maps, a visual representation of how 
 the density of the membrane changes, on both the leaflets constituting the bilayer,
 giving insight on the system phase. <br/>
@@ -26,7 +26,7 @@ details of the conformations that the atoms in the lipid tails adopt. <br/>
 This computational platform has currently employed to study, how different 
 compositions in sphingolipids affects the structural and dynamical properties 
 of organelle-like membrane models, in collaboration with our colleagues in the
-Unit of Cell Death and Metabolism[x]. <br/>
+Unit of Cell Death and Metabolism. <br/>
 
 
 ## Getting Started
@@ -65,7 +65,7 @@ the environment
 source LypidDyn/bin/activate
 ```
 
-Install the FatSlim [x]
+Install the FatSlim [1]
 
 ```
 git clone https://github.com/FATSLiM/fatslim.git
@@ -73,19 +73,19 @@ cd fatslim/
 python setup.py install
 ```
 
-Install GromacsWrapper [x] with pip
+Install GromacsWrapper [2] with pip
 
 ```
 pip install GromacsWrapper
 ```
 
-Install MDAnalysis [x] with pip
+Install MDAnalysis [3] with pip
 
 ```
 pip install MDAnalysis
 ```
 
-For the installation of Gromacs software we refer to [x].
+For the installation of Gromacs software we refer to [4].
 To deactivate the virtual environment just tipe the following
 command into the terminal
 
@@ -131,9 +131,19 @@ See also the list of [contributors](https://github.com/your/project/contributors
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
+## References
+
+[1] Sébastien Buchoux, FATSLiM: a fast and robust software to analyze MD simulations of membranes, Bioinformatics, Volume 33, Issue 1, 1 January 2017, Pages 133–134, https://doi.org/10.1093/bioinformatics/btw563 <br/>
+
+[2] https://gromacswrapper.readthedocs.io/en/latest/# <br/>
+ 
+[3] R. J. Gowers, M. Linke, J. Barnoud, T. J. E. Reddy, M. N. Melo, S. L. Seyler, D. L. Dotson, J. Domanski, S. Buchoux, I. M. Kenney, and O. Beckstein. MDAnalysis: A Python package for the rapid analysis of molecular dynamics simulations. In S. Benthall and S. Rostrup, editors, Proceedings of the 15th Python in Science Conference, pages 98-105, Austin, TX, 2016. SciPy, doi:10.25080/majora-629e541a-00e.
+
+[4] Mark James Abraham, Teemu Murtola, Roland Schulz, Szilárd Páll, Jeremy C. Smith, Berk Hess, Erik Lindahl,GROMACS: High performance molecular simulations through multi-level parallelism from laptops to supercomputers,SoftwareX,Volumes 1–2,2015,Pages 19-25,https://doi.org/10.1016/j.softx.2015.06.001. <br/>
+
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
+Hat tip to anyone whose code was used
 * Inspiration
 * etc
 
