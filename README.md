@@ -4,7 +4,7 @@ We have built an automated computational pipeline, implemented in Python 3,Lypid
 for the accurate analysis of the structural properties and dynamics of lipid bilayers
 simulations. <br/>
 The framework is divided into four independent modules that can be run separately, 
-depending on the user choice. Each performs a different analysis able to account 
+depending on the user choice.<br/> Each performs a different analysis able to account 
 for embedded proteins into the membrane. <br/>
 LipidDyn has been developed to include parameters that can be used to validate 
 simulation ensembles against experimental data.<br/>
