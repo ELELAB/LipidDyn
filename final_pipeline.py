@@ -68,179 +68,16 @@ def tac():
     (t_hour,t_min) = divmod(t_min,60) 
     print('Time passed: {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec))
 
-
-
-def data_pre_processing(u,
-	                    trajectory_file,
-                        tpr_file,
-                        starting_directory,
-                        checkpoint_file,
-                        skip,
-                        begin,
-                        end,
-                        directory_name
-                        ):
-    
-    """Pre-processing of the file.
-    It centers the sistem and depending on the user
-    choice skips ps on the trajectory or cuts it in
-    specific frame
-
-    Parameters
-    ----------
-    trajectory_file : str 
-            Name of the .xtc file.
-    tpr_file : str
-            Name of the .tpr file.
-    starting_directory : str
-            Name of the starting directory
-    checkpoint_file : str 
-            Name of the .cpt file.
-    skip : float
-            Number of ps to skip 
-    begin : float
-            Number wich represent the starting point
-    end : float 
-          Number wich represent the end point
-    """
-
-    # If the root directory Analysis is not present, make it.
-    # Needed further for storage purpose. 
-    
     
 
-    if not os.path.exists(directory_name):
-        try:
-            os.mkdir((directory_name))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
-    else:
-        # If the same dir exist remove it and the create it again 
-        shutil.rmtree(starting_directory +'/'+ directory_name)
-        os.mkdir((directory_name))
-
-
-    # Create an index of only the lipids of the system .  
-    
-    # Selection of most molecules that can constitutes the 
-    # solvent and solutes 
-    solv = u.select_atoms(" resname TIP3") + \
-           u.select_atoms(" resname HT") + \
-           u.select_atoms(" resname HT") + \
-           u.select_atoms(" resname HX") + \
-           u.select_atoms(" resname OT") + \
-           u.select_atoms(" resname OX") + \
-           u.select_atoms(" resname LIT")+ \
-           u.select_atoms(" resname SOD")+ \
-           u.select_atoms(" resname MG") + \
-           u.select_atoms(" resname POT")+ \
-           u.select_atoms(" resname CAL")+ \
-           u.select_atoms(" resname RUB")+ \
-           u.select_atoms(" resname CES")+ \
-           u.select_atoms(" resname BAR")+ \
-           u.select_atoms(" resname ZN") + \
-           u.select_atoms(" resname CAD")+ \
-           u.select_atoms(" resname CLA")
-
-    system = u.select_atoms("all") 
-     
-    # In case of only membrane :
-    # (everything)- (all solvent + solute) = only membrane
-    # In case of presence of protein :
-    # (everything)-(all solvent + solute) the protein = membrane + protein
- 
-    memb = system.difference(solv) 
-    memb.write(filename= "system_no_solvent.ndx", name = "system_no_solvent")
-
-
-
-    # If the user choose to skip ps on the trajectory or prefer to analyze 
-    # it all, cutting or not via --begin or --end
-    # Create the .gro associated with the trajectory with only the last frame in it 
-    processed_traj = 'processed_traj.xtc'
-    gro_file = 'last_frame.gro'
-    
-    
-
-    if skip == None and (begin == None and end == None):
-    # There is no ps to skip
-        trjconv = tools.Trjconv(f = trajectory_file, \
-	                            s = tpr_file, \
-	                            ur = 'compact', \
-	                            n = 'system_no_solvent.ndx', \
-	                            pbc = 'mol', \
-	                            o = processed_traj, \
-	                            )
-        trjconv.run()
-
-    elif skip == None and (begin is not None and end is not None): 
-    # Only cutting the traj and creating a new processed .xtc file
-        trjconv = tools.Trjconv(f = trajectory_file, \
-	                            s = tpr_file, \
-	                            ur = 'compact', \
-	                            n = 'system_no_solvent.ndx', \
-	                            pbc = 'mol', \
-	                            o = processed_traj, \
-	                            b = begin, \
-	                            e = end 
-	                            )
-        trjconv.run()
-
-    elif skip is not None and (begin is not None and end is not None): 
-    #skipping and cutting the traj and again create a new processed .xtc file
-        trjconv = tools.Trjconv(f = trajectory_file, \
-	                            s = tpr_file, \
-	                            ur = 'compact', \
-	                            n = 'system_no_solvent.ndx', \
-	                            pbc = 'mol', \
-	                            o = processed_traj, \
-	                            b = begin, \
-	                            e = end ,\
-	                            skip = skip
-	                            )
-        trjconv.run()
-
-    elif skip is not None and (begin == None and end == None): 
-
-    # The user is only skipping ps in the traj
-        trjconv = tools.Trjconv(f = trajectory_file, \
-	                            s = tpr_file, \
-	                            ur = 'compact', \
-	                            n = 'system_no_solvent.ndx', \
-	                            pbc = 'mol', \
-	                            o = processed_traj, \
-	                            skip = skip
-	                            )
-        trjconv.run()
-    
-    # Generate a gro with the last frame, used later
-    # for the computation of thickness and Area per lipid
-    trjconv = tools.Trjconv(f = checkpoint_file, \
-                            s = tpr_file, \
-                            ur = 'compact', \
-                            n = 'system_no_solvent.ndx', \
-                            pbc = 'mol', \
-                            o = gro_file, \
-                            )
-    trjconv.run()
-
-    
-    
-    
-
-  
-   
-        
-
-def module_fatslim(processed_traj_file,
-                   gro_file,
+def module_fatslim(trajectory_file,
+                   topology_file,
                    index_headgroups,
                    directory_name,
                    apl_cutoff,
                    tck_cutoff,
                    raw,
-                   nthread
+                   ncore
                    ):
     
     print('---------------------------------------------------\n')
@@ -251,9 +88,9 @@ def module_fatslim(processed_traj_file,
 
     Parameters
     ----------
-    processed_traj_file : str
+    trajectory_file : str
             Name of the processed .xtc file.
-    gro_file : str 
+    topology_file : str 
             Name of the last producte .gro file.
     index_headgroups : str
             Filename of the index containing all the headgroups
@@ -265,7 +102,7 @@ def module_fatslim(processed_traj_file,
             Number representing the cut-off for the thickness
     raw : True/False
             Value to include or not the raw output
-    nthread : int
+    ncore : int
             Number of cores for parallelization             
     """
 
@@ -273,7 +110,7 @@ def module_fatslim(processed_traj_file,
     
     # Creates different folder in which the output is stored
     
-    analysis_fatlism = directory_name + '/Fatslim/'
+    analysis_fatlism = os.path.abspath(directory_name + '/Fatslim/')
 
     if not os.path.exists(analysis_fatlism):
         try:
@@ -288,10 +125,10 @@ def module_fatslim(processed_traj_file,
   
     # Begins of the fatslim analysis 
     
-    fatslim = pipeline_tools.FatslimCommands(processed_traj_file,
-                                             gro_file,
+    fatslim = pipeline_tools.FatslimCommands(trajectory_file,
+                                             topology_file,
                                              index_headgroups,
-                                             nthread,
+                                             ncore,
                                              apl_cutoff,
                                              tck_cutoff
                                              )
@@ -303,15 +140,13 @@ def module_fatslim(processed_traj_file,
     
     fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
 
-    if raw : 
+    if raw : # if the user required the raw data
         fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
-                                 '/fatslim_apl/raw_apl.csv')
-
-        
+                                 '/fatslim_apl/raw_apl.csv')      
         fatslim.raw_thickness(out_file = analysis_fatlism + \
                               '/fatslim_thickness/raw_thickness.csv'
                               )
-    else:
+    else: 
         pass
 
    
@@ -319,7 +154,7 @@ def module_fatslim(processed_traj_file,
 
 
 
-def module_densmap(processed_traj_file,
+def module_densmap(trajectory_file,
                    directory_name):
     
     """ Compute the 2D maps of the system exploiting densmap command
@@ -327,14 +162,14 @@ def module_densmap(processed_traj_file,
 
     Parameters
     ----------
-    processed_traj_file : str
+    trajectory_file : str
             Name of the processed .xtc file.
     directory_name : str
             Name of the output folder
     """
 
 
-    folder = directory_name +'/2D_maps/'
+    folder = os.path.abspath(directory_name +'/2D_maps/')
 
     if not os.path.exists(folder):
         try:
@@ -347,30 +182,30 @@ def module_densmap(processed_traj_file,
     
 
     # Lower Leaflet , input == 0
-    densmap = tools.G_densmap(f = processed_traj_file,\
+    densmap = tools.G_densmap(f = trajectory_file,\
                               n = 'true_bilayer.ndx',\
-                              o = folder +'lower.xpm',\
+                              o = folder +'/lower.xpm',\
                               input = ('0')
                              )
     densmap.run()
 
     # Upper Leaflet , input == 1
-    densmap = tools.G_densmap(f = processed_traj_file,\
+    densmap = tools.G_densmap(f = trajectory_file,\
                               n = 'true_bilayer.ndx',\
-                              o = folder + 'upper.xpm',\
+                              o = folder + '/upper.xpm',\
                               input = ('1')
                              )
     densmap.run()
     
     #conversion of the xpm file into eps using xpm2ps
-    xpm2ps = tools.Xpm2ps(f = folder + 'lower.xpm', \
-                          o = folder + 'true_lower.eps', \
+    xpm2ps = tools.Xpm2ps(f = folder + '/lower.xpm', \
+                          o = folder + '/true_lower.eps', \
                           rainbow = 'red'
                           )
     xpm2ps.run()
     
-    xpm2ps = tools.Xpm2ps(f = folder + 'upper.xpm', \
-                          o = folder + 'true_upper.eps', \
+    xpm2ps = tools.Xpm2ps(f = folder + '/upper.xpm', \
+                          o = folder + '/true_upper.eps', \
                           rainbow = 'red'
                           )
     xpm2ps.run()
@@ -379,12 +214,12 @@ def module_densmap(processed_traj_file,
 
 
 
-def module_movements(processed_traj_file,
-                     gro_file,
+def module_movements(trajectory_file,
+                     topology_file,
                      index_headgroups,
                      directory_name,
-                     nthread
-	                 ):
+                     ncore
+                     ):
      
     print('---------------------------------------------------\n')
     
@@ -395,19 +230,19 @@ def module_movements(processed_traj_file,
 
     Parameters
     ----------
-    processed_traj_file : str
+    trajectory_file : str
             Name of the processed .xtc file. 
-    gro_file : str 
+    topology_file : str 
             Name of the last producte .gro file.
     index_headgroups : str
             Filename of the index containing all the headgroups
     directory_name : str
             Name of the output folder
-    nthread : int
+    ncore : int
             Number of cores for parallelization 
     """
 
-    analysis_traj = directory_name + "/Movements/"
+    analysis_traj = os.path.abspath(directory_name + "/Movements/")
 
     if not os.path.exists(analysis_traj):
         try:
@@ -418,51 +253,79 @@ def module_movements(processed_traj_file,
 
     
 
-    starting_directory = os.getcwd()
+    starting_directory = os.path.abspath(os.getcwd())
 
     index_lower_leaflet_res = starting_directory + '/index_lower_leaflet_res.ndx'
     index_upper_leaflet_res = starting_directory + '/index_upper_leaflet_res.ndx'
 
-    traj_cmd_modified = pipeline_tools.TrajCommandModified(processed_traj_file,
-                                                           gro_file,
+    traj_cmd_modified = pipeline_tools.TrajCommandModified(trajectory_file,
+                                                           topology_file,
                                                            index_headgroups,
-                                                           nthread
+                                                           ncore
                                                            )
-    traj_cmd_modified.leaflets() 
-    os.mkdir('upper_leaflet') # create the folder
-    os.chdir('upper_leaflet') # enter the folder
+
+    traj_cmd_modified.leaflets() # 
+    
+    if not os.path.exists("upper_leaflet"):
+        try:
+            os.mkdir(("upper_leaflet"))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+    os.chdir("upper_leaflet")
     traj_cmd_modified.get_lipids_indexes(index_upper_leaflet_res) # upper leaflet indexes
-    os.chdir(starting_directory)
-    traj_cmd_modified.get_xvg_lipids("upper_leaflet") 
-
-    os.chdir(starting_directory) # return to the home folder
+    traj_cmd_modified.get_xvg_lipids()  
     
-    os.mkdir('lower_leaflet') # create the folder
-    os.chdir('lower_leaflet') # enter the folder
+    # Append to the Merged file each .xvg to have a novel xvg file to be plotted 
+    # (upper leaflet)
+    os.system('printf  "# File created on $(date)\n\
+                        # Created by $(whoami) \n\
+                        # For the analysis of membranes\n" \
+                        > Merged_coord_upper_leaflet.txt'  )
+    os.system("cat *.xvg >> Merged_coord_upper_leaflet.txt")
+    shutil.move("Merged_coord_upper_leaflet.txt", analysis_traj)
+    os.chdir(starting_directory)
+
+    if not os.path.exists("lower_leaflet"):
+        try:
+            os.mkdir(("lower_leaflet"))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+ 
+    os.chdir("lower_leaflet")
     traj_cmd_modified.get_lipids_indexes(index_lower_leaflet_res) # lower leaflet indexes
-    os.chdir(starting_directory)
-    traj_cmd_modified.get_xvg_lipids("lower_leaflet") 
-
+    traj_cmd_modified.get_xvg_lipids() 
+    
+    # Append to the Merged file each .xvg to have a novel xvg file to be plotted 
+    # (lower leaflet)
+    os.system('printf  "# File created on $(date)\n\
+                        # Created by $(whoami) \n\
+                        # For the analysis of membranes\n" \
+                        > Merged_coord_lower_leaflet.txt'  )
+    os.system("cat *.xvg >> Merged_coord_lower_leaflet.txt")
+    shutil.move("Merged_coord_lower_leaflet.txt",analysis_traj)
     os.chdir(starting_directory)
     
-    for filename in glob.glob("*.txt") :
-        shutil.move(filename,analysis_traj)
+    
+    for dir_name in ["upper_leaflet","lower_leaflet"] :
+        shutil.rmtree(dir_name) # remove the folders with all .xvgs
+        
 
 
-
-
-def module_order_parameter(processed_traj_file,
-	                       gro_file,
+def module_order_parameter(trajectory_file,
+                           topology_file,
                            directory_name
-	                       ):
+                           ):
     
     """
 
     Parameters
     ----------
-    processed_traj_file : str
+    trajectory_file : str
             Name of the processed .xtc file. 
-    gro_file : str 
+    topology_file : str 
             Name of the last producte .gro file.
     directory_name : str
             Name of the output folder
@@ -505,21 +368,22 @@ def module_order_parameter(processed_traj_file,
     
     Parameters
     ----------
-    processed_traj_file : str
+    trajectory_file : str
                     Name of the processed .xtc file. 
-    gro_file : str 
+    topology_file : str 
             Name of the last producte .gro file.
 
     """
     
 
-    for i in pipeline_tools.d:
-
-        ordPars = pipeline_tools.parse_op_input(pipeline_tools.d[i])
+    for def_file in glob.iglob('def_files/*.def'):
+        
+        lipid_name = os.path.splitext(def_file)[0].split("/")[1]
+        ordPars = pipeline_tools.parse_op_input(os.path.abspath(def_file))
 
         pipeline_tools.read_trajs_calc_OPs(ordPars,
-                                           gro_file,
-                                           [processed_traj_file]
+                                           topology_file,
+                                           [trajectory_file]
                                            )
 
         for op in ordPars.values():
@@ -527,7 +391,7 @@ def module_order_parameter(processed_traj_file,
              
         # writes the output file in .dat file 
         try:
-            with open('Order_Parameter_'+ i +'.dat',"w") as f:
+            with open('Order_Parameter_'+ lipid_name +'.dat',"w") as f:
                 f.write("# OP_name    resname    atom1    atom2    OP_mean   OP_stddev  OP_stem\n")
                 f.write("#--------------------------------------------------------------------\n")
                 for op in ordPars.values():
@@ -539,17 +403,16 @@ def module_order_parameter(processed_traj_file,
             print("Problem writing the main outputfile")
         
 
-        with open('Order_Parameter_'+ i +'.dat','r') as g :
+        with open('Order_Parameter_'+ lipid_name +'.dat','r') as g :
             if "nan" in g.read():
-                subprocess.call(['rm','Order_Parameter_'+ i +'.dat'])
+                os.remove('Order_Parameter_'+ lipid_name +'.dat')
             else:
-                a = subprocess.call(['mv','Order_Parameter_'+ i +'.dat',
-                              order_folder])               
+                shutil.move('Order_Parameter_'+ lipid_name +'.dat',order_folder) 
 
          
 def cleaning_all():
 
-# Clean all the temporary files which were created 
+    # Clean all the temporary files which were created 
 
 
     print('---------------------------------------------------\n')
@@ -572,11 +435,11 @@ def main():
     
     # Main function 
     
-    description= "Pipeline that calculates four different parameter for a MD simulation \
-    of a lipid membrane coming from gromacs"
+    description= "LypidDyn pipeline for calculating different parameters of a lipid membrane \
+    Molecular Dynamics simulation"
 
-    usage = "python3 pipeline.py -t ["".xtc/trr] -f ["".tpr] -g [*.cpt] -s [skip ps] \
-    -b [begin] -e[end] -all [True/False] -c -fatslim -2d -mov -ordpar -d [directory name]"
+    usage = "python3 pipeline.py -t ["".xtc/trr] -f ["".gro/tpr] -all [True/False] -c  \
+             -fatslim -2d -mov -ordpar -d [directory name]"
              
 
     parser = argparse.ArgumentParser(description=description, usage=usage)
@@ -591,22 +454,14 @@ def main():
                         )
 
     parser.add_argument('-f',
-                        '--tpr file',
+                        '--topology_file',
                         dest='topology',
                         type=str,
                         required=True,
                         metavar='',
-                        help=' molecular topology and all the simulation parameters ',
+                        help=' Molecular topology file [.gro/.tpr]',
                         )
 
-    parser.add_argument('-g',
-                        '--checkpoint file',
-                        dest='checkpoint',
-                        type=str,
-                        required=True,
-                        metavar='',
-                        help='<.cpt> file',
-                        )
 
     parser.add_argument('-d',
                         '--dir_name',
@@ -615,37 +470,7 @@ def main():
                         type=str,
                         required=False,
                         metavar='',
-                        help='The directory name for the analysis',
-                        )
-
-    parser.add_argument('-s',
-                        '--skip',
-                        default = None,
-                        dest='skip',
-                        type=str,
-                        required = False,
-                        help='How much ps are intended to skip in the trajectory',
-                        metavar='',
-                        )
-
-    parser.add_argument('-b',
-                        '--begin',
-                        default = None,
-                        dest='begin',
-                        type=str,
-                        required = False,
-                        help='Customization of the trajectories',
-                        metavar='',
-                        )
-
-    parser.add_argument('-e',
-                        '--end',
-                        default = None,
-                        dest='end',
-                        type=str,
-                        required = False,
-                        help='Customizatione of the trajectories',
-                        metavar='',
+                        help='The directory name for outputs of the pipeline',
                         )
 
     parser.add_argument('-c',
@@ -722,16 +547,16 @@ def main():
                         help='Specify if a protein is embedded in the membrane'
                        )
 
-    parser.add_argument('-nthread',
+    parser.add_argument('-ncore',
                         '--mpi',
+                        nargs ='?',
                         default = 2,
-                        dest='core',
-                        required = False,
-                        help='Specify on how many core you want for parallelization'
+                        dest='mpi',
+                        help='Specify on how many cores use for parallelization'
                        )
 
     parser.add_argument('-raw',
-                        '--raw',
+                        '--raw_data',
                         action='store_true',
                         dest='raw',
                         required = False,
@@ -746,43 +571,31 @@ def main():
         quit()
     else:
         
-        trajectory_file = args.trajectory
-        tpr_file = args.topology
-        checkpoint_file = args.checkpoint
+        trajectory_file = os.path.abspath(args.trajectory)
+        topology_file = os.path.abspath(args.topology)
         directory_name = args.directory
-        nthread = args.core
-        begin = args.begin  
-        end = args.end  
-        skip = args.skip
-        starting_directory = os.getcwd()
+        ncore = args.mpi
         cleaning = args.clean
         apl_cutoff = float(args.apl_cutoff)
         tck_cutoff = float(args.tck_cutoff)
         raw = args.raw
 
         tic()
-        
-        u = mda.Universe(tpr_file,trajectory_file)
-
-        data_pre_processing(u,
-        	                trajectory_file,
-                            tpr_file,
-                            starting_directory,
-                            checkpoint_file,
-                            skip,
-                            begin,
-                            end,
-                            directory_name
-                            )
+        starting_directory = os.getcwd()
+        u = mda.Universe(topology_file,trajectory_file)
 
         
-        # If the trajectory was skipped then the processed xtc file exist,
-        # therefore it is used by the different modules, if not used the 
-        # xtc file with all the trajectory 
+        if not os.path.exists(directory_name):
+            try:
+                os.mkdir((directory_name))
+            except OSError as exc: # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
 
-        processed_traj_file = starting_directory + '/processed_traj.xtc'
-        gro_file = starting_directory +'/last_frame.gro'
         
+
+        
+ 
         # means a protein is embedded in the bilayer
         if args.prot :
 
@@ -793,16 +606,16 @@ def main():
             g = u.select_atoms("name P") + \
                 u.select_atoms("resname ERG and name O3") +  \
                 u.select_atoms("resname CHL1 and name O3")
-            p = u.select_atoms("protein")
-            g.write(filename= "index_headgroups.ndx", name="headgroups", mode ="a")
-            p.write(filename= "index_headgroups.ndx", name="protein", mode = "a")
+            p = u.select_atoms("protein and not name H*")
+            g.write(filename= "index_headgroups.ndx", name="headgroups", mode ="a",frame=0)
+            p.write(filename= "index_headgroups.ndx", name="protein", mode = "a",frame=0)
 
 
             # Sometimes Fatslim has problem with ndx written by MDAnalysis
             # so we use make_ndx to reconvert it, we use MDAnalysis because
             # we can have more control over the selections of headgroups 
-            make_ndx = tools.Make_ndx(f = tpr_file, \
-            	                      n = "index_headgroups.ndx",\
+            make_ndx = tools.Make_ndx(f = topology_file, \
+                                      n = "index_headgroups.ndx",\
                                       o = "index_headgroups_corrected.ndx", \
                                       input = ('q')
                                       )
@@ -816,12 +629,12 @@ def main():
             g = u.select_atoms("name P") + \
                 u.select_atoms("resname ERG and name O3") +  \
                 u.select_atoms("resname CHL1 and name O3")
-            g.write(filename= "index_headgroups.ndx", name="headgroups")
+            g.write(filename= "index_headgroups.ndx", name="headgroups",frame=0)
 
 
             # same applies here
-            make_ndx = tools.Make_ndx(f = tpr_file, \
-            	                      n = "index_headgroups.ndx",\
+            make_ndx = tools.Make_ndx(f = topology_file, \
+                                      n = "index_headgroups.ndx",\
                                       o = "index_headgroups_corrected.ndx", \
                                       input = ('q')
                                       )
@@ -833,10 +646,10 @@ def main():
         index_headgroups = starting_directory +'/index_headgroups_corrected.ndx'
 
         # Initiate Fatslim class
-        fatslim = pipeline_tools.FatslimCommands(processed_traj_file,
-                                                 gro_file,
+        fatslim = pipeline_tools.FatslimCommands(trajectory_file,
+                                                 topology_file,
                                                  index_headgroups,
-                                                 nthread,
+                                                 ncore,
                                                  apl_cutoff,
                                                  tck_cutoff
                                                 )
@@ -846,7 +659,7 @@ def main():
 
         
 
-        fatslim.membranes(out_file = starting_directory +"/bilayer.ndx") # one per frame 
+        fatslim.membranes(out_file = starting_directory + "/bilayer.ndx") # one per frame 
         os.rename('bilayer_0000.ndx', 'true_bilayer.ndx') 
         
         
@@ -857,62 +670,62 @@ def main():
 
         if args.all_modules :
 
-            module_fatslim(processed_traj_file,
-                           gro_file,
+            module_fatslim(trajectory_file,
+                           topology_file,
                            index_headgroups,
                            directory_name,
                            apl_cutoff,
                            tck_cutoff,
                            raw,
-                           nthread
+                           ncore
                            )
 
-            module_densmap(processed_traj_file,
+            module_densmap(trajectory_file,
                            directory_name)
 
-            module_movements(processed_traj_file,
-                             gro_file,
+            module_movements(trajectory_file,
+                             topology_file,
                              index_headgroups,
                              directory_name,
-                             nthread
+                             ncore
                             )
 
-            module_order_parameter(processed_traj_file,
-                                   gro_file,
+            module_order_parameter(trajectory_file,
+                                   topology_file,
                                    directory_name
                                    )
             
         else:
 
             if args.mod_fat : 
-            	module_fatslim(processed_traj_file,
-                               gro_file,
+                module_fatslim(trajectory_file,
+                               topology_file,
                                index_headgroups,
                                directory_name,
                                apl_cutoff,
                                tck_cutoff,
                                raw,
-                               nthread
+                               ncore
                                )
 
             if args.mod_maps :
-            	module_densmap(processed_traj_file,
+                module_densmap(trajectory_file,
                                directory_name)
 
             if args.mod_mov :
-            	module_movements(processed_traj_file,
-                                 gro_file,
+                module_movements(trajectory_file,
+                                 topology_file,
                                  index_headgroups,
                                  directory_name,
-                                 nthread)
+                                 ncore)
             if args.mod_ord :
-            	module_order_parameter(processed_traj_file,
-                                       gro_file,
+                module_order_parameter(trajectory_file,
+                                       topology_file,
                                        directory_name
                                        )
 
             else:
-            	print()
+                print()
 
          
         if args.clean :
