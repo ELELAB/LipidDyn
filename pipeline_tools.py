@@ -50,7 +50,14 @@ import gromacs.setup as setup
 # set-up GROMACS
 gromacs.config.setup()
 
-#########################################################################################
+
+#/******************************************************************
+#*    Title: calcOrderParameters.py
+#*    Author: J. Melcr with contribution of H.Antila
+#*    Date: 2018/03/26 
+#*    Availability: https://github.com/NMRLipids/MATCH/scripts
+#*
+
 
 # In Angstroms, max distance between atoms for reasonable OP 
 # calculation (PBC and sanity check)
@@ -280,7 +287,10 @@ def parse_op_input(def_file):
                 ordPars[items[0]] = OrderParameter(*items)
     return ordPars
 
-###############################################################################################################################################################
+#*******************************************************************
+
+
+
 
 
 class FatslimCommands:
