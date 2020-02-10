@@ -29,7 +29,7 @@ import argparse
 import shutil
 from pathlib import Path
 import glob
-
+from progressbar import ProgressBar
 #Import the classes and functions from the pipeline_tools
 import pipeline_tools
 
@@ -41,9 +41,11 @@ from MDAnalysis.analysis.leaflet import LeafletFinder
 import gromacs
 import gromacs.tools as tools
 import gromacs.setup as setup
+gromacs.environment.flags['capture_output'] = False
 
 # set-up GROMACS
 gromacs.config.setup()
+
 
 # Import Loguru for log files
 from loguru import logger
@@ -67,7 +69,8 @@ def tac():
     (t_hour,t_min) = divmod(t_min,60) 
     print('Time passed: {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec))
 
-    
+
+pbar = ProgressBar().start()
 
 def module_fatslim(trajectory_file,
                    topology_file,
@@ -78,9 +81,7 @@ def module_fatslim(trajectory_file,
                    raw,
                    ncore
                    ):
-    
-    print('---------------------------------------------------\n')
-    
+        
     """Fuction consisting of fatslim analysis 
     1) Thickness (raw +xvg)
     2) APL (raw+xvg)
@@ -119,8 +120,8 @@ def module_fatslim(trajectory_file,
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise
-    
 
+    step = 3
   
     # Begins of the fatslim analysis 
     
@@ -131,23 +132,33 @@ def module_fatslim(trajectory_file,
                                              apl_cutoff,
                                              tck_cutoff
                                              )
+    pbar.update((1/step)*100)  # current step/total steps * 100
+  
     
-
-    fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
-                     )
-     
-    
-    fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
-
     if raw : # if the user required the raw data
+        step = 5
+        pbar.update((step-1/step)*100)
         fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
-                                 '/fatslim_apl/raw_apl.csv')      
+                                 '/fatslim_apl/raw_apl.csv')   
+         
+        pbar.update((step-2/step)*100)  
         fatslim.raw_thickness(out_file = analysis_fatlism + \
                               '/fatslim_thickness/raw_thickness.csv'
                               )
+        
+        
     else: 
         pass
 
+
+    pbar.update((2/step)*100)
+    fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
+                     )
+     
+    pbar.update((3/step)*100)
+    fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
+
+    pbar.finish()
    
 
 def module_densmap(trajectory_file,
@@ -179,7 +190,9 @@ def module_densmap(trajectory_file,
     densmap = tools.G_densmap(f = trajectory_file,\
                               n = 'true_bilayer.ndx',\
                               o = folder +'/lower.xpm',\
-                              input = ('0')
+                              input = ('0'),
+                              stdout=False,
+                              stderr=False
                              )
     densmap.run()
 
@@ -187,20 +200,26 @@ def module_densmap(trajectory_file,
     densmap = tools.G_densmap(f = trajectory_file,\
                               n = 'true_bilayer.ndx',\
                               o = folder + '/upper.xpm',\
-                              input = ('1')
+                              input = ('1'),
+                              stdout=False,
+                              stderr=False
                              )
     densmap.run()
     
     # conversion of the xpm file into eps using xpm2ps
     xpm2ps = tools.Xpm2ps(f = folder + '/lower.xpm', \
                           o = folder + '/true_lower.eps', \
-                          rainbow = 'red'
+                          rainbow = 'red',
+                          stdout=False,
+                          stderr=False
                           )
     xpm2ps.run()
     
     xpm2ps = tools.Xpm2ps(f = folder + '/upper.xpm', \
                           o = folder + '/true_upper.eps', \
-                          rainbow = 'red'
+                          rainbow = 'red',
+                          stdout=False,
+                          stderr=False
                           )
     xpm2ps.run()
     
@@ -214,9 +233,7 @@ def module_movements(trajectory_file,
                      directory_name,
                      ncore
                      ):
-     
-    print('---------------------------------------------------\n')
-    
+         
     # Creates different folder in which the output is stored
 
     """From the imported module uses these function to extract the 
@@ -332,7 +349,6 @@ def module_order_parameter(trajectory_file,
             Name of the output folder
     """
 
-    print('---------------------------------------------------\n')
     
     # Creates different folder in which the output is stored
 
@@ -414,8 +430,6 @@ def cleaning_all():
 
     # Clean all the temporary files which were created 
 
-
-    print('---------------------------------------------------\n')
     for filename in glob.glob("bilayer_*.ndx"):
             os.remove(filename)
     os.remove('system_no_solvent.ndx')
@@ -604,7 +618,7 @@ def main():
         tck_cutoff = float(args.tck_cutoff)
         raw = args.raw
 
-        tic()
+        
         starting_directory = os.getcwd()
 
         # setup of the MDA universe
@@ -688,9 +702,12 @@ def main():
 
         if args.all_modules :
             
-            print("Starting now with the calculation, please stand by")
+            print("\n")
+            print("Starting now with the calculation, please stand by...")
             print(u"\u2622")
-
+            
+            print("Area per lipid & Thickness calculation")
+            tic()
             module_fatslim(trajectory_file,
                            topology_file,
                            index_headgroups,
@@ -700,24 +717,37 @@ def main():
                            raw,
                            ncore
                            )
+            tac()
+            print("--------------------------------------\n")
 
+            tic()
+            print("Density maps")
             module_densmap(trajectory_file,
                            directory_name)
+            tac()
+            print("--------------------------------------\n")
 
+            print("Diffusion")
+            tic()
             module_movements(trajectory_file,
                              topology_file,
                              index_headgroups,
                              directory_name,
                              ncore
                             )
+            tac()
+            print("--------------------------------------\n")
 
+            tic()
+            print("Order Parameter")
             module_order_parameter(trajectory_file,
                                    topology_file,
                                    directory_name
                                    )
-            
+            tac()
+            print("--------------------------------------\n")
         else:
-
+         
             print("Starting now with the calculation, please stand by")
             print(u"\u2622")
 
@@ -753,8 +783,6 @@ def main():
          
         if args.clean :
             cleaning_all()
-            tac()
-        else:
             tac()
 
 if __name__ == "__main__":

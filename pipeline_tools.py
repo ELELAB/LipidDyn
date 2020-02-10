@@ -46,6 +46,7 @@ from multiprocessing import Pool
 import gromacs
 import gromacs.tools as tools
 import gromacs.setup as setup
+gromacs.environment.flags['capture_output'] = False
 
 # set-up GROMACS
 gromacs.config.setup()
@@ -346,6 +347,8 @@ class FatslimCommands:
                              '-n',self.headgroups_ndx_file,
                              '--nthread', str(self.ncore),
                              '--output-index','bilayer.ndx'],
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL
                             ) 
 
     def raw_thickness(self,
@@ -374,7 +377,9 @@ class FatslimCommands:
                                  '-t',self.trajectory,
                                  '--nthread',str(self.ncore),
                                  '--export-thickness-raw', out_file,
-                                 '--thickness-cutoff',str(self.thk_cutoff)]
+                                 '--thickness-cutoff',str(self.thk_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
         # default cut-off
         else: 
@@ -384,6 +389,8 @@ class FatslimCommands:
                                  '-t',self.trajectory,
                                  '--nthread',str(self.ncore),
                                  '--export-thickness-raw', out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
 
 
@@ -408,7 +415,9 @@ class FatslimCommands:
                                  '-t',self.trajectory,
                                  '--nthread', str(self.ncore),
                                  '--plot-thickness', out_file,
-                                 '--thickness-cutoff',str(self.thk_cutoff)]
+                                 '--thickness-cutoff',str(self.thk_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
         else:
             a = subprocess.call(['fatslim',
@@ -418,6 +427,8 @@ class FatslimCommands:
                                  '-t',self.trajectory,
                                  '--nthread',str(self.ncore),
                                  '--plot-thickness', out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
 
 
@@ -446,6 +457,8 @@ class FatslimCommands:
                                  '--nthread',str(self.ncore),
                                  '--export-apl-raw',out_file,
                                  '--apl-cutoff',str(self.apl_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
         else:
             a = subprocess.call(['fatslim', 'apl',
@@ -453,7 +466,9 @@ class FatslimCommands:
                                  '-n',self.headgroups_ndx_file,
                                  '-t',self.trajectory,
                                  '--nthread',str(self.ncore),
-                                 '--export-apl-raw',out_file]
+                                 '--export-apl-raw',out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
 
 
@@ -479,6 +494,8 @@ class FatslimCommands:
                                  '--nthread',str(self.ncore),
                                  '--plot-apl',out_file,
                                  '--apl-cutoff', str(self.apl_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
         else:
             a = subprocess.call(['fatslim', 'apl',
@@ -487,6 +504,8 @@ class FatslimCommands:
                                  '-t',self.trajectory,
                                  '--nthread',str(self.ncore),
                                  '--plot-apl',out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
 
 
@@ -525,10 +544,13 @@ class TrajCommandModified:
 
 
             traj = tools.Traj(f = self.trajectory,
-                          s = self.topology,
-                          ox = ndx_file.split('.')[0] + '.xvg',
-                          com = True,
-                          n = ndx_file)
+                              s = self.topology,
+                              ox = ndx_file.split('.')[0] + '.xvg',
+                              com = True,
+                              n = ndx_file,
+                              stdout=False,
+                              stderr=False
+                              )
             traj.run()
 
 
@@ -549,7 +571,9 @@ class TrajCommandModified:
                                            'name 0 lower_leaflet', \
                                            'splitres 0', \
                                            'del 0',
-                                           'q')
+                                           'q'),
+                                  stdout=False,
+                                  stderr=False
                                   )
         make_ndx.run()
 
@@ -563,7 +587,9 @@ class TrajCommandModified:
                                            'name 0 upper_leaflet', \
                                            'splitres 0', \
                                            'del 0',
-                                           'q')
+                                           'q'),
+                                  stdout=False,
+                                  stderr=False
                                       )
         make_ndx.run()
 
