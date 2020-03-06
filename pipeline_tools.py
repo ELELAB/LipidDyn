@@ -40,349 +40,29 @@ import errno
 import subprocess
 import argparse
 import shutil
+from multiprocessing import Pool
 
 # Import GROMACS-related modules
 import gromacs
 import gromacs.tools as tools
 import gromacs.setup as setup
+gromacs.environment.flags['capture_output'] = False
 
 # set-up GROMACS
 gromacs.config.setup()
 
-###############################################################################################################################################################
-d = { "DOPC" :("sn1_C2a DOPC C22 H2R\n\
-sn1_C2b DOPC C22 H2S\n\
-sn1_C3a DOPC C23 H3R\n\
-sn1_C3b DOPC C23 H3S\n\
-sn1_C4a DOPC C24 H4R\n\
-sn1_C4b DOPC C24 H4S\n\
-sn1_C5a DOPC C25 H5R\n\
-sn1_C5b DOPC C25 H5S\n\
-sn1_C6a DOPC C26 H6R\n\
-sn1_C6b DOPC C26 H6S\n\
-sn1_C7a DOPC C27 H7R\n\
-sn1_C7b DOPC C27 H7S\n\
-sn1_C8a DOPC C28 H8R\n\
-sn1_C8b DOPC C28 H8S\n\
-sn1_C9a DOPC C29 H9R\n\
-sn1_C10a DOPC C210 H10R\n\
-sn1_C11a DOPC C211 H11R\n\
-sn1_C11b DOPC C211 H11S\n\
-sn1_C12a DOPC C212 H12R\n\
-sn1_C12b DOPC C212 H12S\n\
-sn1_C13a DOPC C213 H13R\n\
-sn1_C13b DOPC C213 H13S\n\
-sn1_C14a DOPC C214 H14R\n\
-sn1_C14b DOPC C214 H14S\n\
-sn1_C15a DOPC C215 H15R\n\
-sn1_C15b DOPC C215 H15S\n\
-sn1_C16a DOPC C216 H16R\n\
-sn1_C16b DOPC C216 H16S\n\
-sn1_C17a DOPC C217 H17R\n\
-sn1_C17b DOPC C217 H17S\n\
-sn1_C18a DOPC C218 H18R\n\
-sn1_C18b DOPC C218 H18S\n\
-sn2_C2a DOPC C32 H2X\n\
-sn2_C2b DOPC C32 H2Y\n\
-sn2_C3a DOPC C33 H3X\n\
-sn2_C3b DOPC C33 H3Y\n\
-sn2_C4a DOPC C34 H4X\n\
-sn2_C4b DOPC C34 H4Y\n\
-sn2_C5a DOPC C35 H5X\n\
-sn2_C5b DOPC C35 H5Y\n\
-sn2_C6a DOPC C36 H6X\n\
-sn2_C6b DOPC C36 H6Y\n\
-sn2_C7a DOPC C37 H7X\n\
-sn2_C7b DOPC C37 H7Y\n\
-sn2_C8a DOPC C38 H8X\n\
-sn2_C8b DOPC C38 H8Y\n\
-sn2_C9a DOPC C39 H9X\n\
-sn2_C10a DOPC C310 H10X\n\
-sn2_C11a DOPC C311 H11X\n\
-sn2_C11b DOPC C311 H11Y\n\
-sn2_C12a DOPC C312 H12X\n\
-sn2_C12b DOPC C312 H12Y\n\
-sn2_C13a DOPC C313 H13X\n\
-sn2_C13b DOPC C313 H13Y\n\
-sn2_C14a DOPC C314 H14X\n\
-sn2_C14b DOPC C314 H14Y\n\
-sn2_C15a DOPC C315 H15X\n\
-sn2_C15b DOPC C315 H15Y\n\
-sn2_C16a DOPC C316 H16X\n\
-sn2_C16b DOPC C316 H16Y\n\
-sn2_C17a DOPC C317 H17X\n\
-sn2_C17b DOPC C317 H17Y\n\
-sn2_C18a DOPC C318 H18X\n\
-sn2_C18b DOPC C318 H18X"),
-"POPC":("sn1_C2a POPC C32 H2X\n\
-sn1_C2b POPC C32 H2Y\n\
-sn1_C3a POPC C33 H3X\n\
-sn1_C3b POPC C33 H3Y\n\
-sn1_C4a POPC C34 H4X\n\
-sn1_C4b POPC C34 H4Y\n\
-sn1_C5a POPC C35 H5X\n\
-sn1_C5b POPC C35 H5Y\n\
-sn1_C6a POPC C36 H6X\n\
-sn1_C6b POPC C36 H6Y\n\
-sn1_C7a POPC C37 H7X\n\
-sn1_C7b POPC C37 H7Y\n\
-sn1_C8a POPC C38 H8X\n\
-sn1_C8b POPC C38 H8Y\n\
-sn1_C9a POPC C39 H9X\n\
-sn1_C9b POPC C39 H9Y\n\
-sn1_C10a POPC C310 H10X\n\
-sn1_C10b POPC C310 H10Y\n\
-sn1_C11a POPC C311 H11X\n\
-sn1_C11b POPC C311 H11Y\n\
-sn1_C12a POPC C312 H12X\n\
-sn1_C12b POPC C312 H12Y\n\
-sn1_C13a POPC C313 H13X\n\
-sn1_C13b POPC C313 H13Y\n\
-sn1_C14a POPC C314 H14X\n\
-sn1_C14b POPC C314 H14Y\n\
-sn1_C15a POPC C315 H15X\n\
-sn1_C15b POPC C315 H15Y\n\
-sn1_C16a POPC C316 H16X\n\
-sn1_C16b POPC C316 H16Y\n\
-sn2_C2a POPC C22 H2R\n\
-sn2_C2b POPC C22 H2S\n\
-sn2_C3a POPC C23 H3R\n\
-sn2_C3b POPC C23 H3S\n\
-sn2_C4a POPC C24 H4R\n\
-sn2_C4b POPC C24 H4S\n\
-sn2_C5a POPC C25 H5R\n\
-sn2_C5b POPC C25 H5S\n\
-sn2_C6a POPC C26 H6R\n\
-sn2_C6b POPC C26 H6S\n\
-sn2_C7a POPC C27 H7R\n\
-sn2_C7b POPC C27 H7S\n\
-sn2_C8a POPC C28 H8R\n\
-sn2_C8b POPC C28 H8S\n\
-sn2_C9a POPC C29 H91\n\
-sn2_C10a POPC C210 H101\n\
-sn2_C11a POPC C211 H11R\n\
-sn2_C11b POPC C211 H11S\n\
-sn2_C12a POPC C212 H12R\n\
-sn2_C12b POPC C212 H12S\n\
-sn2_C13a POPC C213 H13R\n\
-sn2_C13b POPC C213 H13S\n\
-sn2_C14a POPC C214 H14R\n\
-sn2_C14b POPC C214 H14S\n\
-sn2_C15a POPC C215 H15R\n\
-sn2_C15b POPC C215 H15S\n\
-sn2_C16a POPC C216 H16R\n\
-sn2_C16b POPC C216 H16S\n\
-sn2_C17a POPC C217 H17R\n\
-sn2_C17b POPC C217 H17S\n\
-sn2_C18a POPC C218 H18R\n\
-sn2_C18b POPC C218 H18S"),
-"LSM":("sn2_C2a LSM C2F H2F\n\
-sn2_C2b LSM C2F H2G\n\
-sn2_C3a LSM C3F H3F\n\
-sn2_C3b LSM C3F H3G\n\
-sn2_C4a LSM C4F H4F\n\
-sn2_C4b LSM C4F H4G\n\
-sn2_C5a LSM C5F H5F\n\
-sn2_C5b LSM C5F H5G\n\
-sn2_C6a LSM C6F H6F\n\
-sn2_C6b LSM C6F H6G\n\
-sn2_C7a LSM C7F H7F\n\
-sn2_C7b LSM C7F H7G\n\
-sn2_C8a LSM C8F H8F\n\
-sn2_C8b LSM C8F H8G\n\
-sn2_C9a LSM C9F H9F\n\
-sn2_C9b LSM C9F H9G\n\
-sn2_C10a LSM C10F H10F\n\
-sn2_C10b LSM C10F H10G\n\
-sn2_C11a LSM C11F H11F\n\
-sn2_C11b LSM C11F H11G\n\
-sn2_C12a LSM C12F H12F\n\
-sn2_C12b LSM C12F H12G\n\
-sn2_C13a LSM C13F H13F\n\
-sn2_C13b LSM C13F H13G\n\
-sn2_C14a LSM C14F H14F\n\
-sn2_C14b LSM C14F H14G\n\
-sn2_C15a LSM C15F H15F\n\
-sn2_C15b LSM C15F H15G\n\
-sn2_C16a LSM C16F H16F\n\
-sn2_C16b LSM C16F H16G\n\
-sn2_C17a LSM C17F H17F\n\
-sn2_C17b LSM C17F H17G\n\
-sn2_C18a LSM C18F H18F\n\
-sn2_C18b LSM C18F H18G\n\
-sn2_C19a LSM C19F H19F\n\
-sn2_C19b LSM C19F H19G\n\
-sn2_C20a LSM C20F H20F\n\
-sn2_C20b LSM C20F H20G\n\
-sn2_C21a LSM C21F H21F\n\
-sn2_C21b LSM C21F H21G\n\
-sn2_C22a LSM C22F H22F\n\
-sn2_C22b LSM C22F H22G\n\
-sn2_C23a LSM C23F H23F\n\
-sn2_C23b LSM C23F H23G\n\
-sn2_C24a LSM C24F H24F\n\
-sn2_C24b LSM C24F H24G\n\
-sn1_C4a LSM C4S H4S\n\
-sn1_C5a LSM C5S H5S\n\
-sn1_C6a LSM C6S H6S\n\
-sn1_C6b LSM C6S H6T\n\
-sn1_C7a LSM C7S H7S\n\
-sn1_C7b LSM C7S H7T\n\
-sn1_C8a LSM C8S H8S\n\
-sn1_C8b LSM C8S H8T\n\
-sn1_C9a LSM C9S H9S\n\
-sn1_C9b LSM C9S H9T\n\
-sn1_C10a LSM C10S H10S\n\
-sn1_C10b LSM C10S H10T\n\
-sn1_C11a LSM C11S H11S\n\
-sn1_C11b LSM C11S H11T\n\
-sn1_C12a LSM C12S H12S\n\
-sn1_C12b LSM C12S H12T\n\
-sn1_C13a LSM C13S H13S\n\
-sn1_C13b LSM C13S H13T\n\
-sn1_C14a LSM C14S H14S\n\
-sn1_C14b LSM C14S H14T\n\
-sn1_C15a LSM C15S H15S\n\
-sn1_C15b LSM C15S H15T\n\
-sn1_C16a LSM C16S H16S\n\
-sn1_C16b LSM C16S H16T\n\
-sn1_C17a LSM C17S H17S\n\
-sn1_C17b LSM C17S H17T\n\
-sn1_C18a LSM C18S H18S\n\
-sn1_C18b LSM C18S H18T"),
-"PSM":("sn2_C2a PSM C2F H2F\n\
-sn2_C2b PSM C2F H2G\n\
-sn2_C3a PSM C3F H3F\n\
-sn2_C3b PSM C3F H3G\n\
-sn2_C4a PSM C4F H4F\n\
-sn2_C4b PSM C4F H4G\n\
-sn2_C5a PSM C5F H5F\n\
-sn2_C5b PSM C5F H5G\n\
-sn2_C6a PSM C6F H6F\n\
-sn2_C6b PSM C6F H6G\n\
-sn2_C7a PSM C7F H7F\n\
-sn2_C7b PSM C7F H7G\n\
-sn2_C8a PSM C8F H8F\n\
-sn2_C8b PSM C8F H8G\n\
-sn2_C9a PSM C9F H9F\n\
-sn2_C9b PSM C9F H9G\n\
-sn2_C10a PSM C10F H10F\n\
-sn2_C10b PSM C10F H10G\n\
-sn2_C11a PSM C11F H11F\n\
-sn2_C11b PSM C11F H11G\n\
-sn2_C12a PSM C12F H12F\n\
-sn2_C12b PSM C12F H12G\n\
-sn2_C13a PSM C13F H13F\n\
-sn2_C13b PSM C13F H13G\n\
-sn2_C14a PSM C14F H14F\n\
-sn2_C14b PSM C14F H14G\n\
-sn2_C15a PSM C15F H15F\n\
-sn2_C15b PSM C15F H15G\n\
-sn2_C16a PSM C16F H16F\n\
-sn2_C16b PSM C16F H16G\n\
-sn1_C4a PSM C4S H4S\n\
-sn1_C5a PSM C5S H5S\n\
-sn1_C6a PSM C6S H6S\n\
-sn1_C6b PSM C6S H6T\n\
-sn1_C7a PSM C7S H7S\n\
-sn1_C7b PSM C7S H7T\n\
-sn1_C8a PSM C8S H8S\n\
-sn1_C8b PSM C8S H8T\n\
-sn1_C9a PSM C9S H9S\n\
-sn1_C9b PSM C9S H9T\n\
-sn1_C10a PSM C10S H10S\n\
-sn1_C10b PSM C10S H10T\n\
-sn1_C11a PSM C11S H11S\n\
-sn1_C11b PSM C11S H11T\n\
-sn1_C12a PSM C12S H12S\n\
-sn1_C12b PSM C12S H12T\n\
-sn1_C13a PSM C13S H13S\n\
-sn1_C13b PSM C13S H13T\n\
-sn1_C14a PSM C14S H14S\n\
-sn1_C14b PSM C14S H14T\n\
-sn1_C15a PSM C15S H15S\n\
-sn1_C15b PSM C15S H15T\n\
-sn1_C16a PSM C16S H16S\n\
-sn1_C16b PSM C16S H16T\n\
-sn1_C17a PSM C17S H17S\n\
-sn1_C17b PSM C17S H17T\n\
-sn1_C18a PSM C18S H18S\n\
-sn1_C18b PSM C18S H18T"),
-"NSM":("sn1_C2a NSM C2F H2F\n\
-sn2_C2b NSM C2F H2G\n\
-sn2_C3a NSM C3F H3F\n\
-sn2_C3b NSM C3F H3G\n\
-sn2_C4a NSM C4F H4F\n\
-sn2_C4b NSM C4F H4G\n\
-sn2_C5a NSM C5F H5F\n\
-sn2_C5b NSM C5F H5G\n\
-sn2_C6a NSM C6F H6F\n\
-sn2_C6b NSM C6F H6G\n\
-sn2_C7a NSM C7F H7F\n\
-sn2_C7b NSM C7F H7G\n\
-sn2_C8a NSM C8F H8F\n\
-sn2_C8b NSM C8F H8G\n\
-sn2_C9a NSM C9F H9F\n\
-sn2_C9b NSM C9F H9G\n\
-sn2_C10a NSM C10F H10F\n\
-sn2_C10b NSM C10F H10G\n\
-sn2_C11a NSM C11F H11F\n\
-sn2_C11b NSM C11F H11G\n\
-sn2_C12a NSM C12F H12F\n\
-sn2_C12b NSM C12F H12G\n\
-sn2_C13a NSM C13F H13F\n\
-sn2_C13b NSM C13F H13G\n\
-sn2_C14a NSM C14F H14F\n\
-sn2_C14b NSM C14F H14G\n\
-sn2_C15a NSM C15F H15F\n\
-sn2_C16a NSM C16F H16F\n\
-sn2_C17a NSM C17F H17F\n\
-sn2_C17b NSM C17F H17G\n\
-sn2_C18a NSM C18F H18F\n\
-sn2_C18b NSM C18F H18G\n\
-sn2_C19a NSM C19F H19F\n\
-sn2_C19b NSM C19F H19G\n\
-sn2_C20a NSM C20F H20F\n\
-sn2_C20b NSM C20F H20G\n\
-sn2_C21a NSM C21F H21F\n\
-sn2_C21b NSM C21F H21G\n\
-sn2_C22a NSM C22F H22F\n\
-sn2_C22b NSM C22F H22G\n\
-sn2_C23a NSM C23F H23F\n\
-sn2_C23b NSM C23F H23G\n\
-sn2_C24a NSM C24F H24F\n\
-sn2_C24b NSM C24F H24G\n\
-sn1_C4a NSM C4S H4S\n\
-sn1_C5a NSM C5S H5S\n\
-sn1_C6a NSM C6S H6S\n\
-sn1_C6b NSM C6S H6T\n\
-sn1_C7a NSM C7S H7S\n\
-sn1_C7b NSM C7S H7T\n\
-sn1_C8a NSM C8S H8S\n\
-sn1_C8b NSM C8S H8T\n\
-sn1_C9a NSM C9S H9S\n\
-sn1_C9b NSM C9S H9T\n\
-sn1_C10a NSM C10S H10S\n\
-sn1_C10b NSM C10S H10T\n\
-sn1_C11a NSM C11S H11S\n\
-sn1_C11b NSM C11S H11T\n\
-sn1_C12a NSM C12S H12S\n\
-sn1_C12b NSM C12S H12T\n\
-sn1_C13a NSM C13S H13S\n\
-sn1_C13b NSM C13S H13T\n\
-sn1_C14a NSM C14S H14S\n\
-sn1_C14b NSM C14S H14T\n\
-sn1_C15a NSM C15S H15S\n\
-sn1_C15b NSM C15S H15T\n\
-sn1_C16a NSM C16S H16S\n\
-sn1_C16b NSM C16S H16T\n\
-sn1_C17a NSM C17S H17S\n\
-sn1_C17b NSM C17S H17T\n\
-sn1_C18a NSM C18S H18S\n\
-sn1_C18b NSM C18S H18T")
-        }
 
-bond_len_max=1.5  # in Angstroms, max distance between atoms for reasonable OP calculation (PBC and sanity check)
+#/******************************************************************
+#*    Title: calcOrderParameters.py
+#*    Author: J. Melcr with contribution of H.Antila
+#*    Date: 2018/03/26 
+#*    Availability: https://github.com/NMRLipids/MATCH/scripts
+#*
+
+
+# In Angstroms, max distance between atoms for reasonable OP 
+# calculation (PBC and sanity check)
+bond_len_max=1.5  
 bond_len_max_sq=bond_len_max**2
 
 class OrderParameter:
@@ -507,7 +187,7 @@ class OrderParameter:
         # error estimation
         
         # convert to numpy array
-        return (np.mean(self.traj), np.std(self.traj))
+        return(np.mean(self.traj), np.std(self.traj))
 
 
     @property
@@ -517,7 +197,7 @@ class OrderParameter:
         # all OPs in self.traj
         
         self.means = np.mean(self.traj, axis=0)
-        return ( np.mean(self.traj), 
+        return( np.mean(self.traj), 
                  np.std(self.means), 
                  np.std(self.means)/np.sqrt(len(self.means)) )  
 
@@ -587,46 +267,66 @@ def read_trajs_calc_OPs(ordPars, top, trajs):
             op.traj.append(temp_S)
 
 
-def parse_op_input(resname):
+def parse_op_input(def_file):
     
-    """Parses input file with Order Parameter definitions
+    """
+    parses input file with Order Parameter definitions
     file format is as follows:
     OP_name    resname    atom1    atom2  +extra: OP_mean  OP_std
     (flexible cols)
-    Parameters
-    ----------
     fname : string
         input file name
-
     returns : dictionary 
         with OrderParameters class instances
     """
-    
-    # Using ordered dict since it preserves the read-in order. Might come in handy when comparing to experiments.
+   # Using ordered dict since it preserves the read-in order. Might come in handy when comparing to experiments.
     ordPars = OrderedDict()
-    l = resname.split("\n")
-    o = []
+    with open(def_file,"r") as f:
+        for line in f.readlines():
+            if not line.startswith("#"):
+                items = line.split()
+                ordPars[items[0]] = OrderParameter(*items)
+    return ordPars
 
-    for items in l:
-        items = items.split(" ")
-        ordPars[items[0]] = OrderParameter(*items)
-    return(ordPars)
+#*******************************************************************
 
-###############################################################################################################################################################
+
+
 
 
 class FatslimCommands:
      
     def __init__ (self,
+                  trajectory,
                   gro,
                   headgroups_ndx_file,
-                  thread,
+                  ncore,
+                  apl_cutoff,
+                  thk_cutoff
                   ):
 
-        self.gro = gro
-        self.thread = thread
-        self.headgroups_ndx_file = headgroups_ndx_file
+        """Initialize the class 
 
+        Parameters
+        -------------
+        trajectory : file 
+            Name of the .xtc file.
+        gro : file 
+            Name of the gro file 
+        headgroups_ndx_file =  file
+            Name of the ndx file containing the lipids headgroup
+        ncore : str
+            Number of core to parallelize the future metods
+        apl_cutoff/thk_cutoff : float
+            Float for the cutoff of apl or thickness command         
+        """
+
+        self.trajectory = os.path.abspath(trajectory)
+        self.gro = os.path.abspath(gro)
+        self.headgroups_ndx_file = os.path.abspath(headgroups_ndx_file)
+        self.ncore = ncore
+        self.apl_cutoff = float(apl_cutoff)
+        self.thk_cutoff = float(thk_cutoff)
     
     def membranes(self,
                   out_file):
@@ -645,57 +345,56 @@ class FatslimCommands:
                              '-c',self.gro,
                              '-t',self.gro,
                              '-n',self.headgroups_ndx_file,
-                             '--nthreads',self.thread,
+                             '--nthread', str(self.ncore),
                              '--output-index','bilayer.ndx'],
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL
                             ) 
 
-    # def raw_thickness(self,
-    #                   trajectory,
-    #                   cutoff, 
-    #                   out_file):
+    def raw_thickness(self,
+                      out_file):
 
-    #     """Execute the thickness command of fatslim,
-    #     which compute the average thickness of lower,
-    #     upper leaflet and the entire membrane in a
-    #     ''.xvg file.
-    #     In this case we compute the raw values for 
-    #     each frame of the trajectory, creating multiple
-    #     files.
+        """Execute the thickness command of fatslim,
+        which compute the average thickness of lower,
+        upper leaflet and the entire membrane in a
+        ''.xvg file.
+        In this case we compute the raw values for 
+        each frame of the trajectory, creating multiple
+        files.
     
-    #     Parameters
-    #     ----------
-    #     trajectory : str 
-    #         Name of the .xtc file.
-    #     out_file : str 
-    #             Name of the output file.
-    #     """
-    #     cutoff = float(cutoff)
-    #     cutoff =str(cutoff)
+        Parameters
+        ----------
+        out_file : str 
+                Name of the output file.
+        """
+        
              
-    #     # the user modified the cut-off
-    #     if cutoff != 2.0:
-    #         a = subprocess.call(['fatslim', 'thickness',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-thickness-raw', out_file,
-    #                              '--thickness-cutoff',cutoff]
-    #                             )
-    #     # default cut-off
-    #     else: 
-    #         a = subprocess.call(['fatslim', 'thickness',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-thickness-raw', out_file],
-    #                             )
+        # the user modified the cut-off
+        if self.thk_cutoff != 2.0:
+            a = subprocess.call(['fatslim', 'thickness',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthread',str(self.ncore),
+                                 '--export-thickness-raw', out_file,
+                                 '--thickness-cutoff',str(self.thk_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
+                                )
+        # default cut-off
+        else: 
+            a = subprocess.call(['fatslim', 'thickness',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthread',str(self.ncore),
+                                 '--export-thickness-raw', out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
+                                )
 
 
     def thickness(self,
-                  trajectory,
-                  cutoff, 
                   out_file):
 
         """Execute the thickness command of fatslim,
@@ -705,77 +404,75 @@ class FatslimCommands:
     
         Parameters
         ----------
-        trajectory : str 
-            Name of the .xtc file.
         out_file : str 
                 Name of the output file.
         """
-        cutoff = float(cutoff)
-        cutoff =str(cutoff)
-        if cutoff != 2.0:
+        
+        if self.thk_cutoff != 2.0: 
             a = subprocess.call(['fatslim', 'thickness',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
+                                 '-t',self.trajectory,
+                                 '--nthread', str(self.ncore),
                                  '--plot-thickness', out_file,
-                                 '--thickness-cutoff',cutoff]
+                                 '--thickness-cutoff',str(self.thk_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
         else:
             a = subprocess.call(['fatslim',
                                  'thickness',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
-                                 '--plot-thickness',out_file],
+                                 '-t',self.trajectory,
+                                 '--nthread',str(self.ncore),
+                                 '--plot-thickness', out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
 
 
-    # def raw_AreaPerLipid(self,
-    #                      trajectory,
-    #                      cutoff, 
-    #                      out_file):
+    def raw_AreaPerLipid(self,
+                         out_file):
 
-    #     """Execute the APL command of fatslim,
-    #     which compute the area per lipid thickness 
-    #     of lower,upper leaflet and the entire membrane
-    #     in a''.xvg file.
-    #     In this case we compute the raw values for 
-    #     each frame of the trajectory, creating multiple
-    #     files.
+        """Execute the APL command of fatslim,
+        which compute the area per lipid thickness 
+        of lower,upper leaflet and the entire membrane
+        in a''.xvg file.
+        In this case we compute the raw values for 
+        each frame of the trajectory, creating multiple
+        files.
     
-    #     Parameters
-    #     ----------
-    #     trajectory : str 
-    #         Name of the .xtc file.
-    #     out_file : str 
-    #             Name of the output file.
-    #     """
-    #     cutoff = float(cutoff)
-    #     cutoff =str(cutoff)
-    #     if cutoff != 3.0:
-    #         a = subprocess.call(['fatslim', 'apl',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-apl-raw',out_file,
-    #                              '--apl-cutoff',cutoff],
-    #                             )
-    #     else:
-    #         a = subprocess.call(['fatslim', 'apl',
-    #                              '-c',self.gro,
-    #                              '-n',self.headgroups_ndx_file,
-    #                              '-t',trajectory,
-    #                              '--nthreads',self.thread,
-    #                              '--export-apl-raw',out_file]
-    #                             )
+        Parameters
+        ----------
+        out_file : str 
+                Name of the output file.
+        """
+
+        if self.apl_cutoff != 3.0:
+            a = subprocess.call(['fatslim', 'apl',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthread',str(self.ncore),
+                                 '--export-apl-raw',out_file,
+                                 '--apl-cutoff',str(self.apl_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
+                                )
+        else:
+            a = subprocess.call(['fatslim', 'apl',
+                                 '-c',self.gro,
+                                 '-n',self.headgroups_ndx_file,
+                                 '-t',self.trajectory,
+                                 '--nthread',str(self.ncore),
+                                 '--export-apl-raw',out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
+                                )
 
 
     def AreaPerLipid(self,
-                     trajectory,
-                     cutoff, 
                      out_file):
 
         """Execute the APL command of fatslim,
@@ -785,30 +482,30 @@ class FatslimCommands:
     
         Parameters
         ----------
-        trajectory : str 
-            Name of the .xtc file.
         out_file : str 
                 Name of the output file.
         """
-        cutoff = float(cutoff)
-        cutoff =str(cutoff)
-        if cutoff != 3.0:
 
+        if self.apl_cutoff != 3.0:
             a = subprocess.call(['fatslim', 'apl',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
+                                 '-t',self.trajectory,
+                                 '--nthread',str(self.ncore),
                                  '--plot-apl',out_file,
-                                 '--apl-cutoff', cutoff],
+                                 '--apl-cutoff', str(self.apl_cutoff)],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
         else:
             a = subprocess.call(['fatslim', 'apl',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
-                                 '-t',trajectory,
-                                 '--nthreads',self.thread,
+                                 '-t',self.trajectory,
+                                 '--nthread',str(self.ncore),
                                  '--plot-apl',out_file],
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL
                                 )
 
 
@@ -821,68 +518,82 @@ class TrajCommandModified:
                  trajectory,
                  topology,
                  headgroups_ndx_file,
-                 thread
+                 ncore
                  ):
     
-        self.trajectory = trajectory
-        self.topology = topology
-        self.headgroups_ndx_file = headgroups_ndx_file
-        self.thread = thread
+        self.trajectory = os.path.abspath(trajectory)
+        self.topology = os.path.abspath(topology)
+        self.headgroups_ndx_file = os.path.abspath(headgroups_ndx_file)
+        self.ncore = int(ncore)
+
+    def traj(self,
+             list_ndx):
+        
+        """Execute the traj command of gromacs,
+        which extract x,y,z coordinates of a selection
+        given by the index; in our case we pass lipids
+        residues in loop. 
+    
+        Parameters
+        ----------
+        list_ndx : list 
+                List of index files of lipid residues
+        """
+
+        for ndx_file in list_ndx:
+
+
+            traj = tools.Traj(f = self.trajectory,
+                              s = self.topology,
+                              ox = ndx_file.split('.')[0] + '.xvg',
+                              com = True,
+                              n = ndx_file,
+                              stdout=False,
+                              stderr=False
+                              )
+            traj.run()
 
 
     def leaflets(self):
-        
-        
-        # It uses fatslim program to find upper and lower leaflet  and 
-        # make an .ndx that cointains both it then split them in specific 
-        # index that will be used later
-        
-
-        # Fatslim always creates a file that is [name]_0000.ndx
-
-        starting_directory = os.getcwd()
-
-        if os.path.isfile('true_bilayer.ndx'):
-            print()
-        else:
-            
-            fatslim = FatslimCommands(self.topology,
-                                      self.headgroups_ndx_file,
-                                      self.thread)
-            fatslim.membranes(out_file = starting_directory +"/bilayer.ndx")
-            os.rename('bilayer_0000.ndx', 'true_bilayer.ndx')
+          
+        """Creates two index files from the true_bilayer.ndx :
+           index_lower_leaflet_res.ndx : index with lipid residues of lower l.
+           index_upper_leaflet_res.ndx : index with lipid residues of upper l.
+        """        
 
         
-        if os.path.isfile('index_lower_leaflet_res.ndx'):
-            print()
-        else:
-            # Lower Leaflet index
-            make_ndx = tools.Make_ndx(f = self.topology, \
-                                      n = 'true_bilayer.ndx',
-                                      o = 'index_lower_leaflet_res.ndx', \
-                                      input = ('del 1',
-                                               'name 0 lower_leaflet', \
-                                               'splitres 0', \
-                                               'del 0',
-                                               'q')
-                                     )
-            make_ndx.run()
+       
+        # Lower Leaflet index
+        make_ndx = tools.Make_ndx(f = self.topology, \
+                                  n = 'true_bilayer.ndx',
+                                  o = 'index_lower_leaflet_res.ndx', \
+                                  input = ('del 1',
+                                           'name 0 lower_leaflet', \
+                                           'splitres 0', \
+                                           'del 0',
+                                           'q'),
+                                  stdout=False,
+                                  stderr=False
+                                  )
+        make_ndx.run()
 
 
         # Upper leaflet index
-        if os.path.isfile('index_upper_leaflet_res.ndx'):
-            print()
-        else:
-            make_ndx = tools.Make_ndx(f = self.topology, \
-                                      n = 'true_bilayer.ndx',
-                                      o = 'index_upper_leaflet_res.ndx', \
-                                      input = ('del 0',
-                                               'name 0 upper_leaflet', \
-                                               'splitres 0', \
-                                               'del 0',
-                                               'q')
+
+        make_ndx = tools.Make_ndx(f = self.topology, \
+                                  n = 'true_bilayer.ndx',
+                                  o = 'index_upper_leaflet_res.ndx', \
+                                  input = ('del 0',
+                                           'name 0 upper_leaflet', \
+                                           'splitres 0', \
+                                           'del 0',
+                                           'q'),
+                                  stdout=False,
+                                  stderr=False
                                       )
-            make_ndx.run()
+        make_ndx.run()
+
+
 
 
     def get_lipids_indexes(self,
@@ -906,7 +617,6 @@ class TrajCommandModified:
             keep_parsing = True
             for line in f:
                 if "[" in line:
-                    print(line)
                     header = line.strip("\n").strip("[").strip("]").strip(" ").split("_")[2] \
                     + "_" +  line.strip("\n").strip("[").strip("]").strip(" ").split("_")[3]
                     keep_parsing = False
@@ -926,9 +636,7 @@ class TrajCommandModified:
                     out.write("[ %s ]\n%s" % (header, data[header]))
 
 
-    def get_xvg_lipids(self,
-                       dir_name
-                       ):
+    def get_xvg_lipids(self):
         
         """Method to produce the different xvg
         file using the ndxs produced by the 
@@ -941,51 +649,36 @@ class TrajCommandModified:
             Name of the folder in which the method operate 
         """
 
-        starting_directory = os.getcwd() 
+        #starting_directory = os.getcwd() 
 
-        dirct = os.getcwd()+'/'+ dir_name # get the path
-
-        os.chdir(dirct)
-      
-        for i in os.listdir(dirct):
-
-            if i.endswith('.ndx'): #Execute the traj command for each file in the folder
-                
-                traj = tools.Traj(f = starting_directory+'/'+ self.trajectory,
-                                  s = starting_directory+'/'+ self.topology,
-                                  ox = i.split('.')[0] + '.xvg',
-                                  com = True,
-                                  n = dirct + '/' + i)
-                traj.run()
+        #dirct = starting_directory +'/'+ dir_name # get the path
+        #os.mkdir(dirct)
+        #os.chdir(dirct)
         
+        l_ndx = [i for i in os.listdir() if i.endswith('.ndx') ]
+        
+        #for i in os.listdir():
+            
+            #if i.endswith('.ndx'): #Execute the traj command for each file in the folder
+                
+                #l_ndx.append(i)
+        
+        chunks = [l_ndx[i::self.ncore] for i in range(self.ncore)] # divide in chunks to parallelize
+        
+        # Execute the parallelization 
+        pool = Pool(processes = self.ncore)
+        result = pool.map(self.traj, chunks)
+        pool.close()
+        pool.join()
 
         # Modifies the xvg to remove the first  25 lines
         # and substitute the first line with the name of
         # the lipid residue and its number
-        os.system("for i in *.xvg ;\
-                   do var=`echo $i | sed 's/.xvg//'` ; \
-                   sed -i '1,25d' $var.xvg ; \
-                   perl -pi -e 's/^(.*)/'$var'/ \
-                   if $.==1' $var.xvg ; \
-                   done"
-                  )
-
-        # If in the directory is present the either the word 
-        # upper or lower then create and append to the Merged 
-        # file each xvg, in order to have a novel xvg file
-        # to be plotted 
-        if "upper" in dir_name : 
-            os.system('printf  "# File created on $(date)\n# Created by $(whoami) \n# For the analysis of membranes\n" \
-                   > Merged_coord_upper_leaflet.txt'  )
-            os.system("cat *.xvg >> Merged_coord_upper_leaflet.txt")
-            os.system("mv Merged_coord_upper_leaflet.txt ../")
-            shutil.rmtree(dirct)
-        elif "lower" in dir_name :
-            os.system('printf  "# File created on $(date)\n# Created by $(whoami) \n# For the analysis of membranes\n" \
-                   > Merged_coord_lower_leaflet.txt'  )
-            os.system("cat *.xvg >> Merged_coord_lower_leaflet.txt")
-            os.system("mv Merged_coord_lower_leaflet.txt ../")
-            shutil.rmtree(dirct)
-
-        os.chdir(starting_directory) # Go back at the starting directory
+        os.system('for i in *.xvg ;\
+                   do var=`echo $i | sed "s/.xvg//"` ; \
+                   sed -i "1,24d" ${var}.xvg ; \
+                   sed -i "1 s/.*/$var/g" ${var}.xvg;\
+                   done'
+                   )
+        
 
