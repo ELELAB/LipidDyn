@@ -512,173 +512,173 @@ class FatslimCommands:
 ###############################################################################################################################################################    
    
     
-class TrajCommandModified:
+# class TrajCommandModified:
 
-    def __init__(self,
-                 trajectory,
-                 topology,
-                 headgroups_ndx_file,
-                 ncore
-                 ):
+#     def __init__(self,
+#                  trajectory,
+#                  topology,
+#                  headgroups_ndx_file,
+#                  ncore
+#                  ):
     
-        self.trajectory = os.path.abspath(trajectory)
-        self.topology = os.path.abspath(topology)
-        self.headgroups_ndx_file = os.path.abspath(headgroups_ndx_file)
-        self.ncore = int(ncore)
+#         self.trajectory = os.path.abspath(trajectory)
+#         self.topology = os.path.abspath(topology)
+#         self.headgroups_ndx_file = os.path.abspath(headgroups_ndx_file)
+#         self.ncore = int(ncore)
 
-    def traj(self,
-             list_ndx):
+#     def traj(self,
+#              list_ndx):
         
-        """Execute the traj command of gromacs,
-        which extract x,y,z coordinates of a selection
-        given by the index; in our case we pass lipids
-        residues in loop. 
+#         """Execute the traj command of gromacs,
+#         which extract x,y,z coordinates of a selection
+#         given by the index; in our case we pass lipids
+#         residues in loop. 
     
-        Parameters
-        ----------
-        list_ndx : list 
-                List of index files of lipid residues
-        """
+#         Parameters
+#         ----------
+#         list_ndx : list 
+#                 List of index files of lipid residues
+#         """
 
-        for ndx_file in list_ndx:
-
-
-            traj = tools.Traj(f = self.trajectory,
-                              s = self.topology,
-                              ox = ndx_file.split('.')[0] + '.xvg',
-                              com = True,
-                              n = ndx_file,
-                              stdout=False,
-                              stderr=False
-                              )
-            traj.run()
+#         for ndx_file in list_ndx:
 
 
-    def leaflets(self):
+#             traj = tools.Traj(f = self.trajectory,
+#                               s = self.topology,
+#                               ox = ndx_file.split('.')[0] + '.xvg',
+#                               com = True,
+#                               n = ndx_file,
+#                               stdout=False,
+#                               stderr=False
+#                               )
+#             traj.run()
+
+
+#     def leaflets(self):
           
-        """Creates two index files from the true_bilayer.ndx :
-           index_lower_leaflet_res.ndx : index with lipid residues of lower l.
-           index_upper_leaflet_res.ndx : index with lipid residues of upper l.
-        """        
+#         """Creates two index files from the true_bilayer.ndx :
+#            index_lower_leaflet_res.ndx : index with lipid residues of lower l.
+#            index_upper_leaflet_res.ndx : index with lipid residues of upper l.
+#         """        
 
         
        
-        # Lower Leaflet index
-        make_ndx = tools.Make_ndx(f = self.topology, \
-                                  n = 'true_bilayer.ndx',
-                                  o = 'index_lower_leaflet_res.ndx', \
-                                  input = ('del 1',
-                                           'name 0 lower_leaflet', \
-                                           'splitres 0', \
-                                           'del 0',
-                                           'q'),
-                                  stdout=False,
-                                  stderr=False
-                                  )
-        make_ndx.run()
+#         # Lower Leaflet index
+#         make_ndx = tools.Make_ndx(f = self.topology, \
+#                                   n = 'true_bilayer.ndx',
+#                                   o = 'index_lower_leaflet_res.ndx', \
+#                                   input = ('del 1',
+#                                            'name 0 lower_leaflet', \
+#                                            'splitres 0', \
+#                                            'del 0',
+#                                            'q'),
+#                                   stdout=False,
+#                                   stderr=False
+#                                   )
+#         make_ndx.run()
 
 
-        # Upper leaflet index
+#         # Upper leaflet index
 
-        make_ndx = tools.Make_ndx(f = self.topology, \
-                                  n = 'true_bilayer.ndx',
-                                  o = 'index_upper_leaflet_res.ndx', \
-                                  input = ('del 0',
-                                           'name 0 upper_leaflet', \
-                                           'splitres 0', \
-                                           'del 0',
-                                           'q'),
-                                  stdout=False,
-                                  stderr=False
-                                      )
-        make_ndx.run()
-
-
+#         make_ndx = tools.Make_ndx(f = self.topology, \
+#                                   n = 'true_bilayer.ndx',
+#                                   o = 'index_upper_leaflet_res.ndx', \
+#                                   input = ('del 0',
+#                                            'name 0 upper_leaflet', \
+#                                            'splitres 0', \
+#                                            'del 0',
+#                                            'q'),
+#                                   stdout=False,
+#                                   stderr=False
+#                                       )
+#         make_ndx.run()
 
 
-    def get_lipids_indexes(self,
-                           leaflet_ndx):
 
-        """ Method to create, for each single lipid molecule
-        constituting upper and lower leaflet, a corresponding
-        ''.ndx file , from the main ''.ndx file.
 
-        Parameters
-        ----------
-        leaflet_ndx : ''.ndx file
-                Upper or lower leaflet ndx
-        """ 
+#     def get_lipids_indexes(self,
+#                            leaflet_ndx):
+
+#         """ Method to create, for each single lipid molecule
+#         constituting upper and lower leaflet, a corresponding
+#         ''.ndx file , from the main ''.ndx file.
+
+#         Parameters
+#         ----------
+#         leaflet_ndx : ''.ndx file
+#                 Upper or lower leaflet ndx
+#         """ 
         
 
-        # Create different txt file as many as the different lipid / res in the ndx file
+#         # Create different txt file as many as the different lipid / res in the ndx file
         
-        data = {}
-        with open(leaflet_ndx, "r") as f:
-            keep_parsing = True
-            for line in f:
-                if "[" in line:
-                    header = line.strip("\n").strip("[").strip("]").strip(" ").split("_")[2] \
-                    + "_" +  line.strip("\n").strip("[").strip("]").strip(" ").split("_")[3]
-                    keep_parsing = False
-                    header = header.replace('*', '')
-                else:
-                    if not keep_parsing:
-                        data[header] = line
-                    else:
-                        data[header] += line
-                    keep_parsing = True
+#         data = {}
+#         with open(leaflet_ndx, "r") as f:
+#             keep_parsing = True
+#             for line in f:
+#                 if "[" in line:
+#                     header = line.strip("\n").strip("[").strip("]").strip(" ").split("_")[2] \
+#                     + "_" +  line.strip("\n").strip("[").strip("]").strip(" ").split("_")[3]
+#                     keep_parsing = False
+#                     header = header.replace('*', '')
+#                 else:
+#                     if not keep_parsing:
+#                         data[header] = line
+#                     else:
+#                         data[header] += line
+#                     keep_parsing = True
 
 
-        # Creates all the different files
+#         # Creates all the different files
 
-        for header in data.keys():
-            with open(header +".ndx", "w") as out:
-                    out.write("[ %s ]\n%s" % (header, data[header]))
+#         for header in data.keys():
+#             with open(header +".ndx", "w") as out:
+#                     out.write("[ %s ]\n%s" % (header, data[header]))
 
 
-    def get_xvg_lipids(self):
+#     def get_xvg_lipids(self):
         
-        """Method to produce the different xvg
-        file using the ndxs produced by the 
-        get_lipids_indexes().
-        One xvg for each index, to extract the
-        X,Y,Z coordinates of each single lipid residue
-        Parameter
-        --------- 
-        dir_name : str
-            Name of the folder in which the method operate 
-        """
+#         """Method to produce the different xvg
+#         file using the ndxs produced by the 
+#         get_lipids_indexes().
+#         One xvg for each index, to extract the
+#         X,Y,Z coordinates of each single lipid residue
+#         Parameter
+#         --------- 
+#         dir_name : str
+#             Name of the folder in which the method operate 
+#         """
 
-        #starting_directory = os.getcwd() 
+#         #starting_directory = os.getcwd() 
 
-        #dirct = starting_directory +'/'+ dir_name # get the path
-        #os.mkdir(dirct)
-        #os.chdir(dirct)
+#         #dirct = starting_directory +'/'+ dir_name # get the path
+#         #os.mkdir(dirct)
+#         #os.chdir(dirct)
         
-        l_ndx = [i for i in os.listdir() if i.endswith('.ndx') ]
+#         l_ndx = [i for i in os.listdir() if i.endswith('.ndx') ]
         
-        #for i in os.listdir():
+#         #for i in os.listdir():
             
-            #if i.endswith('.ndx'): #Execute the traj command for each file in the folder
+#             #if i.endswith('.ndx'): #Execute the traj command for each file in the folder
                 
-                #l_ndx.append(i)
+#                 #l_ndx.append(i)
         
-        chunks = [l_ndx[i::self.ncore] for i in range(self.ncore)] # divide in chunks to parallelize
+#         chunks = [l_ndx[i::self.ncore] for i in range(self.ncore)] # divide in chunks to parallelize
         
-        # Execute the parallelization 
-        pool = Pool(processes = self.ncore)
-        result = pool.map(self.traj, chunks)
-        pool.close()
-        pool.join()
+#         # Execute the parallelization 
+#         pool = Pool(processes = self.ncore)
+#         result = pool.map(self.traj, chunks)
+#         pool.close()
+#         pool.join()
 
-        # Modifies the xvg to remove the first  25 lines
-        # and substitute the first line with the name of
-        # the lipid residue and its number
-        os.system('for i in *.xvg ;\
-                   do var=`echo $i | sed "s/.xvg//"` ; \
-                   sed -i "1,24d" ${var}.xvg ; \
-                   sed -i "1 s/.*/$var/g" ${var}.xvg;\
-                   done'
-                   )
+#         # Modifies the xvg to remove the first  25 lines
+#         # and substitute the first line with the name of
+#         # the lipid residue and its number
+#         os.system('for i in *.xvg ;\
+#                    do var=`echo $i | sed "s/.xvg//"` ; \
+#                    sed -i "1,24d" ${var}.xvg ; \
+#                    sed -i "1 s/.*/$var/g" ${var}.xvg;\
+#                    done'
+#                    )
         
 
