@@ -30,6 +30,7 @@ import shutil
 from pathlib import Path
 import glob
 from progressbar import ProgressBar
+import numpy as np
 #Import the classes and functions from the pipeline_tools
 import pipeline_tools
 
@@ -227,12 +228,9 @@ def module_densmap(trajectory_file,
 
 
 
-def module_movements(trajectory_file,
-                     topology_file,
-                     index_headgroups,
-                     directory_name,
-                     ncore
-                     ):
+def module_movements(universe,
+                     leaflets,
+                     directory_name):
          
     # Creates different folder in which the output is stored
 
@@ -242,19 +240,16 @@ def module_movements(trajectory_file,
 
     Parameters
     ----------
-    trajectory_file : str
-            Name of the processed .xtc file. 
-    topology_file : str 
-            Name of the last producte .gro file.
-    index_headgroups : str
-            Filename of the index containing all the headgroups
+    universe : obj
+            Universe object from MDAnalysis library
+    leaflet : dict
+            Dictionary containing the AtomsGroup of upper
+            and lower leaflet computed by LeafletFinder
     directory_name : str
             Name of the output folder
-    ncore : int
-            Number of cores for parallelization 
     """
 
-    analysis_traj = os.path.abspath(directory_name + "/Movements/")
+    analysis_traj = os.path.abspath(directory_name + "/Diffusion_movements/")
 
     if not os.path.exists(analysis_traj):
         try:
@@ -263,73 +258,29 @@ def module_movements(trajectory_file,
             if exc.errno != errno.EEXIST:
                 raise
 
-    
 
-    starting_directory = os.path.abspath(os.getcwd())
+    # iterate through the dictionary
+    for leaflet in leaflets:
+        if leaflet == "upper_leaflet": 
+            filename = "Upper_leaflet_coordinates.dat"
+        else:
+            filename = "Lower_leaflet_coordinates.dat"
+        # create outputfile
+        with open(filename,"w") as g:
+            # iterate through the residues contained in the leaflet
+            for residue in leaflets[leaflet].residues:
+                g.write("> " + str(residue).strip("<>").replace(",","")+"\n")
+                # for every frame in the trajectory
+                for ts in universe.trajectory: 
+                    # extract x and y coordinate of the center of mass
+                    g.write(np.array2string(
+                                residue.atoms.center_of_mass()[0:2]/10,\
+                                precision=3, separator='\t').strip("[]")+"\n") 
 
-    index_lower_leaflet_res = starting_directory + \
-                              '/index_lower_leaflet_res.ndx'
-    index_upper_leaflet_res = starting_directory + \
-                              '/index_upper_leaflet_res.ndx'
+    # move file in the folder
+    shutil.move("Upper_leaflet_coordinates.dat", analysis_traj)
+    shutil.move("Lower_leaflet_coordinates.dat",analysis_traj)
 
-    traj_cmd_modified = pipeline_tools.TrajCommandModified(trajectory_file,
-                                                           topology_file,
-                                                           index_headgroups,
-                                                           ncore
-                                                           )
-
-    traj_cmd_modified.leaflets() # 
-    
-    if not os.path.exists("upper_leaflet"):
-        try:
-            os.mkdir(("upper_leaflet"))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
-    
-    # upper leaflet indexes
-    os.chdir("upper_leaflet")
-    traj_cmd_modified.get_lipids_indexes(index_upper_leaflet_res) 
-    traj_cmd_modified.get_xvg_lipids()  
-    
-    # Append to the Merged file each .xvg to have a novel xvg file to be 
-    # plotted 
-    # (upper leaflet)
-    os.system('printf  "# File created on $(date)\n\
-                        # Created by $(whoami) \n\
-                        # For the analysis of membranes\n" \
-                        > Merged_coord_upper_leaflet.txt'  )
-    os.system("cat *.xvg >> Merged_coord_upper_leaflet.txt")
-    shutil.move("Merged_coord_upper_leaflet.txt", analysis_traj)
-    os.chdir(starting_directory)
-
-    if not os.path.exists("lower_leaflet"):
-        try:
-            os.mkdir(("lower_leaflet"))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
-    
-    # lower leaflet indexes
-    os.chdir("lower_leaflet")
-    traj_cmd_modified.get_lipids_indexes(index_lower_leaflet_res) 
-    traj_cmd_modified.get_xvg_lipids() 
-    
-    # Append to the Merged file each .xvg to have a novel xvg file to be 
-    # plotted  
-    #(lower leaflet)
-    os.system('printf  "# File created on $(date)\n\
-                        # Created by $(whoami) \n\
-                        # For the analysis of membranes\n" \
-                        > Merged_coord_lower_leaflet.txt'  )
-    os.system("cat *.xvg >> Merged_coord_lower_leaflet.txt")
-    shutil.move("Merged_coord_lower_leaflet.txt",analysis_traj)
-    os.chdir(starting_directory)
-    
-    
-    for dir_name in ["upper_leaflet","lower_leaflet"] :
-        shutil.rmtree(dir_name) # remove the folders with all .xvgs
-        
 
 
 def module_order_parameter(trajectory_file,
@@ -348,7 +299,7 @@ def module_order_parameter(trajectory_file,
     directory_name : str
             Name of the output folder
     """
-
+    
     
     # Creates different folder in which the output is stored
 
@@ -669,11 +620,13 @@ def main():
                                              mode='w') as ndx:
                 ndx.write(g, name="headgroups", frame=0)
 
-        # Find leaflets
+        # Find leaflets and store them in a dictionary
         L =  LeafletFinder(u,g)
         upper_leaflet = L.groups(0)
         lower_leaflet = L.groups(1)
-
+        leaflets = {"upper_leaflet":upper_leaflet,
+                    "lower_leaflet":lower_leaflet}
+      
         # index file of headgroups
         index_headgroups = starting_directory + \
                            '/index_headgroups_corrected.ndx'
@@ -729,12 +682,9 @@ def main():
 
             print("Diffusion")
             tic()
-            module_movements(trajectory_file,
-                             topology_file,
-                             index_headgroups,
-                             directory_name,
-                             ncore
-                            )
+            module_movements(u,
+                             leaflets,
+                             directory_name)
             tac()
             print("--------------------------------------\n")
 
@@ -767,11 +717,10 @@ def main():
                                directory_name)
 
             if args.mod_mov :
-                module_movements(trajectory_file,
-                                 topology_file,
-                                 index_headgroups,
-                                 directory_name,
-                                 ncore)
+                module_movements(u,
+                             leaflets,
+                             directory_name)
+
             if args.mod_ord :
                 module_order_parameter(trajectory_file,
                                        topology_file,
