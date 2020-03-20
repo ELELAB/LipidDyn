@@ -12,7 +12,7 @@ The pipeline exploits a free-available softwares for the automatic
 computation of different biophysical parameters for lipids membranes 
 (i.e. GROMACS, FATSLiM).
 
-It allows to compute : 
+Analysis : 
 1) 2D density maps 
 2) Thickness and Area Per lipid 
 3) Order Parameter 
@@ -20,19 +20,22 @@ It allows to compute :
     for the invidual lipids molecule)
  
 """
+
 # import packages
 import time
 import errno
 import subprocess
 import os
+import os.path as path
 import argparse
 import shutil
 from pathlib import Path
 import glob
 from progressbar import ProgressBar
 import numpy as np
-#Import the classes and functions from the pipeline_tools
-import pipeline_tools
+
+#Import the classes and functions from the utils
+from LypidDyn.core import *
 
 #Import MDanalysis
 import MDAnalysis as mda
@@ -46,14 +49,6 @@ gromacs.environment.flags['capture_output'] = False
 
 # set-up GROMACS
 gromacs.config.setup()
-
-
-# Import Loguru for log files
-from loguru import logger
-logger.debug("Debugger,let's hope!")
-logger.add("Log_criteria.log")
-
-
 
 
 
@@ -71,7 +66,7 @@ def tac():
     print('Time passed: {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec))
 
 
-pbar = ProgressBar().start()
+
 
 def module_fatslim(trajectory_file,
                    topology_file,
@@ -122,42 +117,45 @@ def module_fatslim(trajectory_file,
             if exc.errno != errno.EEXIST:
                 raise
 
-    step = 3
+    
   
     # Begins of the fatslim analysis 
     
-    fatslim = pipeline_tools.FatslimCommands(trajectory_file,
+    fatslim = FatslimCommands(trajectory_file,
                                              topology_file,
                                              index_headgroups,
                                              ncore,
                                              apl_cutoff,
                                              tck_cutoff
                                              )
-    pbar.update((1/step)*100)  # current step/total steps * 100
-  
+     
+    pbar = ProgressBar().start()
     
     if raw : # if the user required the raw data
-        step = 5
-        pbar.update((step-1/step)*100)
+        step = 4
+        pbar.update((1/step)*100) # current step/total steps * 100
         fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
-                                 '/fatslim_apl/raw_apl.csv')   
-         
-        pbar.update((step-2/step)*100)  
+                                 '/fatslim_apl/raw_apl.csv')  
+        
+        pbar.update((2/step)*100)  
         fatslim.raw_thickness(out_file = analysis_fatlism + \
                               '/fatslim_thickness/raw_thickness.csv'
-                              )
-        
-        
-    else: 
-        pass
+                              )    
 
-
-    pbar.update((2/step)*100)
-    fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
+        pbar.update((3/step)*100)
+        fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
                      )
-     
-    pbar.update((3/step)*100)
-    fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
+
+        pbar.update((4/step)*100)
+        fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
+    else: 
+        step = 2
+        pbar.update((1/step)*100)
+        fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
+                     )
+
+        pbar.update((1/step)*100)
+        fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
 
     pbar.finish()
    
@@ -289,7 +287,6 @@ def module_order_parameter(trajectory_file,
                            ):
     
     """
-
     Parameters
     ----------
     trajectory_file : str
@@ -332,7 +329,7 @@ def module_order_parameter(trajectory_file,
     g1_1 POPC C3 HX
     g1_2 POPC C3 HY 
     
-    present in  pipeline_tools.py
+    present in  py
     
     Parameters
     ----------
@@ -343,16 +340,20 @@ def module_order_parameter(trajectory_file,
 
     """
     
-
-    for def_file in glob.iglob('definitions_files/*.def'):
+    p,q = path.split(__file__)
+  
+    d,g = path.split(p)
+    print(path.isdir(p))
+    print(path.isdir(p+'/LypidDyn/definitions_files/'))
+    for def_file in glob.iglob(d +'/LypidDyn/definitions_files/*.def'):
         
         lipid_name = os.path.splitext(def_file)[0].split("/")[1]
-        ordPars = pipeline_tools.parse_op_input(os.path.abspath(def_file))
+        ordPars = parse_op_input(os.path.abspath(def_file))
 
-        pipeline_tools.read_trajs_calc_OPs(ordPars,
-                                           topology_file,
-                                           [trajectory_file]
-                                           )
+        read_trajs_calc_OPs(ordPars,
+                            topology_file,
+                            [trajectory_file]
+                            )
 
         for op in ordPars.values():
             (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
@@ -361,7 +362,8 @@ def module_order_parameter(trajectory_file,
         try:
             with open('Order_Parameter_'+ lipid_name +'.dat',"w") as f:
                 for op in ordPars.values():
-                    f.write( "{:20s} {:7s} {:5s} {:5s} {: 2.5f} {: 2.5f} {: 2.5f} \n".format(
+                    f.write( 
+                        "{:20s} {:7s} {:5s} {:5s} {: 2.5f} {: 2.5f} {: 2.5f} \n".format(
                               op.name, op.resname, op.atAname,
                               op.atBname,op.avg, op.std, op.stem)
                            )
@@ -393,17 +395,12 @@ def cleaning_all():
 
 
 
+if __name__ == "__main__":
 
-
-def main():
-
-    
-    # Main function 
-    
     description= "LypidDyn pipeline for calculating different parameters \
                   of a lipid membrane Molecular Dynamics simulation"
 
-    usage = "python3 pipeline.py \
+    usage = "python3 pipeline.py + \
              -t ["".xtc/trr] \
              -f ["".gro/tpr] \
              -all [True/False] \
@@ -512,7 +509,7 @@ def main():
                         help='Execute only the order parameter module of \
                               the pipeline'
                         )
-    
+
     parser.add_argument('-prot',
                         '--protein',
                         action='store_true',
@@ -586,7 +583,7 @@ def main():
         
 
         
- 
+
         # means a protein is embedded in the bilayer
         if args.prot :
 
@@ -604,7 +601,7 @@ def main():
                                              mode='a') as ndx:
                 ndx.write(g, name="headgroups", frame=0)
                 ndx.write(p, name="protein", frame=0)
-    
+
         else:
             
             # index for the fatslim analysis
@@ -632,13 +629,13 @@ def main():
                            '/index_headgroups_corrected.ndx'
 
         # Initiate Fatslim class
-        fatslim = pipeline_tools.FatslimCommands(trajectory_file,
-                                                 topology_file,
-                                                 index_headgroups,
-                                                 ncore,
-                                                 apl_cutoff,
-                                                 tck_cutoff
-                                                )
+        fatslim = FatslimCommands(trajectory_file,
+                                        topology_file,
+                                        index_headgroups,
+                                        ncore,
+                                        apl_cutoff,
+                                        tck_cutoff
+                                        )
 
         # Create an index file in which the different layers of the membrane
         # are listed 
@@ -657,7 +654,7 @@ def main():
             
             print("\n")
             print("Starting now with the calculation, please stand by...")
-            print(u"\u2622")
+            print(u"\u2622", "\n")
             
             print("Area per lipid & Thickness calculation")
             tic()
@@ -726,13 +723,7 @@ def main():
                                        topology_file,
                                        directory_name
                                        )
-
-    
-
          
         if args.clean :
             cleaning_all()
             tac()
-
-if __name__ == "__main__":
-    main()
