@@ -1,0 +1,49 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "LypidDyn\n\n\nFor full documentation visit \nmkdocs.org\n.\n\n\nCommands\n\n\n\n\nmkdocs new [dir-name]\n - Create a new project.\n\n\nmkdocs serve\n - Start the live-reloading docs server.\n\n\nmkdocs build\n - Build the documentation site.\n\n\nmkdocs help\n - Print this help message.\n\n\n\n\nProject layout\n\n\nmkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    about.md  # Other markdown pages, images and other files.",
+            "title": "Home"
+        },
+        {
+            "location": "/#lypiddyn",
+            "text": "For full documentation visit  mkdocs.org .",
+            "title": "LypidDyn"
+        },
+        {
+            "location": "/#commands",
+            "text": "mkdocs new [dir-name]  - Create a new project.  mkdocs serve  - Start the live-reloading docs server.  mkdocs build  - Build the documentation site.  mkdocs help  - Print this help message.",
+            "title": "Commands"
+        },
+        {
+            "location": "/#project-layout",
+            "text": "mkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    about.md  # Other markdown pages, images and other files.",
+            "title": "Project layout"
+        },
+        {
+            "location": "/about/",
+            "text": "Festaque Somni hastam iubent solitos\n\n\nMavortius aquae mollitaque illa ignibus Minervae ignis\n\n\nLorem markdownum et ruunt obliquos montis argenteus munere media, corpora quod.\nVariabant tamen. Potente dum quis parientis vertere illic medio removebitur\nPhilippi nodosa respondit taedasque \nmodo\n Solis nutrimen, dixerat. Rubore\nsecura, meum ire nomina exitioque, vocant, ut quamvis perpetua virgine tractu\nrepetita, Achivi. Ardet hunc amplexus dea \ncandore\n: ego celer adloquitur\nlaudaverit vixque Phoebus credens tenebrae, situs naufragus posuere.\n\n\n\n\nCaptivo dominum et tostae inania inobservatus membris\n\n\nQuae rescindere haec mentiris\n\n\nNec nondum mitisque liquidas celeberrima rapit praetendens\n\n\nPedem pulcherrima sedebat incola Annus ave\n\n\nQuasque trahitur quid dominae\n\n\n\n\nFertilitas ripae genetrici viribus inplerat dea luctibus\n\n\nTerga refers, infirmis mente, meum arbore luminis. Duas ipsa munere carinam,\n\ncum est\n quam hic, finge pronus suscipitur sed\nexcutit suorum nunc colla Gorgenque. Oris vulnere.\n\n\nIaces ac cerva causamque dominae; modo adspexerit agros. Est unum nec Messenia,\n\nrefert cuncta\n iuvenemque verbere lacrimaeque loca recesserat, sit lucidus\ninter fertur secundas hauriret. Exanimem teli, guttura quem heu imago petens\nservatum cultores! Non restat ripa exstinguor aetas calcitrat saecula\ndissuaserat plenaque garrula tumidisque reliquit, viros fila. Volucrem querellas\nTatiusque donec est sanguine resonat hiemem; est tacito dominae flectentem\nBerecyntia palmite veterem viroque simulacra!\n\n\n\n\nBoreas ensem sintque quodcumque transit duritiem\n\n\nUnde teli Alcyone\n\n\nErat ut lexque rictus\n\n\nAncipitesque illic natus\n\n\n\n\nAbdita discede vestibus\n\n\nNon quae sustinet hector; qui tinctam quae paenituisse aut fortunaeque manet\nvidit, in neu, siquidem, fallacia! Sufficiunt maneas altos. Ipsos medio,\npraemiaque mittis. Nec sed flammis carmina o quoniam, o instar, manuque et\ndixerat Ophias; omnibus.\n\n\n\n\nQuondam animas his fuerant parte aequore terga\n\n\nUrbes clauditur atque\n\n\nEgi saevi\n\n\nPererrat ipsa postquam terrasque\n\n\nDammis ciet remigioque neu\n\n\nErgo fatisque quodcumque ducem silvis ad trahere\n\n\n\n\nDixi fronde evicere terga \nramum in poenas\n artus quoque. Cum gerebant potest\nviolentaque spissa; \nreplent in\n tectis succincta?\n\n\nHauriret gelidos ut caput in, te hoc \ninque et\n penates\nadspice! Liceret ardua; cuncta aequoreas fuit, indicium plura harenae. Deripit\n\net sed\n numerant vimque caelataeque Prima\ncingitur Pergama quam domui, hos passus. Nocte denum averserisque plerumque\nfuerant canum inque deflevere vixque, vires, iuventus. Advertite affata\n\npalmite distat\n, susurro, causam tibi fuso.",
+            "title": "About"
+        },
+        {
+            "location": "/about/#festaque-somni-hastam-iubent-solitos",
+            "text": "",
+            "title": "Festaque Somni hastam iubent solitos"
+        },
+        {
+            "location": "/about/#mavortius-aquae-mollitaque-illa-ignibus-minervae-ignis",
+            "text": "Lorem markdownum et ruunt obliquos montis argenteus munere media, corpora quod.\nVariabant tamen. Potente dum quis parientis vertere illic medio removebitur\nPhilippi nodosa respondit taedasque  modo  Solis nutrimen, dixerat. Rubore\nsecura, meum ire nomina exitioque, vocant, ut quamvis perpetua virgine tractu\nrepetita, Achivi. Ardet hunc amplexus dea  candore : ego celer adloquitur\nlaudaverit vixque Phoebus credens tenebrae, situs naufragus posuere.   Captivo dominum et tostae inania inobservatus membris  Quae rescindere haec mentiris  Nec nondum mitisque liquidas celeberrima rapit praetendens  Pedem pulcherrima sedebat incola Annus ave  Quasque trahitur quid dominae",
+            "title": "Mavortius aquae mollitaque illa ignibus Minervae ignis"
+        },
+        {
+            "location": "/about/#fertilitas-ripae-genetrici-viribus-inplerat-dea-luctibus",
+            "text": "Terga refers, infirmis mente, meum arbore luminis. Duas ipsa munere carinam, cum est  quam hic, finge pronus suscipitur sed\nexcutit suorum nunc colla Gorgenque. Oris vulnere.  Iaces ac cerva causamque dominae; modo adspexerit agros. Est unum nec Messenia, refert cuncta  iuvenemque verbere lacrimaeque loca recesserat, sit lucidus\ninter fertur secundas hauriret. Exanimem teli, guttura quem heu imago petens\nservatum cultores! Non restat ripa exstinguor aetas calcitrat saecula\ndissuaserat plenaque garrula tumidisque reliquit, viros fila. Volucrem querellas\nTatiusque donec est sanguine resonat hiemem; est tacito dominae flectentem\nBerecyntia palmite veterem viroque simulacra!   Boreas ensem sintque quodcumque transit duritiem  Unde teli Alcyone  Erat ut lexque rictus  Ancipitesque illic natus",
+            "title": "Fertilitas ripae genetrici viribus inplerat dea luctibus"
+        },
+        {
+            "location": "/about/#abdita-discede-vestibus",
+            "text": "Non quae sustinet hector; qui tinctam quae paenituisse aut fortunaeque manet\nvidit, in neu, siquidem, fallacia! Sufficiunt maneas altos. Ipsos medio,\npraemiaque mittis. Nec sed flammis carmina o quoniam, o instar, manuque et\ndixerat Ophias; omnibus.   Quondam animas his fuerant parte aequore terga  Urbes clauditur atque  Egi saevi  Pererrat ipsa postquam terrasque  Dammis ciet remigioque neu  Ergo fatisque quodcumque ducem silvis ad trahere   Dixi fronde evicere terga  ramum in poenas  artus quoque. Cum gerebant potest\nviolentaque spissa;  replent in  tectis succincta?  Hauriret gelidos ut caput in, te hoc  inque et  penates\nadspice! Liceret ardua; cuncta aequoreas fuit, indicium plura harenae. Deripit et sed  numerant vimque caelataeque Prima\ncingitur Pergama quam domui, hos passus. Nocte denum averserisque plerumque\nfuerant canum inque deflevere vixque, vires, iuventus. Advertite affata palmite distat , susurro, causam tibi fuso.",
+            "title": "Abdita discede vestibus"
+        }
+    ]
+}

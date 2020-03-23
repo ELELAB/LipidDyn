@@ -1,0 +1,13 @@
+site_name: LypidDyn
+nav : 
+    - Overview: index.md
+    - Installation : installation.md
+    - User Guide : Commands.md
+    - Guidelines for designing with experimental data : guidelines_exp.md 
+    - About: about.md
+theme:
+    name: readthedocs
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - rust
