@@ -37,9 +37,6 @@ import numpy as np
 #Import the classes and functions from the utils
 from LypidDyn.core import *
 
-# Import pkg management library
-import pkg_resources 
-
 #Import MDanalysis
 import MDAnalysis as mda
 from MDAnalysis.analysis.leaflet import LeafletFinder
@@ -343,19 +340,15 @@ def module_order_parameter(trajectory_file,
 
     """
     
-
-    # retrieve def file for the op in the package folder
-    dirs =  pkg_resources.resource_listdir('LypidDyn','/definitions_files/')
-    
-    for def_file in dirs:
+    p,q = path.split(__file__)
+  
+    d,g = path.split(p)
+    print(path.isdir(p))
+    print(path.isdir(p+'/LypidDyn/definitions_files/'))
+    for def_file in glob.iglob(d +'/LypidDyn/definitions_files/*.def'):
         
-        # get the lipid name
-        lipid_name = def_file.split('.')[0]
-
-        defi = pkg_resources.resource_string('LypidDyn','/definitions_files/'+ def_file)
-        defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
-        defi = list(filter(lambda x: x != '', defi)) # filter empty strings
-        ordPars = parse_op_input(defi)
+        lipid_name = os.path.splitext(def_file)[0].split("/")[1]
+        ordPars = parse_op_input(os.path.abspath(def_file))
 
         read_trajs_calc_OPs(ordPars,
                             topology_file,
@@ -402,310 +395,269 @@ def cleaning_all():
 
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
 
-description= "LypidDyn pipeline for calculating different parameters \
-              of a lipid membrane Molecular Dynamics simulation"
+    description= "LypidDyn pipeline for calculating different parameters \
+                  of a lipid membrane Molecular Dynamics simulation"
 
-usage = "python3 pipeline.py + \
-         -t ["".xtc/trr] \
-         -f ["".gro/tpr] \
-         -all [True/False] \
-         -c -fatslim \
-         -2d \
-         -mov \
-         -ordpar \
-         -d [directory name]"
-         
+    usage = "python3 pipeline.py + \
+             -t ["".xtc/trr] \
+             -f ["".gro/tpr] \
+             -all [True/False] \
+             -c -fatslim \
+             -2d \
+             -mov \
+             -ordpar \
+             -d [directory name]"
+             
 
-parser = argparse.ArgumentParser(description=description, usage=usage)
+    parser = argparse.ArgumentParser(description=description, usage=usage)
 
-parser.add_argument('-t',
-                    '--trajectory',
-                    dest='trajectory',
-                    type=str,
-                    required=True,
-                    metavar='',
-                    help='Trajectory files [<.xtc/.trr/>] ',
-                    )
+    parser.add_argument('-t',
+                        '--trajectory',
+                        dest='trajectory',
+                        type=str,
+                        required=True,
+                        metavar='',
+                        help='Trajectory files [<.xtc/.trr/>] ',
+                        )
 
-parser.add_argument('-f',
-                    '--topology_file',
-                    dest='topology',
-                    type=str,
-                    required=True,
-                    metavar='',
-                    help=' Molecular topology file [.gro/.tpr]',
-                    )
-
-
-parser.add_argument('-d',
-                    '--dir_name',
-                    default = 'Analysis',
-                    dest='directory',
-                    type=str,
-                    required=False,
-                    metavar='',
-                    help='The directory name for outputs of the pipeline',
-                    )
-
-parser.add_argument('-c',
-                    '--clean',
-                    action='store_true',
-                    dest='clean',
-                    required = False,
-                    help='Clean all the temporary files '
-                    )
-
-parser.add_argument('-all',
-                    '--all',
-                    dest='all_modules',
-                    action='store_true',
-                    required = False,
-                    help='Execute all module of the pipeline'
-                    )
-
-parser.add_argument('-fatslim',
-                    '--fatslim',
-                    action='store_true',
-                    dest='mod_fat',
-                    required = False,
-                    help='Execute only the fatslim module of the pipeline'
-                    )
-
-parser.add_argument('-apl_cutoff',
-                    '--apl-cutoff',
-                    default= 3.0,
-                    dest='apl_cutoff',
-                    required = False,
-                    help='Cutoff distance (in nm) used to approximate \
-                          planar region (default: 3.0)'
-                    )
-
-parser.add_argument('-thickness_cutoff',
-                    '--thickness-cutoff',
-                    default= 6.0,
-                    dest='tck_cutoff',
-                    required = False,
-                    help='Cutoff distance (in nm) used to identify \
-                          inter-leaflet neighbors (default: 6.0)'
-                    )
-
-parser.add_argument('-2d',
-                    '--2d_maps',
-                    action='store_true',
-                    dest='mod_maps', 
-                    required = False,
-                    help='Execute only the density maps module of the \
-                          pipeline'
-                                            )
-
-parser.add_argument('-mov',
-                    '--movements',
-                    action='store_true',
-                    dest='mod_mov',
-                    required = False,
-                    help='Execute only the movement module of the pipeline'
-                   )
-
-parser.add_argument('-ordpar',
-                    '--order_parameter',
-                    action='store_true',
-                    dest='mod_ord',
-                    required = False,
-                    help='Execute only the order parameter module of \
-                          the pipeline'
-                    )
-
-parser.add_argument('-prot',
-                    '--protein',
-                    action='store_true',
-                    dest='prot',
-                    required = False,
-                    help='Specify if a protein is embedded \
-                          in the membrane'
-                   )
-
-# parser.add_argument('-r',
-#                    '--resnam',
-#                     dest='resname',
-#                     required = True,
-#                     nargs= '+'
-#                     help='Lipid residues that compose the \
-#                           membrane of interest'
-#                   )
-
-parser.add_argument('-ncore',
-                    '--mpi',
-                    nargs ='?',
-                    default = 2,
-                    dest='mpi',
-                    help='Specify on how many cores use for \
-                          parallelization'
-                   )
-
-parser.add_argument('-raw',
-                    '--raw_data',
-                    action='store_true',
-                    dest='raw',
-                    required = False,
-                    help='Get the raw value of thickness and apl for \
-                          each frame'
-                   )
+    parser.add_argument('-f',
+                        '--topology_file',
+                        dest='topology',
+                        type=str,
+                        required=True,
+                        metavar='',
+                        help=' Molecular topology file [.gro/.tpr]',
+                        )
 
 
+    parser.add_argument('-d',
+                        '--dir_name',
+                        default = 'Analysis',
+                        dest='directory',
+                        type=str,
+                        required=False,
+                        metavar='',
+                        help='The directory name for outputs of the pipeline',
+                        )
 
-args = parser.parse_args()
+    parser.add_argument('-c',
+                        '--clean',
+                        action='store_true',
+                        dest='clean',
+                        required = False,
+                        help='Clean all the temporary files '
+                        )
 
-if args is None:
-    print("Are you sure you followed the instruction? \
-           Please follow them and retry")
-    quit()
-else:
-    
-    trajectory_file = os.path.abspath(args.trajectory)
-    topology_file = os.path.abspath(args.topology)
-    directory_name = args.directory
-    #resnames = args.resname
-    ncore = args.mpi
-    cleaning = args.clean
-    apl_cutoff = float(args.apl_cutoff)
-    tck_cutoff = float(args.tck_cutoff)
-    raw = args.raw
+    parser.add_argument('-all',
+                        '--all',
+                        dest='all_modules',
+                        action='store_true',
+                        required = False,
+                        help='Execute all module of the pipeline'
+                        )
 
-    
-    starting_directory = os.getcwd()
+    parser.add_argument('-fatslim',
+                        '--fatslim',
+                        action='store_true',
+                        dest='mod_fat',
+                        required = False,
+                        help='Execute only the fatslim module of the pipeline'
+                        )
 
-    # setup of the MDA universe
-    u = mda.Universe(topology_file,trajectory_file)
-    
-    
-    if not os.path.exists(directory_name):
-        try:
-            os.mkdir((directory_name))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
+    parser.add_argument('-apl_cutoff',
+                        '--apl-cutoff',
+                        default= 3.0,
+                        dest='apl_cutoff',
+                        required = False,
+                        help='Cutoff distance (in nm) used to approximate \
+                              planar region (default: 3.0)'
+                        )
 
-    
+    parser.add_argument('-thickness_cutoff',
+                        '--thickness-cutoff',
+                        default= 6.0,
+                        dest='tck_cutoff',
+                        required = False,
+                        help='Cutoff distance (in nm) used to identify \
+                              inter-leaflet neighbors (default: 6.0)'
+                        )
 
-    
+    parser.add_argument('-2d',
+                        '--2d_maps',
+                        action='store_true',
+                        dest='mod_maps', 
+                        required = False,
+                        help='Execute only the density maps module of the \
+                              pipeline'
+                                                )
 
-    # means a protein is embedded in the bilayer
-    if args.prot :
-
-        # index for the fatslim analysis
-        # P is for all phopholipids 
-        # resname CHOL to check for cholesterol
-        # resname ERG to check for ergosterol
-        g = u.select_atoms("name P") + \
-            u.select_atoms("resname ERG and name O3") +  \
-            u.select_atoms("resname CHL1 and name O3")
-        p = u.select_atoms("protein and not name H*")
-
-        with mda.selections.gromacs.SelectionWriter(
-                                        'index_headgroups_corrected.ndx',
-                                         mode='a') as ndx:
-            ndx.write(g, name="headgroups", frame=0)
-            ndx.write(p, name="protein", frame=0)
-
-    else:
-        
-        # index for the fatslim analysis
-        # P is for all phopholipids 
-        # resname CHOL to check for cholesterol
-        # resname ERG to check for ergosterol
-        g = u.select_atoms("name P") + \
-            u.select_atoms("resname ERG and name O3") +  \
-            u.select_atoms("resname CHL1 and name O3")
-        
-        with mda.selections.gromacs.SelectionWriter(
-                                        'index_headgroups_corrected.ndx',
-                                         mode='w') as ndx:
-            ndx.write(g, name="headgroups", frame=0)
-
-    # Find leaflets and store them in a dictionary
-    L =  LeafletFinder(u,g)
-    upper_leaflet = L.groups(0)
-    lower_leaflet = L.groups(1)
-    leaflets = {"upper_leaflet":upper_leaflet,
-                "lower_leaflet":lower_leaflet}
-  
-    # index file of headgroups
-    index_headgroups = starting_directory + \
-                       '/index_headgroups_corrected.ndx'
-
-    # Initiate Fatslim class
-    fatslim = FatslimCommands(trajectory_file,
-                                    topology_file,
-                                    index_headgroups,
-                                    ncore,
-                                    apl_cutoff,
-                                    tck_cutoff
-                                    )
-
-    # Create an index file in which the different layers of the membrane
-    # are listed 
-
-    with mda.selections.gromacs.SelectionWriter('true_bilayer',
-                                                 mode='w') as ndx:
-            ndx.write(upper_leaflet, name="upper_leaflet")
-            ndx.write(lower_leaflet, name="lower_leaflet")
-    
-    
-    
-
-    # The user selected the -all flag for all the analysis
-
-    if args.all_modules :
-        
-        print("\n")
-        print("Starting now with the calculation, please stand by...")
-        print(u"\u2622", "\n")
-        
-        print("Area per lipid & Thickness calculation")
-        tic()
-        module_fatslim(trajectory_file,
-                       topology_file,
-                       index_headgroups,
-                       directory_name,
-                       apl_cutoff,
-                       tck_cutoff,
-                       raw,
-                       ncore
+    parser.add_argument('-mov',
+                        '--movements',
+                        action='store_true',
+                        dest='mod_mov',
+                        required = False,
+                        help='Execute only the movement module of the pipeline'
                        )
-        tac()
-        print("--------------------------------------\n")
 
-        tic()
-        print("Density maps")
-        module_densmap(trajectory_file,
-                       directory_name)
-        tac()
-        print("--------------------------------------\n")
+    parser.add_argument('-ordpar',
+                        '--order_parameter',
+                        action='store_true',
+                        dest='mod_ord',
+                        required = False,
+                        help='Execute only the order parameter module of \
+                              the pipeline'
+                        )
 
-        print("Diffusion")
-        tic()
-        module_movements(u,
-                         leaflets,
-                         directory_name)
-        tac()
-        print("--------------------------------------\n")
+    parser.add_argument('-prot',
+                        '--protein',
+                        action='store_true',
+                        dest='prot',
+                        required = False,
+                        help='Specify if a protein is embedded \
+                              in the membrane'
+                       )
 
-        tic()
-        print("Order Parameter")
-        module_order_parameter(trajectory_file,
-                               topology_file,
-                               directory_name
-                               )
-        tac()
-        print("--------------------------------------\n")
+    # parser.add_argument('-r',
+    #                    '--resnam',
+    #                     dest='resname',
+    #                     required = True,
+    #                     nargs= '+'
+    #                     help='Lipid residues that compose the \
+    #                           membrane of interest'
+    #                   )
+
+    parser.add_argument('-ncore',
+                        '--mpi',
+                        nargs ='?',
+                        default = 2,
+                        dest='mpi',
+                        help='Specify on how many cores use for \
+                              parallelization'
+                       )
+
+    parser.add_argument('-raw',
+                        '--raw_data',
+                        action='store_true',
+                        dest='raw',
+                        required = False,
+                        help='Get the raw value of thickness and apl for \
+                              each frame'
+                       )
+
+
+
+    args = parser.parse_args()
+
+    if args is None:
+        print("Are you sure you followed the instruction? \
+               Please follow them and retry")
+        quit()
     else:
-     
-        print("Starting now with the calculation, please stand by")
-        print(u"\u2622")
+        
+        trajectory_file = os.path.abspath(args.trajectory)
+        topology_file = os.path.abspath(args.topology)
+        directory_name = args.directory
+        #resnames = args.resname
+        ncore = args.mpi
+        cleaning = args.clean
+        apl_cutoff = float(args.apl_cutoff)
+        tck_cutoff = float(args.tck_cutoff)
+        raw = args.raw
 
-        if args.mod_fat : 
+        
+        starting_directory = os.getcwd()
+
+        # setup of the MDA universe
+        u = mda.Universe(topology_file,trajectory_file)
+        
+        
+        if not os.path.exists(directory_name):
+            try:
+                os.mkdir((directory_name))
+            except OSError as exc: # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+
+        
+
+        
+
+        # means a protein is embedded in the bilayer
+        if args.prot :
+
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
+            g = u.select_atoms("name P") + \
+                u.select_atoms("resname ERG and name O3") +  \
+                u.select_atoms("resname CHL1 and name O3")
+            p = u.select_atoms("protein and not name H*")
+
+            with mda.selections.gromacs.SelectionWriter(
+                                            'index_headgroups_corrected.ndx',
+                                             mode='a') as ndx:
+                ndx.write(g, name="headgroups", frame=0)
+                ndx.write(p, name="protein", frame=0)
+
+        else:
+            
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
+            g = u.select_atoms("name P") + \
+                u.select_atoms("resname ERG and name O3") +  \
+                u.select_atoms("resname CHL1 and name O3")
+            
+            with mda.selections.gromacs.SelectionWriter(
+                                            'index_headgroups_corrected.ndx',
+                                             mode='w') as ndx:
+                ndx.write(g, name="headgroups", frame=0)
+
+        # Find leaflets and store them in a dictionary
+        L =  LeafletFinder(u,g)
+        upper_leaflet = L.groups(0)
+        lower_leaflet = L.groups(1)
+        leaflets = {"upper_leaflet":upper_leaflet,
+                    "lower_leaflet":lower_leaflet}
+      
+        # index file of headgroups
+        index_headgroups = starting_directory + \
+                           '/index_headgroups_corrected.ndx'
+
+        # Initiate Fatslim class
+        fatslim = FatslimCommands(trajectory_file,
+                                        topology_file,
+                                        index_headgroups,
+                                        ncore,
+                                        apl_cutoff,
+                                        tck_cutoff
+                                        )
+
+        # Create an index file in which the different layers of the membrane
+        # are listed 
+
+        with mda.selections.gromacs.SelectionWriter('true_bilayer',
+                                                     mode='w') as ndx:
+                ndx.write(upper_leaflet, name="upper_leaflet")
+                ndx.write(lower_leaflet, name="lower_leaflet")
+        
+        
+        
+
+        # The user selected the -all flag for all the analysis
+
+        if args.all_modules :
+            
+            print("\n")
+            print("Starting now with the calculation, please stand by...")
+            print(u"\u2622", "\n")
+            
+            print("Area per lipid & Thickness calculation")
+            tic()
             module_fatslim(trajectory_file,
                            topology_file,
                            index_headgroups,
@@ -715,22 +667,63 @@ else:
                            raw,
                            ncore
                            )
+            tac()
+            print("--------------------------------------\n")
 
-        if args.mod_maps :
+            tic()
+            print("Density maps")
             module_densmap(trajectory_file,
                            directory_name)
+            tac()
+            print("--------------------------------------\n")
 
-        if args.mod_mov :
+            print("Diffusion")
+            tic()
             module_movements(u,
-                         leaflets,
-                         directory_name)
+                             leaflets,
+                             directory_name)
+            tac()
+            print("--------------------------------------\n")
 
-        if args.mod_ord :
+            tic()
+            print("Order Parameter")
             module_order_parameter(trajectory_file,
                                    topology_file,
                                    directory_name
                                    )
-     
-    if args.clean :
-        cleaning_all()
-        tac()
+            tac()
+            print("--------------------------------------\n")
+        else:
+         
+            print("Starting now with the calculation, please stand by")
+            print(u"\u2622")
+
+            if args.mod_fat : 
+                module_fatslim(trajectory_file,
+                               topology_file,
+                               index_headgroups,
+                               directory_name,
+                               apl_cutoff,
+                               tck_cutoff,
+                               raw,
+                               ncore
+                               )
+
+            if args.mod_maps :
+                module_densmap(trajectory_file,
+                               directory_name)
+
+            if args.mod_mov :
+                module_movements(u,
+                             leaflets,
+                             directory_name)
+
+            if args.mod_ord :
+                module_order_parameter(trajectory_file,
+                                       topology_file,
+                                       directory_name
+                                       )
+         
+        if args.clean :
+            cleaning_all()
+            tac()

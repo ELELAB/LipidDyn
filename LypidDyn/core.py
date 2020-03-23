@@ -275,17 +275,17 @@ def parse_op_input(def_file):
     OP_name    resname    atom1    atom2  +extra: OP_mean  OP_std
     (flexible cols)
     fname : string
-        string 
+        input file name
     returns : dictionary 
         with OrderParameters class instances
     """
-    # Using ordered dict since it preserves the read-in order. Might come in handy when comparing to experiments.
+   # Using ordered dict since it preserves the read-in order. Might come in handy when comparing to experiments.
     ordPars = OrderedDict()
-  
-    for line in def_file:
-        if not line.startswith("#"):
-            items = line.split()
-            ordPars[items[0]] = OrderParameter(*items)
+    with open(def_file,"r") as f:
+        for line in f.readlines():
+            if not line.startswith("#"):
+                items = line.split()
+                ordPars[items[0]] = OrderParameter(*items)
     return ordPars
 
 #*******************************************************************
