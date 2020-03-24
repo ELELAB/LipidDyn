@@ -281,7 +281,6 @@ def parse_op_input(def_file):
     """
     # Using ordered dict since it preserves the read-in order. Might come in handy when comparing to experiments.
     ordPars = OrderedDict()
-  
     for line in def_file:
         if not line.startswith("#"):
             items = line.split()
