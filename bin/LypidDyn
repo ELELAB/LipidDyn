@@ -364,13 +364,17 @@ def module_order_parameter(trajectory_file,
 
         for op in ordPars.values():
             (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
-             
-        # writes the output file in .dat file 
+        
+     
+        # writes the output file in  file 
         try:
-            with open('Order_Parameter_'+ lipid_name +'.dat',"w") as f:
+            with open('Order_Parameter_'+ lipid_name +'.csv',"w") as f:
+                f.write("{},{},{},{},{},{},{}  \n".format(
+                    'OP_name','resname','atom1','atom2','OP_mean','OP_stddev','OP_stem'))
                 for op in ordPars.values():
+                    # output in csv file format comma separated
                     f.write( 
-                        "{:20s} {:7s} {:5s} {:5s} {: 2.5f} {: 2.5f} {: 2.5f} \n".format(
+                        "{},{},{},{},{: 2.5f},{: 2.5f},{: 2.5f} \n".format(
                               op.name, op.resname, op.atAname,
                               op.atBname,op.avg, op.std, op.stem)
                            )
@@ -378,11 +382,11 @@ def module_order_parameter(trajectory_file,
             print("Problem writing the main outputfile")
         
 
-        with open('Order_Parameter_'+ lipid_name +'.dat','r') as g :
+        with open('Order_Parameter_'+ lipid_name +'.csv','r') as g :
             if "nan" in g.read():
-                os.remove('Order_Parameter_'+ lipid_name +'.dat')
+                os.remove('Order_Parameter_'+ lipid_name +'.csv')
             else:
-                shutil.move('Order_Parameter_'+ lipid_name +'.dat',
+                shutil.move('Order_Parameter_'+ lipid_name +'.csv',
                              order_folder) 
 
          
