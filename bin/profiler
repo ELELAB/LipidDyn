@@ -1,0 +1,241 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
+# Copyright (C) 2018, Simone Scrima <simonescrima@gmail.com>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+import sys
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+import argparse
+import seaborn as sns
+from LypidDyn.core import *
+from collections import OrderedDict
+sns.set()
+
+
+
+
+def profiler(data,
+             xlab,
+             ylab,
+             upper,
+             lower,
+             memb,
+             title,
+             out):
+
+    """
+    Parameters
+    ----------
+    df : pandas dataframe
+            dataframe with apl data 
+    xlab : str
+            string containing the x axis label
+    ylab : str 
+            string containing the x axis label
+    upper : bool
+            boolean value that indicates the leaflet to plot
+    lower : bool
+            boolean value that indicates the leaflet to plot
+    memb : bool
+            boolean value that indicates the leaflet to plot
+    title : str 
+            string containing the title
+    out : str 
+            string containing the output filename
+    """
+
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    palette = sns.color_palette('husl', 3)
+    legend = OrderedDict()
+  
+    if upper:
+    	# plot upper leaflet
+        up, = ax.plot(data['Time'],
+                 data['Upper_Leaflet'],
+                 color=palette[0],
+                 antialiased =True,
+                 marker = '_')
+        legend['Upper_Leaflet'] = up,
+      
+
+    if lower : 
+    	# plot lower leaflet
+        low, = ax.plot(data['Time'],
+                 data['Lower_Leaflet'],
+                 color=palette[1],
+                 antialiased =True,
+                 marker = '_')
+        legend['Lower_Leaflet'] = low,
+      
+
+    if memb:    	
+       # plot the average membrane value
+        memb,=ax.plot(data['Time'],
+                 data['Membrane'],
+                 color=palette[2],
+                 antialiased =True,
+                 marker='_',
+                 alpha=0.6)
+        legend['Membrane'] = memb,
+    
+    ax.legend(legend.values(),legend.keys())
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
+    ax.set_title(title)
+    plt.tight_layout()
+    plt.savefig(out, dpi=300 )
+
+
+
+usage = ("profiler -i [.xvg] -plot [apl,thick] -upp -low -memb -xlab 'Time(ps)' \
+          -ylab 'APL $nm^2$', 'nm' -t 'Profile' -o 'profile.pdf'")
+
+
+description='This script is to plot the average values of \
+             upper,lower leaflet and the entire membrane \
+             along the simulation time.\
+             The input file is an .xvg file coming from the\
+             analysis '
+                                    
+
+parser = argparse.ArgumentParser(usage = usage,description= description)
+
+parser.add_argument('-i',
+                    '--input',
+                    dest='input',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='.xvg files ',
+                    )
+
+parser.add_argument('-plot',
+                    choices=['apl','thick'],
+                    required=True,
+                    dest='plot')
+
+parser.add_argument('-xlab',
+                    '--xlabel',
+                    dest='xlabel',
+                    type=str,
+                    default='Time(ps)',
+                    required=False,
+                    metavar='',
+                    help='xlabel to assign to the plot',
+                    )
+
+parser.add_argument('-ylab',
+                    '--ylabel',
+                    dest='ylabel',
+                    type=str,
+                    required=False,
+                    default=['APL $nm^2$', 'nm'],
+                    metavar='',
+                    help='ylabel to assign to the plot',
+                    )
+
+parser.add_argument('-t',
+                    '--title',
+                    dest='title',
+                    type=str,
+                    required=False,
+                    default='Profile',
+                    metavar='',
+                    help='Title to assign to the plot',
+                    )
+
+parser.add_argument('-out',
+                    '--output',
+                    dest='output',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    default= 'profile.pdf',
+                    help='output name of the file',
+                    )
+
+
+parser.add_argument('-upp',
+                    '--upper',
+                    action='store_true',
+                    dest='upp',
+                    required = False,
+                    help='leaflet to plot'
+                   )
+
+parser.add_argument('-low',
+                    '--lower',
+                    action='store_true',
+                    dest='low',
+                    required = False,
+                    help='leaflet to plot'
+                   )
+
+parser.add_argument('-memb',
+                    '--membrane',
+                    action='store_true',
+                    dest='mem',
+                    required = False,
+                    help='leaflet to plot'
+                   )
+
+args = parser.parse_args()
+
+data = args.input
+xlab = args.xlabel
+ylab = args.ylabel
+out = args.output
+title = args.title
+upp = args.upp
+low = args.low
+mem = args.mem
+plot = args.plot
+
+df = pd.read_csv(data,
+                 skiprows=15,
+                 names = ['Time','Membrane','Lower_Leaflet','Upper_Leaflet'],
+                 sep="   ")
+
+
+
+if args.plot == 'thick':
+    ylab = ylab[1]
+if args.plot == 'apl':
+    ylab = ylab[0]
+
+
+profiler(df,
+         xlab,
+         ylab,
+         upp,
+         low,
+         mem,
+         title,
+         out)
+
+
+
+
+
+
+
+
+
