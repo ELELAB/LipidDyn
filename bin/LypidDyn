@@ -312,37 +312,6 @@ def module_order_parameter(trajectory_file,
             if exc.errno != errno.EEXIST:
                 raise
 
-    
-    """ 
-    Execute the python script for the order parameter 
-    To work it uses the information in the format :
-      
-    OP_name1 Residue Carbon_name Hydrogen_name
-    OP_name2 Residue Carbon_name Hydrogen_name
-    ------------------------------------------
-    Example (CHARMM36):
- 
-    beta1 POPC C12 H12A
-    beta2 POPC C12 H12B
-    alpha1 POPC C11 H11A
-    alpha2 POPC C11 H11B
-    g3_1 POPC C1 HA
-    g3_2 POPC C1 HB
-    g2_1 POPC C2 HS
-    g1_1 POPC C3 HX
-    g1_2 POPC C3 HY 
-    
-    present in  py
-    
-    Parameters
-    ----------
-    trajectory_file : str
-                    Processed .xtc file. 
-    topology_file : str 
-            Name of the x.gro file.
-
-    """
-    
 
     # retrieve def file for the op in the package folder
     dirs =  pkg_resources.resource_listdir('LypidDyn','/definitions_files/')
@@ -405,8 +374,6 @@ def cleaning_all():
     
 
 
-
-#if __name__ == "__main__":
 
 description= "LypidDyn pipeline for calculating different parameters \
               of a lipid membrane Molecular Dynamics simulation"
@@ -651,7 +618,7 @@ else:
     # Create an index file in which the different layers of the membrane
     # are listed 
 
-    with mda.selections.gromacs.SelectionWriter('true_bilayer',
+    with mda.selections.gromacs.SelectionWriter('true_bilayer.ndx',
                                                  mode='w') as ndx:
             ndx.write(upper_leaflet, name="upper_leaflet")
             ndx.write(lower_leaflet, name="lower_leaflet")

@@ -34,7 +34,6 @@ import MDAnalysis as mda
 import numpy as np
 import math
 import os, sys
-from optparse import OptionParser
 from collections import OrderedDict
 import errno
 import subprocess

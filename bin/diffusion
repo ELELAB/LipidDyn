@@ -1,0 +1,219 @@
+#!/usr/bin/env python
+
+
+# Copyright (C) 2018, Simone Scrima <simonescrima@gmail.com>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import argparse
+from collections import OrderedDict
+from LypidDyn.core import *
+import seaborn as sns
+sns.set()
+
+
+
+
+def extract_data(data):
+
+    """
+    Parameters
+    ----------
+    data : file
+            file containing the coordinates
+    """
+
+    with open(data) as f:
+        d = {}
+        for line in f:
+            line = line.rstrip()
+            # get resname and coordinates
+            if line.startswith('>'):
+               l =[]
+               line = line.split()
+               resname = line[2]+'_'+line[3]
+            else:
+                line = line.split()
+                l.append([float(line[0]),float(line[1])]) 
+            d[resname] = np.array(l)
+    return(d)
+         
+                
+
+
+def plotting_homogeneous(d,title,out):
+    """
+    Parameters
+    ----------
+    d : dictionary
+            dictionary of lipid residues and their coordinates
+    title : str 
+            string containing the title
+    out : str 
+            string containing the output filename
+    """
+    
+    # Here you can tweaks the rule for the colors
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    # saturation? from 0 to 1 of rainbow of same lenght of the data
+    colors = iter(cm.rainbow(np.linspace(0, 1, len(d))))#
+                                                                
+    # It plots the  lipid that constitute a membrane in a scatterplot 
+    for key in sorted(d):
+        # x and y from eanch numpy array in d
+        ax.scatter(d[key][:,0],d[key][:,1],label = key,marker='.',
+                                           antialiased='True',
+                                           alpha=0.8,color=next(colors)
+                    )
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width, box.height])
+    plt.title("sasa")
+    plt.xlabel('$nm$')
+    plt.ylabel('$nm$')
+    # It anchor the legend on the right side of the coordinates ([from left-right],[up-down])
+    plt.legend(fontsize='xx-small', ncol=6, shadow=True, fancybox=True, 
+               loc='lower center',bbox_to_anchor=(0.50, 1.30)
+               )
+    plt.savefig(out,bbox_inches="tight",dpi = 300)
+
+def plotting_heterogeneous(d,title,out):
+
+    """
+    Parameters
+    ----------
+    d : dictionary
+            dictionary of lipid residues and their coordinates
+    title : str 
+            string containing the title
+    out : str 
+            string containing the output filename
+    """
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w'] 
+    res= []
+    for key in d:
+        key = key.split('_')[0]
+        res.append(str(key))
+
+    res = np.unique(res) # get unique names of lipid res
+    # to modify in base of the composition of the membrane 4 = 4 type of lipids
+   
+
+
+
+    col_list = []
+    col_index = -1
+    prev_name = None
+    colors = colors[0:len(res)]
+    for key in sorted(d):
+        name = key.split('_')[0]
+        if name != prev_name:
+            col_index += 1
+        col_list.append(colors[col_index])
+        prev_name = name
+        ax.scatter(d[key][:,0],d[key][:,1], label = name, marker='.',
+                                            antialiased='True', alpha=0.8,
+                                            color=colors[col_index]
+                    )
+
+        # reduce the dimension of the plot of 50%
+        # it goes in opposite direction : i.e =  0.8 is a reduction of about 20%
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width , box.height])
+    plt.title(title)
+    # It anchor the legend on the right side of the coordinates ([from left-right],[up-down])
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.xlabel('$nm$')
+    plt.ylabel('$nm$')
+    plt.legend(by_label.values(), by_label.keys(),fontsize='xx-small', fancybox=True, loc='upper right')
+    plt.savefig(out,bbox_inches="tight",dpi=300)
+
+    
+                
+usage = ("diffusion -i [.dat] -l 'Diffusion Movements' -o 'Order_parameter' \
+                    -t [ho,he]")
+
+description='This script is to plot the diffusion movements of \
+             the lipids composing the  leaflet in the box.\
+             The input file is an .dat file coming from the\
+             analysis '
+                                    
+
+parser = argparse.ArgumentParser(usage = usage,description= description)
+
+parser.add_argument('-i',
+                    '--input',
+                    dest='input',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='input file')
+
+
+parser.add_argument('-t',
+                    '--type',
+                    dest='typology',
+                    type=str,
+                    required=True,
+                    choices=['ho', 'he'],
+                    help='Choose whether the membrane is heterogeneous or homogeneous',
+                    metavar='')
+
+
+parser.add_argument('-l',
+                    '--label',
+                    dest='title',
+                    type=str,
+                    required=False,
+                    default='Diffusion Movements',
+                    metavar='',
+                    help='Title to assign to the plot',
+                    )
+
+parser.add_argument('-out',
+                    '--output',
+                    dest='output',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    default= 'diffusion_movements.pdf',
+                    help='output name of the file',
+                    )
+
+args = parser.parse_args()
+dat = args.input
+title = args.title
+out = args.output
+
+d = extract_data(dat)
+if args.typology == 'ho':
+    plotting_homogeneous(d,title,out)
+if args.typology == 'he':
+    plotting_heterogeneous(d,title,out)
+
+
+
+
+                          
+

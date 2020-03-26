@@ -1,0 +1,125 @@
+#!/usr/bin/env python
+
+
+# Copyright (C) 2018, Simone Scrima <simonescrima@gmail.com>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from mpl_toolkits.mplot3d import Axes3D
+import argparse
+from collections import OrderedDict
+import seaborn as sns
+from LypidDyn.core import *
+
+
+def plotting(array,cmap,title,out):
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    sns_plot = sns.heatmap(array,
+                           cmap = cmap ,
+                           cbar_kws={'label': '$nm^3$'})
+   
+    xtick_list = list(map(int, ax.get_xticks().tolist()))
+    ori_xticks = [xt for xt in xtick_list if xt>=0 and xt<=len(array[0])]
+    for itick, xtick in enumerate(xtick_list[:]):
+        if xtick >= 0 and xtick <= len(array[0]):
+            xtick_list[itick] = round(array[0][xtick],2)
+    sns_plot.set_xticklabels(xtick_list)
+    for ind, label in enumerate(sns_plot.get_xticklabels()):
+        if ind % 4 == 0:  # every 10th label is kept
+            label.set_visible(True)
+        else:
+            label.set_visible(False)
+
+    sns_plot.set_yticklabels(xtick_list[::-1])
+    for ind, label in enumerate(sns_plot.get_yticklabels()):
+        if ind % 4 == 0:  # every 10th label is kept
+            label.set_visible(True)
+        else:
+            label.set_visible(False)
+   
+
+    plt.title(title)
+    plt.pcolormesh(array)
+    plt.colorbar()
+    plt.savefig(out,dpi= 300)
+    
+
+
+
+
+usage = ("2Dmaps -i [.dat] -l 'Diffusion Movements' -o 'Order_parameter' \
+                    -t [ho,he]")
+
+description='This script is to plot the diffusion movements of \
+             the lipids composing the  leaflet in the box.\
+             The input file is an .dat file coming from the\
+             analysis '
+                                    
+
+parser = argparse.ArgumentParser(usage = usage,description= description)
+
+
+parser.add_argument('-i',
+                    '--input',
+                    dest='input',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='input file')
+
+parser.add_argument('-c', 
+                    '--colormap',
+                     dest='cmap',
+                     default='GnBu',
+                     type=str,
+                     metavar='',
+                     help='Range of colors used in the plot.')
+
+parser.add_argument('-t',
+                    '--title',
+                    dest='title',
+                    type=str,
+                    required=False,
+                    default='2D density map',
+                    metavar='',
+                    help='Title to assign to the plot',
+                    )
+
+parser.add_argument('-out',
+                    '--output',
+                    dest='output',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    default= '2Dmaps.pdf',
+                    help='output name of the file',
+                    )
+
+
+args = parser.parse_args()
+dat = args.input
+out = args.output
+title = args.title
+cmap= args.cmap
+array = np.loadtxt(dat)
+
+plotting(array,cmap,title,out)
