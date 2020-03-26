@@ -30,6 +30,20 @@ from LypidDyn.core import *
 
 def plotting(array,cmap,title,out):
     
+    """
+    Parameters
+    ----------
+    array : numpy array of values
+            dictionary of lipid residues and their coordinates
+    cmap : str
+            colormap to use in the plot
+    title : str 
+            string containing the title
+    out : str 
+            string containing the output filename
+    """
+
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
     
