@@ -39,16 +39,7 @@ import errno
 import subprocess
 import argparse
 import shutil
-from multiprocessing import Pool
-
-# Import GROMACS-related modules
-import gromacs
-import gromacs.tools as tools
-import gromacs.setup as setup
-gromacs.environment.flags['capture_output'] = False
-
-# set-up GROMACS
-gromacs.config.setup()
+import multiprocessing as mp
 
 
 #/******************************************************************
@@ -289,6 +280,111 @@ def parse_op_input(def_file):
 #*******************************************************************
 
 
+class Density:
+
+    def __init__ (self,
+                  universe,
+                  selection
+                  ):
+
+        """Initialize the class 
+
+        Parameters
+        -------------
+        universe : object 
+            MDAnalysis universe object
+        selection : method 
+            MDAnalysis AtomGroups selections 
+        out : string
+            name of the outputfile     
+        """
+        self.universe = universe
+        self.selection = selection
+
+        bins = 0.02
+        ts = self.universe.trajectory[0] 
+        # divide by ten the coordinates to convert in nm 
+        self.n1 =  int(round((ts.dimensions[0]*0.1)/bins)) # X coordinate of box
+        self.n2 =  int(round((ts.dimensions[1]*0.1)/bins)) # Y coordinate of box
+       
+
+    def do2dgrid(self,
+                 trajectory,
+                 l_grids):
+
+        """Execute the membranes command of fatslim,
+        which identifies the upper and lower leaflet of
+        a membrane simulation.
+
+        Parameters
+        ----------
+        trajectory : object
+              MDAnalysis universe.trajectory object
+        l_grids : Object/list
+              Manager() type list object from Multiprocessing library.
+              It is shared between processes
+        """
+        
+        grid = np.zeros((self.n1,self.n2)) # grid with shape of n1 and n2 
+        g = self.selection # AtomGroups 
+        for ts in trajectory: # begin cycle through traj
+            # divide by ten the coordinates to convert in nm
+            invcellvol = self.n1*self.n2
+            invcellvol /= np.linalg.det(ts.triclinic_dimensions*0.1)
+            for atom in g: 
+                # x coordinate of the atom divided by the x dimension of box
+                # find the fraction of box the atom is in on X
+                # divide by ten the coordinates to convert in nm
+           
+                m1 = (atom.position[0]*0.1)/(ts.dimensions[0]*0.1) 
+                if  m1 >= 1 : 
+                    m1 -= 1 # pbc maybe subtracting 1 
+                if m1 < 0 : 
+                    m1 +=1
+                m2 = (atom.position[1]*0.1)/(ts.dimensions[1]*0.1)
+                if  m2 >= 1 : 
+                    m2 -= 1 # pbc maybe subtracting 1 
+                if m1 < 0 : 
+                    m2 +=1
+                
+                grid[int(m1*self.n1)][int(m2*self.n2)] +=  invcellvol  
+        l_grids.append(grid)
+        return(l_grids)  
+             
+
+    def normalization(self,
+                      final_grid):
+        """
+        final_grid : numpy array
+        """
+
+        box1 = 0
+        box2 = 0 
+        for ts in self.universe.trajectory:
+            box1 += (ts.dimensions[0]*0.1) # X coordinate
+            box2 += (ts.dimensions[1]*0.1) # Y coordinate
+ 
+        # normalize grid point by the number of frames        
+        grid = np.true_divide(final_grid, len(self.universe.trajectory))  
+
+        #normalize box1 and tick_x; tick_x == tick_y 
+        box1 = box1/len(self.universe.trajectory)
+        box2 = box2/len(self.universe.trajectory)
+        tick_x = [(i*box1)/self.n1 for i in range(self.n1)]
+        tick_y = [(i*box2)/self.n2 for i in range(self.n1)]  
+        grid = np.insert(grid, 0, tick_x, 0)   # add a row
+        tick_y = np.append(0, tick_y)  # add one 0 to make the shape the same
+        grid = np.insert(grid, 0, tick_y, 1)# add a column
+        grid = np.around(grid,decimals=5)
+        return(grid)
+
+    def writeout(self,
+                 out,
+                 final_grid):
+        """
+        final_grid : numpy array
+        """
+        np.savetxt(out,final_grid,delimiter='\t',fmt='%1.4f') 
 
 
 
