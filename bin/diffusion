@@ -58,6 +58,7 @@ def extract_data(data):
 
 
 def plotting_homogeneous(d,title,out):
+    
     """
     Parameters
     ----------
@@ -117,9 +118,6 @@ def plotting_heterogeneous(d,title,out):
     res = np.unique(res) # get unique names of lipid res
     # to modify in base of the composition of the membrane 4 = 4 type of lipids
    
-
-
-
     col_list = []
     col_index = -1
     prev_name = None
@@ -151,13 +149,12 @@ def plotting_heterogeneous(d,title,out):
 
     
                 
-usage = ("diffusion -i [.dat] -l 'Diffusion Movements' -o 'Order_parameter' \
-                    -t [ho,he]")
+usage = ('diffusion -i [.dat] -l [Title of the plot] -out ["".png/pdf]' \
+          ' -t [ho/he] ')
 
-description='This script is to plot the diffusion movements of \
-             the lipids composing the  leaflet in the box.\
-             The input file is an .dat file coming from the\
-             analysis '
+description= 'Tool to plot the diffusion movements of ' \
+             'the lipids composing the leaflet of the bilayer in the box. ' 
+            
                                     
 
 parser = argparse.ArgumentParser(usage = usage,description= description)
@@ -177,7 +174,8 @@ parser.add_argument('-t',
                     type=str,
                     required=True,
                     choices=['ho', 'he'],
-                    help='Choose whether the membrane is heterogeneous or homogeneous',
+                    help='Choose whether the membrane is heterogeneous'\
+                         ' or homogeneous [-ho/he]',
                     metavar='')
 
 
