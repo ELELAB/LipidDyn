@@ -82,7 +82,7 @@ Once created activate the environment with:
 source LypidDyn_env/bin/activate
 ```
 
-**N.B** 
+**N.B** <br/>
 To check if the virtual environment is activated see if 
 the name of the enviroment is visible on the terminal
 
@@ -107,7 +107,7 @@ python setup.py install
 cd ../
 ```
 
-**N.B**
+**N.B**<br/>
 The setup.py will also install all the python library required by LypidDyn to work
 
 In case you want to deactivate the virtual environment just tipe the following
@@ -117,7 +117,7 @@ command into the terminal.
 deactivate
 ``` 
 
-**N.B**
+**N.B**<br/>
 In order to use LypidDyn and all its tools the user must activate the virtual environment each time.
 
 

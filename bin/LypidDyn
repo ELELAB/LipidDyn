@@ -102,7 +102,6 @@ def module_fatslim(trajectory_file,
 
     
     # Begins of the fatslim analysis 
-    
     fatslim = FatslimCommands(trajectory_file,
                               topology_file,
                               index_headgroups,
