@@ -105,15 +105,16 @@ def profiler(data,
 
 
 
-usage = ("profiler -i [.xvg] -plot [apl,thick] -upp -low -memb -xlab 'Time(ps)' \
-          -ylab 'APL $nm^2$', 'nm' -t 'Profile' -o 'profile.pdf'")
+usage = ('profiler -i ["".xvg] -plot [apl/thick] -upp [True/False]' \
+         '-low [True/False] -memb [True/False] -xlab [xlabel]' \
+         '-ylab [ylabel] -t [Title of plot] -o ["".png/pdf]')
 
 
-description='This script is to plot the average values of \
-             upper,lower leaflet and the entire membrane \
-             along the simulation time.\
-             The input file is an .xvg file coming from the\
-             analysis '
+description='This script is to plot the average values of '\
+             'upper,lower leaflet and the entire membrane' \
+             'along the simulation time.'\
+             'The input file is an .xvg file coming from the'\
+             'analysis '
                                     
 
 parser = argparse.ArgumentParser(usage = usage,description= description)

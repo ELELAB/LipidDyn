@@ -26,15 +26,22 @@ import argparse
 from collections import OrderedDict
 import seaborn as sns
 from LypidDyn.core import *
+from scipy.ndimage.filters import gaussian_filter
 
 
-def plotting(array,cmap,title,out):
+def plotting(array,
+             enrichment,
+             cmap,
+             title,
+             out):
     
     """
     Parameters
     ----------
     array : numpy array of values
             dictionary of lipid residues and their coordinates
+    enrichment : Bool
+            Boolean flag to indicate if it is enrichment analysis
     cmap : str
             colormap to use in the plot
     title : str 
@@ -47,12 +54,19 @@ def plotting(array,cmap,title,out):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     
-    sns_plot = sns.heatmap(array,
+    if enrichment:
+        #array_smooth = gaussian_filter(array, sigma=1)
+        sns_plot = sns.heatmap(array,
+                           cmap = cmap ,
+                           cbar_kws={'label': '$nm^3$'},
+                           vmax = 1,vmin=0)
+    else:
+        #array_smooth = gaussian_filter(array, sigma=1)
+        sns_plot = sns.heatmap(array,
                            cmap = cmap ,
                            cbar_kws={'label': '$nm^3$'})
    
     xtick_list = list(map(int, ax.get_xticks().tolist()))
-    ori_xticks = [xt for xt in xtick_list if xt>=0 and xt<=len(array[0])]
     for itick, xtick in enumerate(xtick_list[:]):
         if xtick >= 0 and xtick <= len(array[0]):
             xtick_list[itick] = round(array[0][xtick],2)
@@ -72,21 +86,19 @@ def plotting(array,cmap,title,out):
    
 
     plt.title(title)
-    plt.pcolormesh(array)
-    plt.colorbar()
     plt.savefig(out,dpi= 300)
     
 
 
 
 
-usage = ("2Dmaps -i [.dat] -l 'Diffusion Movements' -o 'Order_parameter' \
-                    -t [ho,he]")
+usage = ('dmaps -i [.dat] -c [colormap] -t [Title of the plot] -out ["".png/pdf]' \
+         ' -enr [True/False]')
 
-description='This script is to plot the diffusion movements of \
-             the lipids composing the  leaflet in the box.\
-             The input file is an .dat file coming from the\
-             analysis '
+description='This script is to plot the diffusion movements of' \
+             'the lipids composing the  leaflet in the box.'\
+             'The input file is an .dat file coming from the'\
+             'analysis '
                                     
 
 parser = argparse.ArgumentParser(usage = usage,description= description)
@@ -98,15 +110,17 @@ parser.add_argument('-i',
                     type=str,
                     required=True,
                     metavar='',
-                    help='input file')
+                    help='input file'
+                    )
 
 parser.add_argument('-c', 
                     '--colormap',
                      dest='cmap',
-                     default='GnBu',
+                     default='seismic',
                      type=str,
                      metavar='',
-                     help='Range of colors used in the plot.')
+                     help='Range of colors used in the plot.'
+                     )
 
 parser.add_argument('-t',
                     '--title',
@@ -128,12 +142,22 @@ parser.add_argument('-out',
                     help='output name of the file',
                     )
 
+parser.add_argument('-enr',
+                    '--enrichment',
+                    action='store_true',
+                    dest='enr', 
+                    required = False,
+                    help='if the plot is an enrichment plot or \
+                          not'
+                    )
+
 
 args = parser.parse_args()
 dat = args.input
 out = args.output
 title = args.title
 cmap= args.cmap
+enr = args.enr
 array = np.loadtxt(dat)
 
-plotting(array,cmap,title,out)
+plotting(array,enr,cmap,title,out)
