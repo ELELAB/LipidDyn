@@ -52,9 +52,6 @@ details of the conformations that the atoms in the lipid tails adopt. <br/>
 The original algorithm was originally developed by J. Melcr. with the contribution from  H. Antila 
 for NMRlipids project and readapted for the purpose of this work [4] <br/>
 
-
-
-
 ## Installing LypidDyn
 
 These instructions will get you a copy of the project running on your machine.
@@ -68,6 +65,7 @@ FatSlim
 MDAnalysis
 matplotlib
 numpy
+seaborn
 ```
 
 ### Setup of the virtual environment
