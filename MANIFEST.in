@@ -4,4 +4,4 @@ include README.md
 include LICENSE 
 recursive-include doc *
 recursive-include bin *
-recursive-include LipidDyn * 
+include LypidDyn/definitions_files/*.def
