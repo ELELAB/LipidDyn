@@ -25,7 +25,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import argparse
 from collections import OrderedDict
 import seaborn as sns
-from LypidDyn.core import *
+from LipidDyn.core import *
 from scipy.ndimage.filters import gaussian_filter
 
 

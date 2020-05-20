@@ -25,10 +25,10 @@ from progressbar import ProgressBar
 import numpy as np
 
 #Import the classes and functions from the utils
-from LypidDyn.core import *
+from LipidDyn.core import *
 
 # Import pkg management library
-import pkg_resources 
+import pkg_resources
 
 #Import MDanalysis
 import MDAnalysis as mda
@@ -370,7 +370,7 @@ def module_order_parameter(trajectory_file,
 
 
     # retrieve def file for the op in the package folder
-    dirs =  pkg_resources.resource_listdir('LypidDyn','/definitions_files/')
+    dirs =  pkg_resources.resource_listdir('LipidDyn','/definitions_files/')
     
     pbar = ProgressBar().start()
     total_step = len(dirs)
@@ -380,7 +380,7 @@ def module_order_parameter(trajectory_file,
         # get the lipid name
         lipid_name = def_file.split('.')[0]
         # retrieve the def files from the package
-        defi = pkg_resources.resource_string('LypidDyn','/definitions_files/'+
+        defi = pkg_resources.resource_string('LipidDyn','/definitions_files/'+
                                               def_file)
         defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
         defi = list(filter(lambda x: x != '', defi)) # filter empty strings

@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import argparse
 import seaborn as sns
-from LypidDyn.core import *
+from LipidDyn.core import *
 from collections import OrderedDict
 sns.set()
 

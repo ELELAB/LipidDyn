@@ -3,5 +3,5 @@ include MANIFEST.in
 include README.md 
 include LICENSE 
 recursive-include doc *
-recursive-include bin *
-include LypidDyn/definitions_files/*.def
+recursive-include bin * 
+include LipidDyn/definitions_files/*.def
