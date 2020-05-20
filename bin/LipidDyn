@@ -25,7 +25,7 @@ from progressbar import ProgressBar
 import numpy as np
 
 #Import the classes and functions from the utils
-from LypidDyn.core import *
+from LipidDyn.core import *
 
 # Import pkg management library
 import pkg_resources 
