@@ -21,8 +21,7 @@ from setuptools import setup, find_packages
 setup(
     name="LipidDyn",
     version="0.3",
-    packages=find_packages(include=['LipidDyn',
-                                    'LipidDyn.*']),
+    packages=find_packages(),
     scripts=['bin/LipidDyn',
              'bin/profiler',
              'bin/ordpar',
