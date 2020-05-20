@@ -1,6 +1,6 @@
-# LypidDyn: A computational microscope to scrutinize membrane properties at the organelle-level
+# LipidDyn: A computational microscope to scrutinize membrane properties at the organelle-level
 
-We have built an automated computational pipeline, implemented in Python 3, LypidDyn,
+We have built an automated computational pipeline, implemented in Python 3, LipidDyn,
 for the accurate analysis of the structural properties and dynamics of lipid bilayers
 simulations that can be used to validate the ensembles against experimental data.<br/>
 <br/>
@@ -52,7 +52,7 @@ details of the conformations that the atoms in the lipid tails adopt. <br/>
 The original algorithm was originally developed by J. Melcr. with the contribution from  H. Antila 
 for NMRlipids project and readapted for the purpose of this work [4] <br/>
 
-## Installing LypidDyn
+## Installing LipidDyn
 
 These instructions will get you a copy of the project running on your machine.
 
@@ -72,12 +72,12 @@ seaborn
 
 In a directory of the user's choice open a terminal and type:
 ```
-virtualenv "LypidDyn_env" -p /usr/bin/python3.6
+virtualenv "LipidDyn_env" -p /usr/bin/python3.6
 ```
 
 Once created activate the environment with:
 ```
-source LypidDyn_env/bin/activate
+source LipidDyn_env/bin/activate
 ```
 
 **N.B** <br/>
@@ -96,7 +96,7 @@ Install FatSlim software:
 pip install fatslim
 ```
 
-Install LypidDyn with:
+Install LipidDyn with:
 
 ```
 git clone https://github.com/ELELAB/LipidDyn.git
@@ -106,7 +106,7 @@ cd ../
 ```
 
 **N.B**<br/>
-The setup.py will also install all the python library required by LypidDyn to work
+The setup.py will also install all the python library required by LipidDyn to work
 
 In case you want to deactivate the virtual environment just tipe the following
 command into the terminal.
@@ -116,7 +116,7 @@ deactivate
 ``` 
 
 **N.B**<br/>
-In order to use LypidDyn and all its tools the user must activate the virtual environment each time.
+In order to use LipidDyn and all its tools the user must activate the virtual environment each time.
 
 
 
@@ -131,7 +131,7 @@ Both files must have the same number of atoms.<br/>
 ### Basic Usage 
 
 ```
-LypidDyn -t ["".xtc/.trr] -f ["".gro/.tpr] -all -d Analysis -ncore "n"  -c
+LipidDyn -t ["".xtc/.trr] -f ["".gro/.tpr] -all -d Analysis -ncore "n"  -c
 ```
 This command will run the full set of analysis (-all) and store all the output files in the directory
 "Analysis", using "n" cores and clean (-c) all intermediate files. <br/> 
@@ -140,12 +140,12 @@ Inside this folder there will be different folders each one representing a set o
 In case there of a protein embedded in the lipid bilayer specify use the flag -prot:
 
 ```
-LypidDyn -t ["".xtc/.trr] -f ["".gro/.tpr] -all -d Analysis -ncore "n" -prot -c
+LipidDyn -t ["".xtc/.trr] -f ["".gro/.tpr] -all -d Analysis -ncore "n" -prot -c
 ```
 
 ### Visualization of data
 
-For the visualization of the output data LypidDyn includes a set of tools for for graphical representation.
+For the visualization of the output data LipidDyn includes a set of tools for for graphical representation.
 All the output are stored under  ```Analysis/``` (or under the directory with the user custom name).
 
 #### 1) Thickness and Area per Lipid
