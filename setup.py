@@ -19,10 +19,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="LypidDyn",
+    name="LipidDyn",
     version="0.3",
     packages=find_packages(),
-    scripts=['bin/LypidDyn',
+    scripts=['bin/LipidDyn',
              'bin/profiler',
              'bin/ordpar',
              'bin/diffusion',
@@ -37,6 +37,6 @@ setup(
     author_email="simonescrima@gmail.com",
     description="Scripts to automate pipeline of analysis for Lipid Simulations",
     keywords="Lipid pipeline analysis",
-    url="https://github.com/ELELAB/LypidDyn",
+    url="https://github.com/ELELAB/LipidDyn",
 )
 
