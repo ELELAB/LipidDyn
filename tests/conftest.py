@@ -16,14 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import pytest
-from pkg_resources import resource_filename 
 import MDAnalysis as mda
 
 
 @pytest.fixture
-def data_dir():
-    return "tests/data"
+def root_dir():
+    return os.path.dirname(os.path.abspath(__file__))
+
+@pytest.fixture
+def data_dir(root_dir):
+    return "{0}/data".format(root_dir)
 
 @pytest.fixture
 def membrane_sim():
