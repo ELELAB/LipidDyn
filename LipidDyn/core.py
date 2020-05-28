@@ -322,7 +322,6 @@ class Density:
                 # x coordinate of the atom divided by the x dimension of box
                 # find the fraction of box the atom is in on X
                 # divide by ten the coordinates to convert in nm
-           
                 m1 = (atom.position[0]*0.1)/(ts.dimensions[0]*0.1) 
                 if  m1 >= 1 : 
                     m1 -= 1 # pbc maybe subtracting 1 
@@ -331,7 +330,7 @@ class Density:
                 m2 = (atom.position[1]*0.1)/(ts.dimensions[1]*0.1)
                 if  m2 >= 1 : 
                     m2 -= 1 # pbc maybe subtracting 1 
-                if m1 < 0 : 
+                if m2 < 0 :
                     m2 +=1
                 
                 grid[int(m1*self.n1)][int(m2*self.n2)] +=  invcellvol  
