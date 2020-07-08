@@ -273,7 +273,6 @@ class Density:
 
     def __init__ (self,
                   universe,
-                  selection
                   ):
 
         """Initialize the class 
@@ -286,39 +285,32 @@ class Density:
             MDAnalysis AtomGroups selections   
         """
         self.universe = universe
-        self.selection = selection
-
-        bins = 0.02
-        ts = self.universe.trajectory[0] 
+        self.bins = 0.02
+        self.ts = self.universe.trajectory[0] 
         # divide by ten the coordinates to convert in nm 
-        self.n1 =  int(round((ts.dimensions[0]*0.1)/bins)) # X coordinate of box
-        self.n2 =  int(round((ts.dimensions[1]*0.1)/bins)) # Y coordinate of box
+        self.n1 =  int(round((self.ts.dimensions[0]*0.1)/self.bins)) # X coordinate of box
+        self.n2 =  int(round((self.ts.dimensions[1]*0.1)/self.bins)) # Y coordinate of box
        
 
-    def do2dgrid(self,
-                 trajectory,
-                 l_grids):
+    def run_density(self,
+                    selection):
 
         """Execute the membranes command of fatslim,
         which identifies the upper and lower leaflet of
         a membrane simulation.
-
-        Parameters
-        ----------
-        trajectory : object
-              MDAnalysis universe.trajectory object
-        l_grids : Object/list
-              Manager() type list object from Multiprocessing library.
-              It is shared between processes
         """
         
+        box1 = 0
+        box2 = 0 
         grid = np.zeros((self.n1,self.n2)) # grid with shape of n1 and n2 
-        g = self.selection # AtomGroups 
-        for ts in trajectory: # begin cycle through traj
+        traj = self.universe.trajectory
+        for ts in traj: # begin cycle through traj
             # divide by ten the coordinates to convert in nm
             invcellvol = self.n1*self.n2
             invcellvol /= np.linalg.det(ts.triclinic_dimensions*0.1)
-            for atom in g: 
+            box1 += (ts.dimensions[0]*0.1)
+            box2 += (ts.dimensions[1]*0.1)
+            for atom in selection: 
                 # x coordinate of the atom divided by the x dimension of box
                 # find the fraction of box the atom is in on X
                 # divide by ten the coordinates to convert in nm
@@ -331,29 +323,13 @@ class Density:
                 m2 = (atom.position[1]*0.1)/(ts.dimensions[1]*0.1)
                 if  m2 >= 1 : 
                     m2 -= 1 # pbc maybe subtracting 1 
-                if m1 < 0 : 
+                if m2 < 0 : 
                     m2 +=1
-                
                 grid[int(m1*self.n1)][int(m2*self.n2)] +=  invcellvol  
-        l_grids.append(grid)
-        return(l_grids)  
-             
-
-    def normalization(self,
-                      final_grid):
-        """
-        final_grid : numpy array
-        """
-
-        box1 = 0
-        box2 = 0 
-        for ts in self.universe.trajectory:
-            box1 += (ts.dimensions[0]*0.1) # X coordinate
-            box2 += (ts.dimensions[1]*0.1) # Y coordinate
  
         # normalize grid point by the number of frames        
-        grid = np.true_divide(final_grid, len(self.universe.trajectory))  
-
+        grid = np.true_divide(grid, len(self.universe.trajectory))  
+        
         #normalize box1 and tick_x; tick_x == tick_y 
         box1 = box1/len(self.universe.trajectory)
         box2 = box2/len(self.universe.trajectory)
@@ -363,54 +339,12 @@ class Density:
         tick_y = np.append(0, tick_y)  # add one 0 to make the shape the same
         grid = np.insert(grid, 0, tick_y, 1)# add a column
         grid = np.around(grid,decimals=5)
-        return(grid)
-
-
-
-def dmap_multiprocessing(universe,
-                         selection,
-                         ncore):
-    
-    """Function to compute 2D density maps 
-
-        Parameters
-        -------------
-        universe : class 
-            MDAnalysis universe class
-        selection : MDAnalysis AtomGroup
-        ncore : int
-            Number of core to use for multiprocessing
-    """
-
-
-    # initialize class with the the respective AtomGroup
-    u = universe
-    dmap = Density(u,selection)
-    # divide the frames in chunk 
-    chunk = [u.trajectory[x:x+int(len(u.trajectory)/ncore)] 
-             for x in range(0,len(u.trajectory),
-             int(len(u.trajectory)/ncore))]
-    # can be shared between processes         
-    final_grid = mp.Manager().list()  
-    processes = []
-    for slices in chunk:
-        # Passing the list
-        p = mp.Process(target=dmap.do2dgrid, args=(slices,final_grid))  
-        p.start()
-        processes.append(p)
-    for p in processes:
-        p.join()
         
-    # sum all the grids generated in multiple processes   
-    final_grid = sum(list(final_grid))
-    grid = dmap.normalization(final_grid) # normalize
-    return(grid)
+        return(grid)
+             
 
 
-
-
-
-class FatslimCommands:
+class Fatslim:
      
     def __init__ (self,
                   trajectory,
@@ -418,7 +352,8 @@ class FatslimCommands:
                   headgroups_ndx_file,
                   ncore,
                   apl_cutoff,
-                  thk_cutoff
+                  thk_cutoff,
+                  raw
                   ):
 
         """Initialize the class 
@@ -443,75 +378,10 @@ class FatslimCommands:
         self.ncore = ncore
         self.apl_cutoff = float(apl_cutoff)
         self.thk_cutoff = float(thk_cutoff)
-    
-    def membranes(self,
-                  out_file):
+        self.raw = raw
 
-        """Execute the membranes command of fatslim,
-        which identifies the upper and lower leaflet of
-        a membrane simulation.
-
-        Parameters
-        ----------
-        out_file : str 
-                Name of the output file.
-        """
-
-        a = subprocess.call(['fatslim', 'membranes',
-                             '-c',self.gro,
-                             '-t',self.gro,
-                             '-n',self.headgroups_ndx_file,
-                             '--nthread', str(self.ncore),
-                             '--output-index','bilayer.ndx'],
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL
-                            ) 
-
-    def raw_thickness(self,
+    def run_thickness(self,
                       out_file):
-
-        """Execute the thickness command of fatslim,
-        which compute the average thickness of lower,
-        upper leaflet and the entire membrane in a
-        ''.xvg file.
-        In this case we compute the raw values for 
-        each frame of the trajectory, creating multiple
-        files.
-    
-        Parameters
-        ----------
-        out_file : str 
-                Name of the output file.
-        """
-        
-             
-        # the user modified the cut-off
-        if self.thk_cutoff != 2.0:
-            a = subprocess.call(['fatslim', 'thickness',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread',str(self.ncore),
-                                 '--export-thickness-raw', out_file,
-                                 '--thickness-cutoff',str(self.thk_cutoff)],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
-        # default cut-off
-        else: 
-            a = subprocess.call(['fatslim', 'thickness',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread',str(self.ncore),
-                                 '--export-thickness-raw', out_file],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
-
-
-    def thickness(self,
-                  out_file):
 
         """Execute the thickness command of fatslim,
         which compute the average thickness of lower,
@@ -523,73 +393,32 @@ class FatslimCommands:
         out_file : str 
                 Name of the output file.
         """
-        
-        if self.thk_cutoff != 2.0: 
-            a = subprocess.call(['fatslim', 'thickness',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread', str(self.ncore),
-                                 '--plot-thickness', out_file,
-                                 '--thickness-cutoff',str(self.thk_cutoff)],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
+
+        # if the user wants also the raw data
+        if self.raw:
+            cmd = ['fatslim', 'thickness',
+                   '-c',self.gro,
+                   '-n',self.headgroups_ndx_file,
+                   '-t',self.trajectory,
+                   '--nthread',str(self.ncore),
+                   '--plot-thickness', out_file,
+                   '--export-thickness-raw',out_file,
+                   '--thickness-cutoff', str(self.thk_cutoff)]                    
         else:
-            a = subprocess.call(['fatslim',
-                                 'thickness',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread',str(self.ncore),
-                                 '--plot-thickness', out_file],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
+            cmd = ['fatslim', 'thickness',
+                   '-c',self.gro,
+                   '-n',self.headgroups_ndx_file,
+                   '-t',self.trajectory,
+                   '--nthread',str(self.ncore),
+                   '--plot-thickness', out_file,
+                   '--thickness-cutoff', str(self.thk_cutoff)]        
 
+        a = subprocess.call(cmd,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
 
-    def raw_AreaPerLipid(self,
-                         out_file):
-
-        """Execute the APL command of fatslim,
-        which compute the area per lipid thickness 
-        of lower,upper leaflet and the entire membrane
-        in a''.xvg file.
-        In this case we compute the raw values for 
-        each frame of the trajectory, creating multiple
-        files.
-    
-        Parameters
-        ----------
-        out_file : str 
-                Name of the output file.
-        """
-
-        if self.apl_cutoff != 3.0:
-            a = subprocess.call(['fatslim', 'apl',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread',str(self.ncore),
-                                 '--export-apl-raw',out_file,
-                                 '--apl-cutoff',str(self.apl_cutoff)],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
-        else:
-            a = subprocess.call(['fatslim', 'apl',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread',str(self.ncore),
-                                 '--export-apl-raw',out_file],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
-
-
-    def AreaPerLipid(self,
-                     out_file):
+    def run_apl(self,
+                out_file):
 
         """Execute the APL command of fatslim,
         which compute the average area per lipid 
@@ -602,26 +431,25 @@ class FatslimCommands:
                 Name of the output file.
         """
 
-        if self.apl_cutoff != 3.0:
-            a = subprocess.call(['fatslim', 'apl',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread',str(self.ncore),
-                                 '--plot-apl',out_file,
-                                 '--apl-cutoff', str(self.apl_cutoff)],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
+        if self.raw:
+            cmd = ['fatslim', 'apl',
+                   '-c',self.gro,
+                   '-n',self.headgroups_ndx_file,
+                   '-t',self.trajectory,
+                   '--nthread',str(self.ncore),
+                   '--plot-apl',out_file,
+                   '--export-apl-raw',out_file,
+                   '--apl-cutoff',str(self.apl_cutoff)]
         else:
-            a = subprocess.call(['fatslim', 'apl',
-                                 '-c',self.gro,
-                                 '-n',self.headgroups_ndx_file,
-                                 '-t',self.trajectory,
-                                 '--nthread',str(self.ncore),
-                                 '--plot-apl',out_file],
-                                 stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL
-                                )
-
+            cmd = ['fatslim', 'apl',
+                   '-c',self.gro,
+                   '-n',self.headgroups_ndx_file,
+                   '-t',self.trajectory,
+                   '--nthread',str(self.ncore),
+                   '--plot-apl',out_file,
+                   '--apl-cutoff',str(self.apl_cutoff)]
+        
+        a = subprocess.call(cmd,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
 
