@@ -790,7 +790,6 @@ def main():
      
     if args.clean :
         cleaning_all()
-        tac()
 
 if __name__ == "__main__":
     main()
