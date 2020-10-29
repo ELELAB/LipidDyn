@@ -675,10 +675,10 @@ def main():
 
     if args.all_modules :
         
-        logging.info("\n")
+   
         logging.info("Starting now with the calculation, please stand by...")
         logging.info(u"\u2622")
-        logging.info("\n")
+      
     
         logging.info("Analysis: Area per lipid & Thickness calculation")
         module_fatslim(traj,
@@ -690,19 +690,19 @@ def main():
                        raw,
                        ncore
                        )
-        logging.info("\n")
+        
         
         logging.info("--------------------------------------")
-        logging.info("\n")
+      
 
         logging.info("Analysis: Density maps")
         module_densmap(u,
                        leaflets,
                        ncore,
                        dir_name)
-        logging.info("\n")
+  
         logging.info("--------------------------------------")
-        logging.info("\n")
+     
         if args.prot:
             # add enrichment analysis with a protein
             logging.info("Analysis: Enrichment Analysis")
@@ -710,9 +710,9 @@ def main():
                               g,
                               ncore,
                               dir_name)
-            logging.info("\n")
+            
             logging.info("--------------------------------------")
-            logging.info("\n")
+            
 
 
 
@@ -720,24 +720,23 @@ def main():
         module_movements(u,
                          leaflets,
                          dir_name)
-        logging.info("\n")
+      
         logging.info("--------------------------------------")
-        logging.info("\n")
+       
 
         logging.info("Analysis: Order Parameter")
         module_order_parameter(traj,
                                topol,
                                dir_name
                                )
-        logging.info("\n")
+     
         logging.info("--------------------------------------")
-        logging.info("\n")
+     
     
     else:
         logging.info("Starting now with the calculation, please stand by")
-        logging.info("\n")
         logging.info(u"\u2622")
-        logging.info("\n")
+   
 
         if args.mod_fat : 
 
@@ -750,7 +749,6 @@ def main():
                            tck_cutoff,
                            raw,
                            ncore)
-            logging.info("\n")
             logging.info("--------------------------------------")
 
         if args.mod_maps :
@@ -760,7 +758,6 @@ def main():
                            leaflets,
                            ncore,
                            dir_name)
-            logging.info("\n")
             logging.info("--------------------------------------")
        
         if args.enrichment and args.prot:
@@ -772,7 +769,6 @@ def main():
                               g,
                               ncore,
                               dir_name)
-            logging.info("\n")
             logging.info("--------------------------------------")
 
  
@@ -782,7 +778,6 @@ def main():
             module_movements(u,
                              leaflets,
                              dir_name)
-            logging.info("\n")
             logging.info("--------------------------------------")
 
         if args.mod_ord :
@@ -791,7 +786,6 @@ def main():
             module_order_parameter(traj,
                                    topol,
                                    dir_name)
-            logging.info("\n")
             logging.info("--------------------------------------")
      
     if args.clean :
