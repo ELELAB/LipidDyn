@@ -29,6 +29,7 @@ import subprocess
 import argparse
 import shutil
 import multiprocessing as mp
+import logging
 
 
 #/******************************************************************
@@ -91,11 +92,11 @@ class OrderParameter:
         
         for field in self.__dict__:
             if not isinstance(field, str):
-                raise UserWarning("provided name >> {} << is not a string! \n \
+                logging.warning("provided name >> {} << is not a string! \n \
                 Unexpected behaviour might occur.".format(field))
             else:
                 if not field.strip():
-                    raise RuntimeError("provided name >> {} << is empty! \n \
+                    logging.error("provided name >> {} << is empty! \n \
                     Cannot use empty names for atoms and OP definitions.".format(field))
         
         # extra optional arguments allow setting avg,std values -- suitable for reading-in results of this script
@@ -108,7 +109,7 @@ class OrderParameter:
             self.stem = args[2]
         else:
             if len(args) != 0:
-                raise UserWarning("Number of optional positional arguments is {len}, \
+                logging.warning("Number of optional positional arguments is {len}, \
                     not 3, 2 or 0. Args: {args}\n Wrong file format?".format(len=len(args), args=args))
 
 
@@ -122,7 +123,7 @@ class OrderParameter:
         d2 = np.square(vec).sum()
         
         if d2>bond_len_max_sq:
-            raise UserWarning("Atomic distance for atoms \
+            logging.warning("Atomic distance for atoms \
                 {at1} and {at2} in residue no. {resnr} is suspiciously \
                 long: {d}!\nPBC removed???".format(at1=atoms[0].name, \
                 at2=atoms[1].name, resnr=atoms[0].resid, d=math.sqrt(d2)
@@ -153,7 +154,7 @@ class OrderParameter:
             angle = math.degrees(math.acos(cos))
         except ValueError:
             if abs(cos)>=1.0:
-                print("Cosine is too large = {} --> truncating it to +/-1.0".format(cos))
+                logging.debug("Cosine is too large = {} --> truncating it to +/-1.0".format(cos))
                 cos = math.copysign(1.0, cos)
                 angle = math.degrees(math.acos(cos))
         return angle
@@ -214,10 +215,10 @@ def read_trajs_calc_OPs(ordPars, top, trajs):
             
             # check if we have only 2 atoms (A & B) selected
             if res.n_atoms != 2:
-                print(res.resnames, res.resids)
+                logging.debug(res.resnames, res.resids)
                 for atom in res.atoms:
-                    print(atom.name, atom.id)
-                raise UserWarning("Selection >> name {atA} {atB} << \
+                    logging.info(atom.name, atom.id)
+                logging.warning("Selection >> name {atA} {atB} << \
                 contains {nat} atoms, but should contain exactly 2!".format(
                 atA=op.atAname, atB=op.atBname, nat=res.n_atoms)
                 )
