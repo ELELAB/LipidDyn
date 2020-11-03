@@ -60,15 +60,15 @@ def tac():
 
 
 
-def module_fatslim(trajectory_file,
-                   topology_file,
-                   index_headgroups,
-                   directory_name,
-                   apl_cutoff,
-                   tck_cutoff,
-                   raw,
-                   ncore
-                   ):
+def fatslim_analysis(trajectory_file,
+                     topology_file,
+                     index_headgroups,
+                     directory_name,
+                     apl_cutoff,
+                     tck_cutoff,
+                     raw,
+                     ncore
+                     ):
         
     """Fuction consisting of fatslim analysis 
     1) Thickness (raw +xvg)
@@ -147,10 +147,10 @@ def module_fatslim(trajectory_file,
     pbar.finish()
    
 
-def module_densmap(universe,
-                   leaflets,
-                   ncore,
-                   directory_name):
+def densmaps_analysis(universe,
+                      leaflets,
+                      ncore,
+                      directory_name):
 
     """
     Parameters
@@ -195,10 +195,10 @@ def module_densmap(universe,
     pbar.finish()
   
 
-def module_enrichment(universe,
-                      selection,
-                      ncore,
-                      directory_name):
+def enrichment_analysis(universe,
+                        selection,
+                        ncore,
+                        directory_name):
     """
     Parameters
     -------------
@@ -285,9 +285,9 @@ def module_enrichment(universe,
 
 
 
-def module_movements(universe,
-                     leaflets,
-                     directory_name):
+def movements_analysis(universe,
+                       leaflets,
+                       directory_name):
          
     # Creates different folder in which the output is stored
 
@@ -347,10 +347,10 @@ def module_movements(universe,
 
 
 
-def module_order_parameter(trajectory_file,
-                           topology_file,
-                           directory_name
-                           ):
+def order_par_analysis(trajectory_file,
+                       topology_file,
+                       directory_name
+                       ):
     
     """
     Parameters
@@ -430,7 +430,7 @@ def module_order_parameter(trajectory_file,
     pbar.finish()
 
          
-def cleaning_all():
+def clean():
 
     # Clean all the temporary files which were created 
     os.remove('index_headgroups.ndx')
@@ -681,55 +681,49 @@ def main():
       
     
         logging.info("Analysis: Area per lipid & Thickness calculation")
-        module_fatslim(traj,
-                       topol,
-                       index_headgroups,
-                       dir_name,
-                       apl_cutoff,
-                       tck_cutoff,
-                       raw,
-                       ncore
-                       )
-        
-        
+        fatslim_analysis(traj,
+                         topol,
+                         index_headgroups,
+                         dir_name,
+                         apl_cutoff,
+                         tck_cutoff,
+                         raw,
+                         ncore
+                         )
         logging.info("--------------------------------------")
       
 
         logging.info("Analysis: Density maps")
-        module_densmap(u,
-                       leaflets,
-                       ncore,
-                       dir_name)
-  
+        densmaps_analysis(u,
+                          leaflets,
+                          ncore,
+                          dir_name)
         logging.info("--------------------------------------")
      
         if args.prot:
             # add enrichment analysis with a protein
             logging.info("Analysis: Enrichment Analysis")
-            module_enrichment(u,
-                              g,
-                              ncore,
-                              dir_name)
-            
+            enrichment_analysis(u,
+                                g,
+                                ncore,
+                                dir_name)
             logging.info("--------------------------------------")
             
 
 
 
         logging.info("Analysis: Diffusion movements")
-        module_movements(u,
-                         leaflets,
-                         dir_name)
-      
+        movements_analysis(u,
+                           leaflets,
+                           dir_name)
         logging.info("--------------------------------------")
        
 
         logging.info("Analysis: Order Parameter")
-        module_order_parameter(traj,
-                               topol,
-                               dir_name
+        order_par_analysis(traj,
+                           topol,
+                           dir_name
                                )
-     
         logging.info("--------------------------------------")
      
     
@@ -741,23 +735,23 @@ def main():
         if args.mod_fat : 
 
             logging.info("Analysis: Area per lipid & Thickness calculation")
-            module_fatslim(traj,
-                           topol,
-                           index_headgroups,
-                           dir_name,
-                           apl_cutoff,
-                           tck_cutoff,
-                           raw,
-                           ncore)
+            fatslim_analysis(traj,
+                             topol,
+                             index_headgroups,
+                             dir_name,
+                             apl_cutoff,
+                             tck_cutoff,
+                             raw,
+                             ncore)
             logging.info("--------------------------------------")
 
         if args.mod_maps :
             
             logging.info("Analysis: Density maps")
-            module_densmap(u,
-                           leaflets,
-                           ncore,
-                           dir_name)
+            densmaps_analysis(u,
+                              leaflets,
+                              ncore,
+                              dir_name)
             logging.info("--------------------------------------")
        
         if args.enrichment and args.prot:
@@ -765,31 +759,31 @@ def main():
             # do it if there is also the flag for the 
             # prot
             logging.info("Analysis: Enrichment Analysis")
-            module_enrichment(u,
-                              g,
-                              ncore,
-                              dir_name)
+            enrichment_analysis(u,
+                                g,
+                                ncore,
+                                dir_name)
             logging.info("--------------------------------------")
 
  
         if args.mod_mov :
             
             logging.info("Analysis: Diffusion movements")
-            module_movements(u,
-                             leaflets,
-                             dir_name)
+            movements_analysis(u,
+                               leaflets,
+                               dir_name)
             logging.info("--------------------------------------")
 
         if args.mod_ord :
 
             logging.info("Analysis: Order Parameter")
-            module_order_parameter(traj,
-                                   topol,
-                                   dir_name)
+            order_par_analysis(traj,
+                               topol,
+                               dir_name)
             logging.info("--------------------------------------")
      
-    if args.clean :
-        cleaning_all()
+    if args.clean:
+        clean()
 
 if __name__ == "__main__":
     main()
