@@ -60,15 +60,15 @@ def tac():
 
 
 
-def fatslim_analysis(trajectory_file,
+def thk_apl_analysis(trajectory_file,
                      topology_file,
                      index_headgroups,
                      directory_name,
                      apl_cutoff,
                      tck_cutoff,
                      raw,
-                     ncore
-                     ):
+                     ncore):
+                           
         
     """Fuction consisting of fatslim analysis 
     1) Thickness (raw +xvg)
@@ -349,8 +349,8 @@ def movements_analysis(universe,
 
 def order_par_analysis(trajectory_file,
                        topology_file,
-                       directory_name
-                       ):
+                       directory_name):
+                       
     
     """
     Parameters
@@ -681,15 +681,14 @@ def main():
       
     
         logging.info("Analysis: Area per lipid & Thickness calculation")
-        fatslim_analysis(traj,
+        thk_apl_analysis(traj,
                          topol,
                          index_headgroups,
                          dir_name,
                          apl_cutoff,
                          tck_cutoff,
                          raw,
-                         ncore
-                         )
+                         ncore)
         logging.info("--------------------------------------")
       
 
@@ -722,8 +721,7 @@ def main():
         logging.info("Analysis: Order Parameter")
         order_par_analysis(traj,
                            topol,
-                           dir_name
-                               )
+                           dir_name)
         logging.info("--------------------------------------")
      
     
@@ -735,7 +733,7 @@ def main():
         if args.mod_fat : 
 
             logging.info("Analysis: Area per lipid & Thickness calculation")
-            fatslim_analysis(traj,
+            thk_apl_analysis(traj,
                              topol,
                              index_headgroups,
                              dir_name,
