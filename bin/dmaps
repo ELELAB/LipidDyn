@@ -21,12 +21,10 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from mpl_toolkits.mplot3d import Axes3D
 import argparse
 from collections import OrderedDict
 import seaborn as sns
 from LipidDyn.core import *
-from scipy.ndimage.filters import gaussian_filter
 
 
 def plotting(array,
@@ -51,42 +49,62 @@ def plotting(array,
     """
 
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    fig, ax = plt.subplots()
     
     if enrichment:
-        #array_smooth = gaussian_filter(array, sigma=1)
-        sns_plot = sns.heatmap(array,
+        sns_plot = sns.heatmap(np.rot90(array),
                            cmap = cmap ,
                            cbar_kws={'label': '$nm^3$'},
-                           vmax = 1,vmin=0)
+                           vmax = 1,
+                           vmin=0)
     else:
-        #array_smooth = gaussian_filter(array, sigma=1)
-        sns_plot = sns.heatmap(array,
+        # heatmap rotate the final plot of 90 degree so
+        # we adjust it
+        sns_plot = sns.heatmap(np.rot90(array),
                            cmap = cmap ,
                            cbar_kws={'label': '$nm^3$'})
-   
+
+    # get the xtick in int and store in a list
     xtick_list = list(map(int, ax.get_xticks().tolist()))
-    for itick, xtick in enumerate(xtick_list[:]):
-        if xtick >= 0 and xtick <= len(array[0]):
-            xtick_list[itick] = round(array[0][xtick],2)
-    sns_plot.set_xticklabels(xtick_list)
+
+    for ind, label in enumerate(xtick_list):
+        if label >= 0 and label <= len(array[:,0]):
+            # get the label from the array
+            xtick_list[ind] = round(array[0][label],2)
+    # plot the new labels        
+    sns_plot.set_xticklabels(xtick_list) 
+
+    # Hide some label to avoid a messy plot
     for ind, label in enumerate(sns_plot.get_xticklabels()):
-        if ind % 4 == 0:  # every 10th label is kept
+        if ind % 4 == 0:  
             label.set_visible(True)
         else:
             label.set_visible(False)
+    
+    # Repeat for the ylabels
+    ytick_list = list(map(int, ax.get_yticks().tolist()))
 
-    sns_plot.set_yticklabels(xtick_list[::-1])
-    for ind, label in enumerate(sns_plot.get_yticklabels()):
-        if ind % 4 == 0:  # every 10th label is kept
-            label.set_visible(True)
-        else:
-            label.set_visible(False)
+    for ind, label in enumerate(ytick_list):
+        if label >= 0 and label <= len(array[0,:]):
+            # get the corrisponding label from the array
+            ytick_list[ind] = round(array[label][0],2)
+    # plot the new labels and revert them   
+    sns_plot.set_yticklabels(ytick_list)
+    ax.invert_yaxis() 
    
+    # Hide some label to avoid a messy plot
+    for ind, label in enumerate(sns_plot.get_yticklabels()):
+        if ind % 4 == 0:  
+            label.set_visible(True)
+        else:
+            label.set_visible(False)
+    
 
+    # Set x and y label
+    ax.set(xlabel='x(nm)', ylabel='y(nm)')
     plt.title(title)
-    plt.savefig(out,dpi= 300)
+    plt.tight_layout()
+    plt.savefig(out, dpi= 300)
     
 
 
