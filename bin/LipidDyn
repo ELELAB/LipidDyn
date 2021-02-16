@@ -172,7 +172,6 @@ def module_densmap(universe,
 
 def module_enrichment(universe,
                       selection,
-                      ncore,
                       directory_name):
     """
     Parameters
@@ -198,60 +197,17 @@ def module_enrichment(universe,
                 raise
     pbar = ProgressBar().start()
     total_step = 3
-    # dictionary to store all the arrays for the dmaps
-    d = {}
-    dmap = Density(u)
-    # get composition of the membrane and density map of all membrane
-    d["membrane"] = dmap.run_density(selection.residues.atoms)
-    membrane = np.unique(selection.residues.resnames)
     
-    # add protein to dictionary of arrays
-    protein = u.select_atoms("protein")
-    d["protein"]= dmap.run_density(protein)
-
-    # add all the different lipid residues
-    for lipid in membrane:
-        # select all the lipid residues in that leaflet and add to dict
-        sel = universe.select_atoms("resname " + lipid)
-        d[lipid] = dmap.run_density(sel)
-
-    pbar.update((1/3)*100)
+    dmap = Density(universe)
+    d = dmap.run_enrichment(selection)
     
-    sum_densmap = []
-    d1 = {}
-    for key in d:
-        # ignore all the membrane and the protein
-        if key =="membrane" or key == "protein": 
-            continue
-        # normalize dividing single lipids by the membrane
-        array = np.divide(d[key],
-                      d["membrane"],
-                      out=np.zeros_like(d[key]),
-                      where=d["membrane"]!=0)   
-        d1[key] = array
-        sum_densmap.append(array) # store in densmap
+    # Write Output
+    for lipid in d:
+        np.savetxt(folder+"/"+lipid+"_enrich.dat",
+                    d[lipid],
+                    delimiter='\t',
+                    fmt='%1.4f') 
     
-    pbar.update((2/3)*100)
-
-    # sum all the normalized density maps to have sum_denmaps 
-    # and substract the protein array to the sum_densmap
-    sum_densmap = np.sum(sum_densmap,axis=0) - d["protein"]
-
-    for key in d1:
-        array = np.divide(d1[key],
-                      sum_densmap,
-                      out=np.zeros_like(d1[key]),
-                      where=sum_densmap!=0) # normalize  ignoring 0s  
-        #d1[key] = array
-        # substitute the first column and rows with their original values
-        array[:,0] = d[key][:,0] 
-        array[0,:] = d[key][0,:]
-        np.savetxt(folder+"/"+key+"_enrich.dat",
-                   array,
-                   delimiter='\t',
-                   fmt='%1.4f') 
-    pbar.update((3/3)*100)
-    pbar.finish()
 
 
 
@@ -688,7 +644,6 @@ def main():
                 sys.stdout.write("Enrichment")
                 module_enrichment(u,
                                   g,
-                                  ncore,
                                   dir_name)
                 sys.stdout.write("\n")
                 tac()
@@ -737,7 +692,6 @@ def main():
             if args.mod_maps :
                 module_densmap(u,
                                leaflets,
-                               ncore,
                                dir_name)
            
             if args.enrichment and args.prot:
@@ -746,7 +700,6 @@ def main():
                 # prot
                 module_enrichment(u,
                                   g,
-                                  ncore,
                                   dir_name)
 
      
@@ -763,6 +716,7 @@ def main():
         if args.clean :
             cleaning_all()
             tac()
-
+                                                           
+       
 if __name__ == "__main__":
     main()

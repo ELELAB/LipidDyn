@@ -280,10 +280,9 @@ class Density:
         Parameters
         -------------
         universe : object 
-            MDAnalysis universe object
-        selection : object
-            MDAnalysis AtomGroups selections   
+            MDAnalysis universe object  
         """
+
         self.universe = universe
         self.bins = 0.02
         self.ts = self.universe.trajectory[0] 
@@ -295,11 +294,17 @@ class Density:
     def run_density(self,
                     selection):
 
-        """Execute the membranes command of fatslim,
-        which identifies the upper and lower leaflet of
-        a membrane simulation.
+        """Run the density map calculations for the
+        chosen selection of the universe.
+    
+        Parameters
+        ----------
+        selection : object
+            MDAnalysis AtomGroups selections 
         """
-        
+
+        # if the user wants also the raw data
+
         box1 = 0
         box2 = 0 
         grid = np.zeros((self.n1,self.n2)) # grid with shape of n1 and n2 
@@ -340,7 +345,66 @@ class Density:
         grid = np.around(grid,decimals=5)
         
         return(grid)
-             
+    
+    def run_enrichment(self,
+                       selection):
+
+        """Run the lipid enrichment calculations 
+        for the 
+    
+        Parameters
+        ----------
+        selection : object
+            MDAnalysis AtomGroups selections 
+        """
+
+        d = {}
+        # It can be the entire membrane or the upper/lower leaflets
+        d["membrane"] = self.run_density(selection.residues.atoms)
+        membrane = np.unique(selection.residues.resnames)
+        
+        # add protein to dictionary of arrays form the universe 
+        protein = self.universe.select_atoms("protein")
+        d["protein"]= self.run_density(protein)
+
+        # add all the different lipid residues from the previous selection
+        for lipid in membrane:
+            # select all the lipid residues in that selection
+            sel = self.selection.select_atoms("resname " + lipid)
+            d[lipid] = self.run_density(sel)
+
+        
+        sum_densmap = []
+        d1 = {}
+        for key in d:
+            # ignore all the membrane and the protein
+            if key =="membrane" or key == "protein": 
+                continue
+            # normalize dividing single lipids by the membrane
+            array = np.divide(d[key],
+                              d["membrane"],
+                              out=np.zeros_like(d[key]),
+                              where=d["membrane"]!=0)   
+            d1[key] = array
+            sum_densmap.append(array) # store in densmap
+        
+        
+        # sum all the normalized density maps to have sum_denmaps 
+        # and substract the protein array to the sum_densmap
+        sum_densmap = np.sum(sum_densmap,axis=0) - d["protein"]
+     
+        
+        d2 = {}
+        for key in d1:
+            array = np.divide(d1[key],
+                          sum_densmap,
+                          out=np.zeros_like(d1[key]),
+                          where=sum_densmap!=0) # normalize  ignoring 0s  
+            # substitute the first column and rows with their original values
+            array[:,0] = d[key][:,0] 
+            array[0,:] = d[key][0,:]
+            d2[key] = array
+        return(d2)
 
 
 class Fatslim:
@@ -451,4 +515,7 @@ class Fatslim:
         a = subprocess.call(cmd,
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
+
+
+
 
