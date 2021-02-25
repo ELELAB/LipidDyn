@@ -27,6 +27,7 @@ import argparse
 import shutil
 from pathlib import Path
 import glob
+import pandas as pd
 from progressbar import ProgressBar
 import numpy as np
 
@@ -113,15 +114,11 @@ def module_fatslim(trajectory_file,
                       apl_cutoff,
                       tck_cutoff,
                       raw)
-    # progress bar
-    pbar = ProgressBar().start()
-    step = 2 
+
     # Execute Fatslim commands
-    fatslim.run_thickness(out_file = analysis_fatlism +'/thickness')
-    pbar.update((1/step)*100) # current step/total steps * 100
-    fatslim.run_apl(out_file = analysis_fatlism + '/apl')
-    pbar.update((2/step)*100)
-    pbar.finish()
+    fatslim.run_thickness(out_file = os.path.join(analysis_fatlism ,'thickness'))
+    fatslim.run_apl(out_file = os.path.join(analysis_fatlism , 'apl'))
+
    
 
 def module_densmap(universe,
@@ -152,26 +149,20 @@ def module_densmap(universe,
             if exc.errno != errno.EEXIST:
                 raise
     
-    # progress bar
-    pbar = ProgressBar().start()
-    total_step = 2
-    step = 1 
     u = universe
     for leaflet in leaflets:
         # compute density maps for each leaflet
         dmap = Density(u)
         grid = dmap.run_density(leaflets[leaflet].residues.atoms)
-        np.savetxt(folder + "/" + leaflet +"_2dmap.dat",
+        np.savetxt(os.path.join(folder ,leaflet +"_2dmap.dat"),
                    grid,
                    delimiter='\t',
                    fmt='%1.4f')
-        pbar.update((step/total_step)*100) # update status
-        step += 1
-    pbar.finish()
   
 
 def module_enrichment(universe,
                       selection,
+                      leaflets,
                       directory_name):
     """
     Parameters
@@ -195,19 +186,27 @@ def module_enrichment(universe,
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
-    pbar = ProgressBar().start()
-    total_step = 3
     
+    # Run the enrichment analysis for the entire membrane
     dmap = Density(universe)
     d = dmap.run_enrichment(selection)
     
     # Write Output
     for lipid in d:
-        np.savetxt(folder+"/"+lipid+"_enrich.dat",
+        np.savetxt(os.path.join(folder,lipid+"_enrich.dat"),
                     d[lipid],
                     delimiter='\t',
                     fmt='%1.4f') 
     
+    # Repeat for both leaflets
+    for leaflet in leaflets:
+        d1 = dmap.run_enrichment(selection)
+        for lipid in d1:
+            np.savetxt(os.path.join(folder,lipid+"_"+leaflet+"_enrich.dat"),
+                       d[lipid],
+                       delimiter='\t',
+                       fmt='%1.4f') 
+
 
 
 
@@ -242,34 +241,21 @@ def module_movements(universe,
             if exc.errno != errno.EEXIST:
                 raise
     
-    # progress bar
-    pbar = ProgressBar().start()
-    total_step = len(leaflets["upper_leaflet"].residues)*2
-    step = 1 
-
+    # initialize class
+    m = Movement(universe)
+   
     # iterate through the dictionary
     for leaflet in leaflets:
+        # compute 
+        df = m.run_movements(leaflets[leaflet])
+        # select name
         if leaflet == "upper_leaflet": 
-            filename = "Upper_leaflet_coordinates.dat"
+            filename = "u_leaflet_coordinates.csv"
         else:
-            filename = "Lower_leaflet_coordinates.dat"
-
-        # create outputfile in the directory
-        with open(analysis_traj+'/'+filename,"w") as g:
-            # iterate through the residues contained in the leaflet
-            for residue in leaflets[leaflet].residues:
-                g.write("> " + str(residue).strip("<>").replace(",","")+"\n")
-                # for every frame in the trajectory
-
-                for ts in universe.trajectory: 
-                    # extract x and y coordinate of the center of mass
-                    g.write(np.array2string(
-                                residue.atoms.center_of_mass()[0:2]/10,\
-                                precision=3, separator='\t').strip("[]")+"\n") 
-                pbar.update((step/total_step)*100)
-                step += 1
-    pbar.finish()
-
+            filename = "l_leaflet_coordinates.csv"
+        
+        # Save output
+        df.to_csv(os.path.join(analysis_traj,filename))
 
 
 
@@ -305,9 +291,6 @@ def module_order_parameter(trajectory_file,
     # retrieve def file for the op in the package folder
     dirs =  pkg_resources.resource_listdir('LipidDyn','/definitions_files/')
     
-    pbar = ProgressBar().start()
-    total_step = len(dirs)
-    step = 1 
     for def_file in dirs:
         
         # get the lipid name
@@ -351,9 +334,6 @@ def module_order_parameter(trajectory_file,
                 shutil.move('Order_Parameter_'+ lipid_name +'.csv',
                              order_folder) 
         
-        pbar.update((step/total_step)*100)
-        step += 1
-    pbar.finish()
 
          
 def cleaning_all():
@@ -644,6 +624,7 @@ def main():
                 sys.stdout.write("Enrichment")
                 module_enrichment(u,
                                   g,
+                                  leaflets,
                                   dir_name)
                 sys.stdout.write("\n")
                 tac()
@@ -700,6 +681,7 @@ def main():
                 # prot
                 module_enrichment(u,
                                   g,
+                                  leaflets,
                                   dir_name)
 
      

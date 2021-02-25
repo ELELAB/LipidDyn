@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import MDAnalysis as mda
+import pandas as pd
 import numpy as np
 import math
 import os, sys
@@ -98,7 +99,8 @@ class OrderParameter:
                     raise RuntimeError("provided name >> {} << is empty! \n \
                     Cannot use empty names for atoms and OP definitions.".format(field))
         
-        # extra optional arguments allow setting avg,std values -- suitable for reading-in results of this script
+        # extra optional arguments allow setting avg,std values 
+        #-- suitable for reading-in results of this script
         if len(args) == 2:
             self.avg = args[0]
             self.std = args[1]
@@ -181,12 +183,11 @@ class OrderParameter:
                  np.std(self.means)/np.sqrt(len(self.means)) )  
 
 
-def read_trajs_calc_OPs(ordPars, top, trajs):
+def read_trajs_calc_OPs(ordPars, universe):
     
-    """Procedure that creates MDAnalysis (mda) Universe instance 
-    with topology top,reads in trajectories trajs and then goes 
-    through every frame and evaluates each Order Parameter "S" 
-    from the list of OPs ordPars.
+    """Procedure that goes through every frame and 
+    evaluates each Order Parameter "S" from the list 
+    of OPs ordPars.
     Parameters
     ----------
     ordPars : list of OrderParameter class instances
@@ -198,13 +199,13 @@ def read_trajs_calc_OPs(ordPars, top, trajs):
     """
 
     # read-in topology and trajectory
-    mol = mda.Universe(top, trajs)
+    
 
     # make atom selections for each OP and store it as its attribute for later use with trajectory
     for op in ordPars.values():
         # selection = pairs of atoms, split-by residues
         # this selection format preserves the order of the atoms (atA, atB) independent of their order in the topology
-        selection = mol.select_atoms("resname {rnm} and name {atA}".format(
+        selection = universe.select_atoms("resname {rnm} and name {atA}".format(
                                         rnm=op.resname, atA=op.atAname),
                                      "resname {rnm} and name {atB}".format(
                                         rnm=op.resname, atB=op.atBname)
@@ -227,7 +228,7 @@ def read_trajs_calc_OPs(ordPars, top, trajs):
     # Go through trajectory frame-by-frame
     # and calculate each OP from the list of OPs
     # for each residue separately
-    for frame in mol.trajectory:
+    for frame in universe.trajectory:
         for op in ordPars.values():
             
             # temporary list of order parameters for 
@@ -258,7 +259,8 @@ def parse_op_input(def_file):
     returns : dictionary 
         with OrderParameters class instances
     """
-    # Using ordered dict since it preserves the read-in order. Might come in handy when comparing to experiments.
+    # Using ordered dict since it preserves the read-in order. 
+
     ordPars = OrderedDict()
     for line in def_file:
         if not line.startswith("#"):
@@ -350,7 +352,7 @@ class Density:
                        selection):
 
         """Run the lipid enrichment calculations 
-        for the 
+        for the MDAnalysis selection
     
         Parameters
         ----------
@@ -370,7 +372,7 @@ class Density:
         # add all the different lipid residues from the previous selection
         for lipid in membrane:
             # select all the lipid residues in that selection
-            sel = self.selection.select_atoms("resname " + lipid)
+            sel = selection.select_atoms("resname " + lipid)
             d[lipid] = self.run_density(sel)
 
         
@@ -397,9 +399,9 @@ class Density:
         d2 = {}
         for key in d1:
             array = np.divide(d1[key],
-                          sum_densmap,
-                          out=np.zeros_like(d1[key]),
-                          where=sum_densmap!=0) # normalize  ignoring 0s  
+                              sum_densmap,
+                              out=np.zeros_like(d1[key]),
+                              where=sum_densmap!=0) # normalize  ignoring 0s  
             # substitute the first column and rows with their original values
             array[:,0] = d[key][:,0] 
             array[0,:] = d[key][0,:]
@@ -446,10 +448,10 @@ class Fatslim:
     def run_thickness(self,
                       out_file):
 
-        """Execute the thickness command of fatslim,
-        which compute the average thickness of lower,
-        upper leaflet and the entire membrane in a
-        ''.xvg file along the trajectory.
+        """Execute the thickness command of fatslim.
+        It computes the average thickness along the 
+        trajectory of lower, upper leaflet and the 
+        entire membrane storing it in ''.xvg file .
     
         Parameters
         ----------
@@ -519,3 +521,40 @@ class Fatslim:
 
 
 
+class Movement:
+
+    def __init__ (self,
+                  universe):
+
+        """Initialize the class 
+
+        Parameters
+        -------------
+        universe : object 
+            MDAnalysis universe object  
+        """
+        self.universe = universe
+
+    def run_movements(self,
+                      selection):
+        
+
+        """Run the movement commands
+        for the selection MDAnalysis selection
+    
+        Parameters
+        ----------
+        selection : object
+            MDAnalysis AtomGroups selections 
+        """
+
+        df_c = []
+        for residue in selection.residues:
+            l =[]    
+            for ts in self.universe.trajectory: 
+                l.append(residue.atoms.center_of_mass()[0:2]/10)
+            df = pd.DataFrame(l,columns=['x','y'])
+            df = df.rename(index=lambda s: str(residue))
+            df_c.append(df)
+        df_c =  pd.concat(df_c)
+        return(df_c)
