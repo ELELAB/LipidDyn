@@ -110,8 +110,10 @@ class OrderParameter:
             self.stem = args[2]
         else:
             if len(args) != 0:
-                raise UserWarning("Number of optional positional arguments is {len}, \
-                    not 3, 2 or 0. Args: {args}\n Wrong file format?".format(len=len(args), args=args))
+                raise UserWarning(
+                    "Number of optional positional arguments is {len}, \
+                    not 3, 2 or 0. Args: {args}\n Wrong file format?".format(
+                    len=len(args), args=args))
 
 
     def calc_OP(self, atoms):
@@ -182,92 +184,6 @@ class OrderParameter:
                  np.std(self.means), 
                  np.std(self.means)/np.sqrt(len(self.means)) )  
 
-
-def read_trajs_calc_OPs(ordPars, universe):
-    
-    """Procedure that goes through every frame and 
-    evaluates each Order Parameter "S" from the list 
-    of OPs ordPars.
-    Parameters
-    ----------
-    ordPars : list of OrderParameter class instances
-       each item in this list describes an Order parameter to be calculated in the trajectory
-    top : str
-        filename of a top file (e.g. conf.gro)
-    trajs : list of strings
-        filenames of trajectories
-    """
-
-    # read-in topology and trajectory
-    
-
-    # make atom selections for each OP and store it as its attribute for later use with trajectory
-    for op in ordPars.values():
-        # selection = pairs of atoms, split-by residues
-        # this selection format preserves the order of the atoms (atA, atB) independent of their order in the topology
-        selection = universe.select_atoms("resname {rnm} and name {atA}".format(
-                                        rnm=op.resname, atA=op.atAname),
-                                     "resname {rnm} and name {atB}".format(
-                                        rnm=op.resname, atB=op.atBname)
-                                    ).atoms.split("residue")
-        
-        for res in selection:
-            
-            # check if we have only 2 atoms (A & B) selected
-            if res.n_atoms != 2:
-                print(res.resnames, res.resids)
-                for atom in res.atoms:
-                    print(atom.name, atom.id)
-                raise UserWarning("Selection >> name {atA} {atB} << \
-                contains {nat} atoms, but should contain exactly 2!".format(
-                atA=op.atAname, atB=op.atBname, nat=res.n_atoms)
-                )
-        op.selection = selection
-      
-
-    # Go through trajectory frame-by-frame
-    # and calculate each OP from the list of OPs
-    # for each residue separately
-    for frame in universe.trajectory:
-        for op in ordPars.values():
-            
-            # temporary list of order parameters for 
-            # each individual residue for the given frame
-            temp_S = []
-            
-            for residue in op.selection:
-                if "vec" in op.name:
-                    S = op.calc_angle(residue, z_dim=frame.dimensions[2])
-                else:
-                    S = op.calc_OP(residue)
-                temp_S.append(S)
-
-            # resulting S-trajectory will be a list of lists
-            # so that individual residues can be easily distinquished
-            op.traj.append(temp_S)
-
-
-def parse_op_input(def_file):
-    
-    """
-    parses input file with Order Parameter definitions
-    file format is as follows:
-    OP_name    resname    atom1    atom2  +extra: OP_mean  OP_std
-    (flexible cols)
-    fname : string
-        string 
-    returns : dictionary 
-        with OrderParameters class instances
-    """
-    # Using ordered dict since it preserves the read-in order. 
-
-    ordPars = OrderedDict()
-    for line in def_file:
-        if not line.startswith("#"):
-            items = line.split()
-            ordPars[items[0]] = OrderParameter(*items)
-    return ordPars
-
 #*******************************************************************
 
 
@@ -289,8 +205,10 @@ class Density:
         self.bins = 0.02
         self.ts = self.universe.trajectory[0] 
         # divide by ten the coordinates to convert in nm 
-        self.n1 =  int(round((self.ts.dimensions[0]*0.1)/self.bins)) # X coordinate of box
-        self.n2 =  int(round((self.ts.dimensions[1]*0.1)/self.bins)) # Y coordinate of box
+        # X coordinate of box
+        self.n1 =  int(round((self.ts.dimensions[0]*0.1)/self.bins)) 
+        # Y coordinate of box
+        self.n2 =  int(round((self.ts.dimensions[1]*0.1)/self.bins)) 
        
 
     def run_density(self,

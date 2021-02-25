@@ -41,25 +41,6 @@ import pkg_resources
 import MDAnalysis as mda
 from MDAnalysis.analysis.leaflet import LeafletFinder
 
-
-
-
-_start_time = time.time()
-
-def tic():
-    global _start_time 
-    _start_time = time.time()
-
-
-def tac():
-    t_sec = round(time.time() - _start_time)
-    (t_min, t_sec) = divmod(t_sec,60)
-    (t_hour,t_min) = divmod(t_min,60) 
-    print('Time passed: {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec))
-
-
-
-
 def module_fatslim(trajectory_file,
                    topology_file,
                    index_headgroups,
@@ -116,7 +97,8 @@ def module_fatslim(trajectory_file,
                       raw)
 
     # Execute Fatslim commands
-    fatslim.run_thickness(out_file = os.path.join(analysis_fatlism ,'thickness'))
+    fatslim.run_thickness(out_file = os.path.join(analysis_fatlism ,
+                                                  'thickness'))
     fatslim.run_apl(out_file = os.path.join(analysis_fatlism , 'apl'))
 
    
@@ -259,18 +241,16 @@ def module_movements(universe,
 
 
 
-def module_order_parameter(trajectory_file,
-                           topology_file,
+def module_order_parameter(universe,
+                           selection,
                            directory_name
                            ):
     
     """
     Parameters
     ----------
-    trajectory_file : str
-            Name of the processed .xtc file. 
-    topology_file : str 
-            Name of the last producte .gro file.
+    universe: obj
+            Universe object from MDAnalysis library
     directory_name : str
             Name of the output folder
     """
@@ -288,51 +268,97 @@ def module_order_parameter(trajectory_file,
                 raise
 
 
+    # find lipid species
+    lipids = list(np.unique(selection.residues.resnames))
+
     # retrieve def file for the op in the package folder
-    dirs =  pkg_resources.resource_listdir('LipidDyn','/definitions_files/')
+    dirs =  pkg_resources.resource_listdir('LipidDyn',
+                                           '/definitions_files/')
     
     for def_file in dirs:
-        
+        ordPars = OrderedDict()
         # get the lipid name
         lipid_name = def_file.split('.')[0]
-        # retrieve the def files from the package
-        defi = pkg_resources.resource_string('LipidDyn','/definitions_files/'+
-                                              def_file)
-        defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
-        defi = list(filter(lambda x: x != '', defi)) # filter empty strings
-        ordPars = parse_op_input(defi)
+        
+        # compute OP only for available species
+        if lipid_name not in lipids:
+            continue
+        else: 
+            # retrieve the def files from the package
+            defi = pkg_resources.resource_string('LipidDyn',
+                                    '/definitions_files/'+ def_file)
+            # decode the strings from bytes
+            defi = defi.decode("utf-8").split('\n') 
+            # filter empty strings
+            defi = list(filter(lambda x: x != '', defi)) 
+            
+            # Parse file and call OrderParameter class
+            for line in defi:
+                if not line.startswith("#"):
+                    items = line.split()
+                    ordPars[items[0]] = OrderParameter(*items)
+            
+            # Select atoms for OP calculations
+            for op in ordPars.values():
+            # selection = pairs of atoms, split-by residues
+            # this selection format preserves the order of the atoms (atA, atB)
+            # independent of their order in the topology
+                selection = universe.select_atoms(
+                            "resname {rnm} and name {atA}".format(
+                               rnm=op.resname, atA=op.atAname),
+                               "resname {rnm} and name {atB}".format(
+                               rnm=op.resname, atB=op.atBname)
+                               ).atoms.split("residue")
 
-        read_trajs_calc_OPs(ordPars,
-                            topology_file,
-                            [trajectory_file]
-                            )
+                op.selection = selection
 
-        for op in ordPars.values():
-            (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
+
+            # Go through trajectory frame-by-frame
+            # and calculate each OP from the list of OPs
+            # for each residue separately
+            for frame in universe.trajectory:
+                for op in ordPars.values():
+        
+                    # temporary list of order parameters for 
+                    # each individual residue for the given frame
+                    temp_S = []
+                    
+                    for residue in op.selection:
+                        if "vec" in op.name:
+                            S = op.calc_angle(residue, 
+                                              z_dim=frame.dimensions[2])
+                        else:
+                            S = op.calc_OP(residue)
+                        temp_S.append(S)
+
+                    # resulting S-trajectory will be a list of lists
+                    # so that individual residues can be easily distinquished
+                    op.traj.append(temp_S)
+
+            # Retrieve averaged data
+            for op in ordPars.values():
+                (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
         
      
-        # writes the output file in  file 
-        try:
-            with open('Order_Parameter_'+ lipid_name +'.csv',"w") as f:
-                f.write("{},{},{},{},{},{},{}  \n".format(
-                'OP_name','resname','atom1','atom2','OP_mean','OP_stddev','OP_stem'))
-                for op in ordPars.values():
-                    # output in csv file format comma separated
-                    f.write( 
+            # writes the output file in csv format 
+            try:
+                filename = os.path.join(order_folder,
+                          'OP_'+ lipid_name +'.csv')
+         
+                with open(filename,'w') as f:
+                    f.write("{},{},{},{},{},{},{}  \n".format(
+                    'OP_name','resname','atom1','atom2','OP_mean',
+                    'OP_stddev','OP_stem'))
+                    for op in ordPars.values():
+                        # output in csv file format comma separated
+                        f.write( 
                         "{},{},{},{},{: 2.5f},{: 2.5f},{: 2.5f} \n".format(
-                              op.name, op.resname, op.atAname,
-                              op.atBname,op.avg, op.std, op.stem)
-                           )
-        except:
-            sys.stdout.write("Problem writing the main outputfile")
+                                op.name, op.resname, op.atAname,
+                                op.atBname,op.avg, op.std, op.stem)
+                                )
+            except:
+                sys.stdout.write("Problem writing the main outputfile")
         
-
-        with open('Order_Parameter_'+ lipid_name +'.csv','r') as g :
-            if "nan" in g.read():
-                os.remove('Order_Parameter_'+ lipid_name +'.csv')
-            else:
-                shutil.move('Order_Parameter_'+ lipid_name +'.csv',
-                             order_folder) 
         
 
          
@@ -588,7 +614,7 @@ def main():
         if args.all_modules :
             
             sys.stdout.write("\n")
-            sys.stdout.write("Starting now with the calculation, please stand by...")
+            sys.stdout.write("Starting now, please stand by...")
             sys.stdout.write("\n")
             sys.stdout.write(u"\u2622")
             sys.stdout.write("\n")
@@ -645,8 +671,8 @@ def main():
 
             tic()
             sys.stdout.write("Order Parameter")
-            module_order_parameter(traj,
-                                   topol,
+            module_order_parameter(u,
+                                   g,
                                    dir_name
                                    )
             sys.stdout.write("\n")
@@ -655,7 +681,7 @@ def main():
             sys.stdout.write("\n")
         
         else:
-            sys.stdout.write("Starting now with the calculation, please stand by")
+            sys.stdout.write("Starting now. please stand by")
             sys.stdout.write("\n")
             sys.stdout.write(u"\u2622")
             sys.stdout.write("\n")
@@ -691,8 +717,8 @@ def main():
                                  dir_name)
 
             if args.mod_ord :
-                module_order_parameter(traj,
-                                       topol,
+                module_order_parameter(u,
+                                       g,
                                        dir_name)
          
         if args.clean :
