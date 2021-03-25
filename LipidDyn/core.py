@@ -23,7 +23,8 @@ import MDAnalysis as mda
 import pandas as pd
 import numpy as np
 import math
-import os, sys
+import os
+import sys
 from collections import OrderedDict
 import errno
 import subprocess
@@ -97,7 +98,7 @@ class OrderParameter:
             else:
                 if not field.strip():
                     raise RuntimeError("provided name >> {} << is empty! \n \
-                    Cannot use empty names for atoms and OP definitions.".format(field))
+                Cannot use empty names for atoms and OP definitions.".format(field))
         
         # extra optional arguments allow setting avg,std values 
         #-- suitable for reading-in results of this script
@@ -157,7 +158,7 @@ class OrderParameter:
             angle = math.degrees(math.acos(cos))
         except ValueError:
             if abs(cos)>=1.0:
-                print("Cosine is too large = {} --> truncating it to +/-1.0".format(cos))
+                print("Cos too large = {}truncating it to +/-1.0".format(cos))
                 cos = math.copysign(1.0, cos)
                 angle = math.degrees(math.acos(cos))
         return angle
@@ -211,8 +212,8 @@ class Density:
         self.n2 =  int(round((self.ts.dimensions[1]*0.1)/self.bins)) 
        
 
-    def run_density(self,
-                    selection):
+    def run(self,
+            selection):
 
         """Run the density map calculations for the
         chosen selection of the universe.
@@ -265,9 +266,26 @@ class Density:
         grid = np.around(grid,decimals=5)
         
         return(grid)
-    
-    def run_enrichment(self,
-                       selection):
+
+
+class Enrichment:
+
+    def __init__ (self,
+                  universe,
+                  ):
+
+        """Initialize the class 
+
+        Parameters
+        -------------
+        universe : object 
+            MDAnalysis universe object  
+        """
+
+        self.universe = universe
+        
+    def run(self,
+            selection):
 
         """Run the lipid enrichment calculations 
         for the MDAnalysis selection
@@ -277,22 +295,24 @@ class Density:
         selection : object
             MDAnalysis AtomGroups selections 
         """
+        
+        density = Density(self.universe)
 
         d = {}
         # It can be the entire membrane or the upper/lower leaflets
-        d["membrane"] = self.run_density(selection.residues.atoms)
+        d["membrane"] = density.run(selection.residues.atoms)
         membrane = np.unique(selection.residues.resnames)
-        
+
         # add protein to dictionary of arrays form the universe 
         protein = self.universe.select_atoms("protein")
-        d["protein"]= self.run_density(protein)
+        d["protein"]= density.run(protein)
 
         # add all the different lipid residues from the previous selection
         for lipid in membrane:
             # select all the lipid residues in that selection
             sel = selection.select_atoms("resname " + lipid)
-            d[lipid] = self.run_density(sel)
-
+            d[lipid] = density.run(sel)
+    
         
         sum_densmap = []
         d1 = {}
@@ -304,7 +324,8 @@ class Density:
             array = np.divide(d[key],
                               d["membrane"],
                               out=np.zeros_like(d[key]),
-                              where=d["membrane"]!=0)   
+                              where=d["membrane"]!=0)  
+            
             d1[key] = array
             sum_densmap.append(array) # store in densmap
         
@@ -327,14 +348,11 @@ class Density:
         return(d2)
 
 
-class Fatslim:
+class Thickness:
      
     def __init__ (self,
-                  trajectory,
-                  gro,
-                  headgroups_ndx_file,
+                  universe,
                   ncore,
-                  apl_cutoff,
                   thk_cutoff,
                   raw
                   ):
@@ -343,28 +361,23 @@ class Fatslim:
 
         Parameters
         -------------
-        trajectory : file 
-            Name of the .xtc file.
-        gro : file 
-            Name of the gro file 
-        headgroups_ndx_file =  file
-            Name of the ndx file containing the lipids headgroup
+        universe : object 
+            MDAnalysis universe object  
         ncore : str
             Number of core to parallelize the future metods
-        apl_cutoff/thk_cutoff : float
-            Float for the cutoff of apl or thickness command         
+        thk_cutoff : float
+            Float for the cutoff of apl or thickness command    
+        raw : Boolen
+           True/False to run raw data calculations     
         """
-
-        self.trajectory = os.path.abspath(trajectory)
-        self.gro = os.path.abspath(gro)
-        self.headgroups_ndx_file = os.path.abspath(headgroups_ndx_file)
+ 
+        self.universe = universe
         self.ncore = ncore
-        self.apl_cutoff = float(apl_cutoff)
         self.thk_cutoff = float(thk_cutoff)
         self.raw = raw
 
-    def run_thickness(self,
-                      out_file):
+    def run(self,
+            out_file):
 
         """Execute the thickness command of fatslim.
         It computes the average thickness along the 
@@ -376,22 +389,67 @@ class Fatslim:
         out_file : str 
                 Name of the output file.
         """
+        # Check if a protein is in the membrane
+        u = self.universe
+        protein = u.select_atoms("protein")
+        
+        # check if the file was already created
+        # if yes better to remove it
+        if os.path.exists('headgroups.ndx'):
+            os.remove('headgroups.ndx')
 
+
+        if protein :
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
+            g = u.select_atoms("name P") + \
+                u.select_atoms("resname ERG and name O3") +  \
+                u.select_atoms("resname CHL1 and name O3")
+            p = u.select_atoms("protein and not name H*")
+
+            with mda.selections.gromacs.SelectionWriter(
+                                                'headgroups.ndx',
+                                                 mode='a') as ndx:
+                ndx.write(g, name="headgroups", frame=0)
+                ndx.write(p, name="protein", frame=0)
+
+        else:
+            
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
+            g = u.select_atoms("name P") + \
+                u.select_atoms("resname ERG and name O3") +  \
+                u.select_atoms("resname CHL1 and name O3")
+            
+            with mda.selections.gromacs.SelectionWriter(
+                                            'headgroups.ndx',
+                                             mode='w') as ndx:
+                ndx.write(g, name="headgroups", frame=0)
+        
+        # Filenames
+        hg = os.path.abspath('headgroups.ndx')
+        traj = u.trajectory.filename
+        top = u.filename
+       
         # if the user wants also the raw data
         if self.raw:
             cmd = ['fatslim', 'thickness',
-                   '-c',self.gro,
-                   '-n',self.headgroups_ndx_file,
-                   '-t',self.trajectory,
+                   '-c',top,
+                   '-n',hg,
+                   '-t',traj,
                    '--nthread',str(self.ncore),
                    '--plot-thickness', out_file,
                    '--export-thickness-raw',out_file,
                    '--thickness-cutoff', str(self.thk_cutoff)]                    
         else:
             cmd = ['fatslim', 'thickness',
-                   '-c',self.gro,
-                   '-n',self.headgroups_ndx_file,
-                   '-t',self.trajectory,
+                   '-c',top,
+                   '-n',hg,
+                   '-t',traj,
                    '--nthread',str(self.ncore),
                    '--plot-thickness', out_file,
                    '--thickness-cutoff', str(self.thk_cutoff)]        
@@ -400,8 +458,45 @@ class Fatslim:
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
 
-    def run_apl(self,
-                out_file):
+        
+        # Parse .xvg file
+        df = pd.read_csv(os.path.abspath(out_file +".xvg"),
+                         skiprows=15,
+                         sep="  ")
+        df = df.dropna(axis=1)
+        df.columns = ['Time','Membrane','Lower leaflet','Upper leaflet']
+        return(df)
+ 
+class AreaPerLipid:
+     
+    def __init__ (self,
+                  universe,
+                  ncore,
+                  apl_cutoff,
+                  raw
+                  ):
+
+        """Initialize the class 
+
+        Parameters
+        -------------
+        universe : object 
+            MDAnalysis universe object  
+        ncore : str
+            Number of core to parallelize the future metods
+        apl_cutoff : float
+            Float for the cutoff of apl or thickness command    
+        raw : Boolen
+           True/False to run raw data calculations     
+        """
+ 
+        self.universe = universe
+        self.ncore = ncore
+        self.apl_cutoff = float(apl_cutoff)
+        self.raw = raw
+
+    def run(self,
+            out_file):
 
         """Execute the APL command of fatslim,
         which compute the average area per lipid 
@@ -413,21 +508,66 @@ class Fatslim:
         out_file : str 
                 Name of the output file.
         """
+        
+        # means a protein is embedded in the bilayer
+        u = self.universe
+        protein = u.select_atoms("protein")
+        
+        # check if the file was already created
+        # if yes better to remove it
+        if os.path.exists('headgroups.ndx'):
+            os.remove('headgroups.ndx')
+
+        if protein :
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
+            g = u.select_atoms("name P") + \
+                u.select_atoms("resname ERG and name O3") +  \
+                u.select_atoms("resname CHL1 and name O3")
+            p = u.select_atoms("protein and not name H*")
+
+            with mda.selections.gromacs.SelectionWriter(
+                                            'headgroups.ndx',
+                                             mode='a') as ndx:
+                ndx.write(g, name="headgroups", frame=0)
+                ndx.write(p, name="protein", frame=0)
+
+        else:
+            
+            # index for the fatslim analysis
+            # P is for all phopholipids 
+            # resname CHOL to check for cholesterol
+            # resname ERG to check for ergosterol
+            g = u.select_atoms("name P") + \
+                u.select_atoms("resname ERG and name O3") +  \
+                u.select_atoms("resname CHL1 and name O3")
+            
+            with mda.selections.gromacs.SelectionWriter(
+                                            'headgroups.ndx',
+                                             mode='w') as ndx:
+                ndx.write(g, name="headgroups", frame=0)
+        
+        # Filenames
+        hg = os.path.abspath('headgroups.ndx')
+        traj = u.trajectory.filename
+        top = u.filename
 
         if self.raw:
             cmd = ['fatslim', 'apl',
-                   '-c',self.gro,
-                   '-n',self.headgroups_ndx_file,
-                   '-t',self.trajectory,
+                   '-c',top,
+                   '-n',hg,
+                   '-t',traj,
                    '--nthread',str(self.ncore),
                    '--plot-apl',out_file,
                    '--export-apl-raw',out_file,
                    '--apl-cutoff',str(self.apl_cutoff)]
         else:
             cmd = ['fatslim', 'apl',
-                   '-c',self.gro,
-                   '-n',self.headgroups_ndx_file,
-                   '-t',self.trajectory,
+                   '-c',top,
+                   '-n',hg,
+                   '-t',traj,
                    '--nthread',str(self.ncore),
                    '--plot-apl',out_file,
                    '--apl-cutoff',str(self.apl_cutoff)]
@@ -436,7 +576,13 @@ class Fatslim:
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
 
-
+        # Parse .xvg file
+        df = pd.read_csv(os.path.abspath(out_file +".xvg"),
+                         skiprows=15,
+                         sep="  ")
+        df=df.dropna(axis=1)
+        df.columns = ['Time','Membrane','Lower leaflet','Upper leaflet']
+        return(df)
 
 
 class Movement:
