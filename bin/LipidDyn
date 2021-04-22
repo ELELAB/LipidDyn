@@ -41,9 +41,14 @@ import pkg_resources
 import MDAnalysis as mda
 from MDAnalysis.analysis.leaflet import LeafletFinder
 
+
+
+
 def module_thickness(universe,
+                     membrane,
+                     protein,
                      directory_name,
-                     tck_cutoff,
+                     cutoff,
                      raw,
                      ncore
                      ):
@@ -57,15 +62,13 @@ def module_thickness(universe,
         MDAnalysis universe class
     directory_name : str
             Name of the output folder
-    tck_cutoff : float
+    cutoff : float
             Number representing the cut-off for the thickness
     raw : True/False
             Value to include or not the raw output
     ncore : int
             Number of cores for parallelization             
     """
-
-
     
     # Output directory
     analysis_thickness = os.path.abspath(directory_name + '/Thickness/')
@@ -79,22 +82,30 @@ def module_thickness(universe,
     
     # Begins of the fatslim analysis 
     thickness = Thickness(universe,
+                          membrane,
+                          protein,
                           ncore,
-                          tck_cutoff,
-                          raw)
+                          cutoff,
+                          raw,
+                          analysis_thickness)
 
     # Execute Fatslim commands
-    df_thick = thickness.run(out_file = os.path.join(analysis_thickness ,     
-                                                     'thickness'))
-    return(df_thick)
+    df = thickness.run(out_file = 'thickness.xvg')
+    df.to_csv(os.path.join(analysis_thickness,'thickness.csv'),
+                           index=False)
+    return(df)
+
+
 
 
 def module_apl(universe,
+               membrane,
+               protein,
                directory_name,
-               apl_cutoff,
+               cutoff,
                raw,
                ncore
-                ):
+               ):
     
     """Fuction consisting of apl analysis 
     1) APL (raw+xvg)
@@ -105,7 +116,7 @@ def module_apl(universe,
         MDAnalysis universe class
     directory_name : str
             Name of the output folder
-    apl_cutoff : float
+    cutoff : float
             Number representing the cut-off for the APL
     raw : True/False
             Value to include or not the raw output
@@ -126,14 +137,20 @@ def module_apl(universe,
     
     # Begins of the fatslim analysis 
     apl = AreaPerLipid(universe,
+                       membrane,
+                       protein,
                        ncore,
-                       apl_cutoff,
-                       raw)
+                       cutoff,
+                       raw,
+                       analysis_apl)
 
     # Execute Fatslim commands
-    df_apl = apl.run(out_file = os.path.join(analysis_apl ,     
-                                             'apl'))
-    return(df_apl)
+    df = apl.run(out_file ='apl.xvg')
+    df.to_csv(os.path.join(analysis_apl,'apl.csv'),
+                           index=False)
+    return(df)
+
+
     
 def module_densmap(universe,
                    leaflets,
@@ -261,7 +278,7 @@ def module_movements(universe,
     # iterate through the dictionary
     for leaflet in leaflets:
         # compute 
-        df = m.run_movements(leaflets[leaflet])
+        df = m.run(leaflets[leaflet])
         # select name
         if leaflet == "upper_leaflet": 
             filename = "u_leaflet_coordinates.csv"
@@ -396,14 +413,6 @@ def module_order_parameter(universe,
         
         
 
-         
-def cleaning_all():
-
-    # Clean all the temporary files which were created 
-
-    os.remove('headgroups.ndx')
-
-    
 
 
 def main():
@@ -586,13 +595,13 @@ def main():
         
 
         # Find if there is a protein in the membrane (True/False)
-        protein = u.select_atoms("protein")
+        protein = u.select_atoms("protein and not name H*")
         
       
         # Find leaflets and store them in a dictionary
         g = u.select_atoms("name P") + \
-                u.select_atoms("resname ERG and name O3") +  \
-                u.select_atoms("resname CHL1 and name O3")
+            u.select_atoms("resname ERG and name O3") +  \
+            u.select_atoms("resname CHL1 and name O3")
         L =  LeafletFinder(u,g)
         upper_leaflet = L.groups(0)
         lower_leaflet = L.groups(1)
@@ -612,18 +621,20 @@ def main():
             sys.stdout.write("Area per lipid & Thickness calculation")
         
             module_apl(u,
+                       g,
+                       protein,
                        dir_name,
                        apl_cutoff,
                        raw,
-                       ncore
-                       )
+                       ncore)
    
             module_thickness(u,
-                            dir_name,
-                            tck_cutoff,
-                            raw,
-                            ncore
-                            )
+                             g,
+                             protein,
+                             dir_name,
+                             tck_cutoff,
+                             raw,
+                             ncore)
 
             sys.stdout.write("\n")
            
@@ -684,13 +695,17 @@ def main():
 
             if args.mod_tck : 
                 module_thickness(u,
-                               dir_name,
-                               tck_cutoff,
-                               raw,
-                               ncore)
+                                 g,
+                                 protein,
+                                 dir_name,
+                                 tck_cutoff,
+                                 raw,
+                                 ncore)
 
             if args.mod_apl : 
                 module_apl(u,
+                           g,
+                           protein,
                            dir_name,
                            apl_cutoff,
                            raw,

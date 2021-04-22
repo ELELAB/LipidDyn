@@ -31,6 +31,7 @@ import subprocess
 import argparse
 import shutil
 import multiprocessing as mp
+import tempfile
 
 
 #/******************************************************************
@@ -41,10 +42,6 @@ import multiprocessing as mp
 #*
 
 
-# In Angstroms, max distance between atoms for reasonable OP 
-# calculation (PBC and sanity check)
-bond_len_max=1.5  
-bond_len_max_sq=bond_len_max**2
 
 class OrderParameter:
     
@@ -61,7 +58,13 @@ class OrderParameter:
     #             of the OP (when reading-in an already calculated result)
     
 
-    def __init__(self, name, resname, atom_A_name, atom_B_name, *args):
+    def __init__(self,
+                 name,
+                 resname,
+                 atom_A_name,
+                 atom_B_name,
+                 *args,
+                 bond_len_max=1.5):
         
         """Initialization of an instance of this class.
         Parameters
@@ -91,6 +94,11 @@ class OrderParameter:
         # Trajectory as list
         self.traj = []  # for storing OPs
         
+        # In Angstroms, max distance between atoms for reasonable OP 
+        # calculation (PBC and sanity check)
+        self.bond_len_max = bond_len_max
+        self.bond_len_max_sq = self.bond_len_max**2
+
         for field in self.__dict__:
             if not isinstance(field, str):
                 raise UserWarning("provided name >> {} << is not a string! \n \
@@ -126,7 +134,7 @@ class OrderParameter:
         vec = atoms[1].position - atoms[0].position
         d2 = np.square(vec).sum()
         
-        if d2>bond_len_max_sq:
+        if d2>self.bond_len_max_sq:
             raise UserWarning("Atomic distance for atoms \
                 {at1} and {at2} in residue no. {resnr} is suspiciously \
                 long: {d}!\nPBC removed???".format(at1=atoms[0].name, \
@@ -192,7 +200,7 @@ class Density:
 
     def __init__ (self,
                   universe,
-                  ):
+                  bins = 0.02):
 
         """Initialize the class 
 
@@ -203,13 +211,13 @@ class Density:
         """
 
         self.universe = universe
-        self.bins = 0.02
+        self.bin_size = bins
         self.ts = self.universe.trajectory[0] 
         # divide by ten the coordinates to convert in nm 
         # X coordinate of box
-        self.n1 =  int(round((self.ts.dimensions[0]*0.1)/self.bins)) 
+        self.n1 =  int(round((self.ts.dimensions[0]*0.1)/self.bin_size)) 
         # Y coordinate of box
-        self.n2 =  int(round((self.ts.dimensions[1]*0.1)/self.bins)) 
+        self.n2 =  int(round((self.ts.dimensions[1]*0.1)/self.bin_size)) 
        
 
     def run(self,
@@ -352,9 +360,12 @@ class Thickness:
      
     def __init__ (self,
                   universe,
+                  membrane,
+                  protein,
                   ncore,
-                  thk_cutoff,
-                  raw
+                  cutoff,
+                  raw,
+                  out_dir
                   ):
 
         """Initialize the class 
@@ -362,22 +373,32 @@ class Thickness:
         Parameters
         -------------
         universe : object 
-            MDAnalysis universe object  
+            MDAnalysis universe object
+        membrane : object
+            MDAnalysis AtomGroups selections 
+        protein : object
+            MDAnalysis AtomGroups selections   
         ncore : str
             Number of core to parallelize the future metods
-        thk_cutoff : float
+        cutoff : float
             Float for the cutoff of apl or thickness command    
         raw : Boolen
            True/False to run raw data calculations     
+        out_dir : str
+           Name of output directory
         """
  
         self.universe = universe
         self.ncore = ncore
-        self.thk_cutoff = float(thk_cutoff)
+        self.membrane = membrane
+        self.protein = protein
+        self.cutoff = float(cutoff)
         self.raw = raw
+        self.out_dir = out_dir
 
     def run(self,
-            out_file):
+            out_file,
+            keep_out = False):
 
         """Execute the thickness command of fatslim.
         It computes the average thickness along the 
@@ -388,81 +409,70 @@ class Thickness:
         ----------
         out_file : str 
                 Name of the output file.
+        keep_out : Bool
+                Switch for race condition        
         """
-        # Check if a protein is in the membrane
-        u = self.universe
-        protein = u.select_atoms("protein")
-        
-        # check if the file was already created
-        # if yes better to remove it
-        if os.path.exists('headgroups.ndx'):
-            os.remove('headgroups.ndx')
 
+        # Switch True/False for race condition folder
+        if keep_out: 
+            if os.path.isdir(self.out_dir):
+                raise UserWarning('Directory already present')
+            else:
+                os.mkdir(self.out_dir)
+                tmp_file = os.path.join(self.out_dir, out_file)
+                tmp_ndx = os.path.join(self.out_dir, 'headgroups.ndx')
+        else:
+            f = tempfile.TemporaryDirectory()
+            tmp_file = os.path.join(f.name,out_file)
+            tmp_ndx = os.path.join(f.name,'headgroups.ndx')
 
-        if protein :
+        if self.protein :
             # index for the fatslim analysis
-            # P is for all phopholipids 
-            # resname CHOL to check for cholesterol
-            # resname ERG to check for ergosterol
-            g = u.select_atoms("name P") + \
-                u.select_atoms("resname ERG and name O3") +  \
-                u.select_atoms("resname CHL1 and name O3")
-            p = u.select_atoms("protein and not name H*")
-
             with mda.selections.gromacs.SelectionWriter(
-                                                'headgroups.ndx',
+                                                 tmp_ndx,
                                                  mode='a') as ndx:
-                ndx.write(g, name="headgroups", frame=0)
-                ndx.write(p, name="protein", frame=0)
+                ndx.write(self.membrane, name="headgroups", frame=0)
+                ndx.write(self.protein, name="protein", frame=0)
 
         else:
-            
             # index for the fatslim analysis
-            # P is for all phopholipids 
-            # resname CHOL to check for cholesterol
-            # resname ERG to check for ergosterol
-            g = u.select_atoms("name P") + \
-                u.select_atoms("resname ERG and name O3") +  \
-                u.select_atoms("resname CHL1 and name O3")
-            
             with mda.selections.gromacs.SelectionWriter(
-                                            'headgroups.ndx',
+                                             tmp_ndx,
                                              mode='w') as ndx:
-                ndx.write(g, name="headgroups", frame=0)
+                ndx.write(self.membrane, name="headgroups", frame=0)
         
         # Filenames
-        hg = os.path.abspath('headgroups.ndx')
-        traj = u.trajectory.filename
-        top = u.filename
+        traj = self.universe.trajectory.filename
+        top = self.universe.filename
        
         # if the user wants also the raw data
         if self.raw:
             cmd = ['fatslim', 'thickness',
                    '-c',top,
-                   '-n',hg,
+                   '-n',tmp_ndx,
                    '-t',traj,
                    '--nthread',str(self.ncore),
-                   '--plot-thickness', out_file,
-                   '--export-thickness-raw',out_file,
-                   '--thickness-cutoff', str(self.thk_cutoff)]                    
+                   '--plot-thickness', tmp_file,
+                   '--export-thickness-raw',tmp_file,
+                   '--thickness-cutoff', str(self.cutoff)]                    
         else:
             cmd = ['fatslim', 'thickness',
                    '-c',top,
-                   '-n',hg,
+                   '-n',tmp_ndx,
                    '-t',traj,
                    '--nthread',str(self.ncore),
-                   '--plot-thickness', out_file,
-                   '--thickness-cutoff', str(self.thk_cutoff)]        
+                   '--plot-thickness', tmp_file,
+                   '--thickness-cutoff', str(self.cutoff)]        
 
-        a = subprocess.call(cmd,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL)
+       
+        a = subprocess.call(cmd)
+                            #stdout=subprocess.DEVNULL,
+                            #stderr=subprocess.DEVNULL)
 
-        
-        # Parse .xvg file
-        df = pd.read_csv(os.path.abspath(out_file +".xvg"),
-                         skiprows=15,
-                         sep="  ")
+        #Parse .xvg file
+        df = pd.read_csv(os.path.abspath(tmp_file),
+                        skiprows=15,
+                        sep="  ")
         df = df.dropna(axis=1)
         df.columns = ['Time','Membrane','Lower leaflet','Upper leaflet']
         return(df)
@@ -471,9 +481,12 @@ class AreaPerLipid:
      
     def __init__ (self,
                   universe,
+                  membrane,
+                  protein,
                   ncore,
-                  apl_cutoff,
-                  raw
+                  cutoff,
+                  raw,
+                  out_dir
                   ):
 
         """Initialize the class 
@@ -481,107 +494,107 @@ class AreaPerLipid:
         Parameters
         -------------
         universe : object 
-            MDAnalysis universe object  
+            MDAnalysis universe object
+        membrane : object
+            MDAnalysis AtomGroups selections 
+        protein : object
+            MDAnalysis AtomGroups selections 
         ncore : str
             Number of core to parallelize the future metods
-        apl_cutoff : float
-            Float for the cutoff of apl or thickness command    
+        cutoff : float
+            Float for the cutoff of apl command    
         raw : Boolen
-           True/False to run raw data calculations     
+            True/False to run raw data calculations  
+        out_dir : str   
+            Name of output directory
         """
  
         self.universe = universe
         self.ncore = ncore
-        self.apl_cutoff = float(apl_cutoff)
+        self.membrane = membrane
+        self.protein = protein
+        self.cutoff = float(cutoff)
         self.raw = raw
+        self.out_dir = out_dir
 
     def run(self,
-            out_file):
+            out_file,
+            keep_out = False):
 
-        """Execute the APL command of fatslim,
-        which compute the average area per lipid 
-        of lower,upper leaflet and the entire membrane 
-        in a ''.xvg file along the trajectory.
+        """Execute the thickness command of fatslim.
+        It computes the average thickness along the 
+        trajectory of lower, upper leaflet and the 
+        entire membrane storing it in ''.xvg file .
     
         Parameters
         ----------
         out_file : str 
                 Name of the output file.
+        keep_out : Bool
+                Switch for race condition        
         """
-        
-        # means a protein is embedded in the bilayer
-        u = self.universe
-        protein = u.select_atoms("protein")
-        
-        # check if the file was already created
-        # if yes better to remove it
-        if os.path.exists('headgroups.ndx'):
-            os.remove('headgroups.ndx')
 
-        if protein :
+        # Switch True/False for race condition folder
+        if keep_out: 
+            if os.path.isdir(self.out_dir):
+                raise UserWarning('Directory already present')
+            else:
+                os.mkdir(self.out_dir)
+                tmp_file = os.path.join(self.out_dir, out_file)
+                tmp_ndx = os.path.join(self.out_dir, 'headgroups.ndx')
+        else:
+            f = tempfile.TemporaryDirectory()
+            tmp_file = os.path.join(f.name,out_file)
+            tmp_ndx = os.path.join(f.name,'headgroups.ndx')
+
+        if self.protein :
             # index for the fatslim analysis
-            # P is for all phopholipids 
-            # resname CHOL to check for cholesterol
-            # resname ERG to check for ergosterol
-            g = u.select_atoms("name P") + \
-                u.select_atoms("resname ERG and name O3") +  \
-                u.select_atoms("resname CHL1 and name O3")
-            p = u.select_atoms("protein and not name H*")
-
             with mda.selections.gromacs.SelectionWriter(
-                                            'headgroups.ndx',
-                                             mode='a') as ndx:
-                ndx.write(g, name="headgroups", frame=0)
-                ndx.write(p, name="protein", frame=0)
+                                                 tmp_ndx,
+                                                 mode='a') as ndx:
+                ndx.write(self.membrane, name="headgroups", frame=0)
+                ndx.write(self.protein, name="protein", frame=0)
 
         else:
-            
             # index for the fatslim analysis
-            # P is for all phopholipids 
-            # resname CHOL to check for cholesterol
-            # resname ERG to check for ergosterol
-            g = u.select_atoms("name P") + \
-                u.select_atoms("resname ERG and name O3") +  \
-                u.select_atoms("resname CHL1 and name O3")
-            
             with mda.selections.gromacs.SelectionWriter(
-                                            'headgroups.ndx',
+                                             tmp_ndx,
                                              mode='w') as ndx:
-                ndx.write(g, name="headgroups", frame=0)
+                ndx.write(self.membrane, name="headgroups", frame=0)
         
         # Filenames
-        hg = os.path.abspath('headgroups.ndx')
-        traj = u.trajectory.filename
-        top = u.filename
+        traj = self.universe.trajectory.filename
+        top = self.universe.filename
 
         if self.raw:
             cmd = ['fatslim', 'apl',
                    '-c',top,
-                   '-n',hg,
+                   '-n',tmp_ndx,
                    '-t',traj,
                    '--nthread',str(self.ncore),
-                   '--plot-apl',out_file,
-                   '--export-apl-raw',out_file,
-                   '--apl-cutoff',str(self.apl_cutoff)]
+                   '--plot-apl',tmp_file,
+                   '--export-apl-raw',tmp_file,
+                   '--apl-cutoff',str(self.cutoff)]
         else:
             cmd = ['fatslim', 'apl',
                    '-c',top,
-                   '-n',hg,
+                   '-n',tmp_ndx,
                    '-t',traj,
                    '--nthread',str(self.ncore),
-                   '--plot-apl',out_file,
-                   '--apl-cutoff',str(self.apl_cutoff)]
+                   '--plot-apl',tmp_file,
+                   '--apl-cutoff',str(self.cutoff)]
         
-        a = subprocess.call(cmd,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL)
+        a = subprocess.call(cmd,)
+                            #stdout=subprocess.DEVNULL,
+                            #stderr=subprocess.DEVNULL)
 
         # Parse .xvg file
-        df = pd.read_csv(os.path.abspath(out_file +".xvg"),
+        df = pd.read_csv(os.path.abspath(tmp_file),
                          skiprows=15,
                          sep="  ")
         df=df.dropna(axis=1)
         df.columns = ['Time','Membrane','Lower leaflet','Upper leaflet']
+
         return(df)
 
 
@@ -599,8 +612,8 @@ class Movement:
         """
         self.universe = universe
 
-    def run_movements(self,
-                      selection):
+    def run(self,
+            selection):
         
 
         """Run the movement commands
