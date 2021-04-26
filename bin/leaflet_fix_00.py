@@ -1,3 +1,8 @@
+import MDAnalysis as mda
+from MDAnalysis.analysis.leaflet import LeafletFinder
+import errno
+
+
 dict_selection={"PSM": "P","POPC":"P", "ERG":"O3" ,"DOPC": "P", "CHL1": "O3"}
 u=mda.Universe("heterogeneous_membrane.gro", "heterogeneous_membrane.xtc")
 
@@ -27,7 +32,11 @@ def hg_selection(u, dict_selection):
 
             selection+=list(u.select_atoms(f"resname {key} \
             and name {dict_selection[key]}"))
+    
+    if not selection:
+        raise UserWarning("No selection has been made")
 
+    
     return selection
 
 print(hg_selection(u,dict_selection))
