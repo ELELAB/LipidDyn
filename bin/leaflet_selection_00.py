@@ -3,7 +3,7 @@ from MDAnalysis.analysis.leaflet import LeafletFinder
 import errno
 
 dict_selection={"PSM": "P","POPC":"P", "ERG":"O3" ,"DOPC": "P", "CHL1": "O3"}
-#dict_selection={"ATT": "A", "PPP":"P"}
+
 u=mda.Universe("heterogeneous_membrane.gro", "heterogeneous_membrane.xtc")
 
 
