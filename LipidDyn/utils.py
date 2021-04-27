@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-# Copyright (C) 2019, Simone Scrima <simonescrima@gmail.com>
+# Copyright (C) 2020, Alessia Campo <alessia.campo@studio.unibo.it>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,10 +18,6 @@
 
 
 
-
-dict_selection={"PSM": "P","POPC":"P", "ERG":"O3" ,"DOPC": "P", "CHL1": "O3"}
-
-
 def hg_selection(u, dict_selection):
 
     '''Parameters:
@@ -34,20 +30,26 @@ def hg_selection(u, dict_selection):
 
     # initialize an empty list to store the atom selection
 
-    selection=list()
+    selections=list()
 
-    # create a list to parse lipid type names
+    # create a set to store the lipid residue names from the system
 
-    lipid_type=[res for res in u.atoms.resnames]
+    system_set=set(u.atoms.resnames)
 
-    for key in dict_selection.keys():
+    # create a set to store the lipid residue names from the dict
 
-        # check the presence of atom names in the dictionary
-        if key in lipid_type:
+    keys_set=set(dict_selection.keys())
 
-            selection+=list(u.select_atoms(f"resname {key} \
-            and name {dict_selection[key]}"))
+    intersection=system_set.intersection(keys_set)   # intersection between the two sets
 
-    return selection
+    for res in intersection:
 
-print(hg_selection(u,dict_selection))
+        # perform selections
+
+        selection.append(u.select_atoms(f"resname {res} \
+            and name {dict_selection[res]}"))
+
+
+    selections=sum(selections)
+
+    return selections
