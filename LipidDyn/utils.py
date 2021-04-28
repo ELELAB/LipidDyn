@@ -20,17 +20,17 @@
 
 def hg_selection(u, dict_selection):
 
-    '''Parameters:
+    ''' Parameters:
             u: universe object
 
-            dict_selection: dictionary with lipid type associated
+            dict_selection: dictionary with lipid types
 
-                            to atom heagroups
+                            associated to atom heagroups
     '''
 
     # initialize an empty list to store the atom selection
 
-    selections=list()
+    selection=list()
 
     # create a set to store the lipid residue names from the system
 
@@ -47,9 +47,9 @@ def hg_selection(u, dict_selection):
         # perform selections
 
         selection.append(u.select_atoms(f"resname {res} \
-            and name {dict_selection[res]}"))
+                        and name {dict_selection[res]}"))
 
 
-    selections=sum(selections)
 
-    return selections
+
+    return sum(selection)
