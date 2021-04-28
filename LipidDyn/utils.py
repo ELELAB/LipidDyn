@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-
-# Copyright (C) 2020, Alessia Campo <alessia.campo@studio.unibo.it>
+# Copyright (C) 2020, Alessia Campo <alessia.campo@studio.unibo.it>,
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,38 +17,35 @@
 
 
 
-def hg_selection(u, dict_selection):
+def select_lipid_headgroups(u, dict_selection):
 
-    ''' Parameters:
+    ''' 
+        Parameters:
             u: universe object
-
-            dict_selection: dictionary with lipid types
-
-                            associated to atom heagroups
+                Universe on which the selection is performed
+            dict_selection: dictionary lipid:atom type
+                For each lipid type, the atom name of its headgroup
+        Returns:
+            selections of all the headgroup atoms of all the
     '''
 
     # initialize an empty list to store the atom selection
-
     selection=list()
 
     # create a set to store the lipid residue names from the system
-
     system_set=set(u.atoms.resnames)
 
     # create a set to store the lipid residue names from the dict
-
     keys_set=set(dict_selection.keys())
 
-    intersection=system_set.intersection(keys_set)   # intersection between the two sets
+    # intersection between the two sets
+    intersection=system_set.intersection(keys_set)   
 
+
+    # select headgroup atom for each identified type
     for res in intersection:
-
-        # perform selections
-
         selection.append(u.select_atoms(f"resname {res} \
                         and name {dict_selection[res]}"))
 
-
-
-
+    # return single selection including all the atoms
     return sum(selection)
