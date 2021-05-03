@@ -30,9 +30,11 @@ import glob
 from progressbar import ProgressBar
 import numpy as np
 import logging
+import yaml
 
 #Import the classes and functions from the utils
 from LipidDyn.core import *
+from LipidDyn.utils import *
 
 # Import pkg management library
 import pkg_resources
@@ -47,14 +49,14 @@ from MDAnalysis.analysis.leaflet import LeafletFinder
 _start_time = time.time()
 
 def tic():
-    global _start_time 
+    global _start_time
     _start_time = time.time()
 
 
 def tac():
     t_sec = round(time.time() - _start_time)
     (t_min, t_sec) = divmod(t_sec,60)
-    (t_hour,t_min) = divmod(t_min,60) 
+    (t_hour,t_min) = divmod(t_min,60)
     print('Time passed: {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec))
 
 
@@ -69,8 +71,8 @@ def module_fatslim(trajectory_file,
                    raw,
                    ncore
                    ):
-        
-    """Fuction consisting of fatslim analysis 
+
+    """Fuction consisting of fatslim analysis
     1) Thickness (raw +xvg)
     2) APL (raw+xvg)
 
@@ -78,7 +80,7 @@ def module_fatslim(trajectory_file,
     ----------
     trajectory_file : str
             Name of the processed .xtc file.
-    topology_file : str 
+    topology_file : str
             Name of the last producte .gro file.
     index_headgroups : str
             Filename of the index containing all the headgroups
@@ -91,11 +93,11 @@ def module_fatslim(trajectory_file,
     raw : True/False
             Value to include or not the raw output
     ncore : int
-            Number of cores for parallelization             
+            Number of cores for parallelization
     """
 
 
-    
+
     # Output directory
     analysis_fatlism = os.path.abspath(directory_name + '/Fatslim/')
     if not os.path.exists(analysis_fatlism):
@@ -107,8 +109,8 @@ def module_fatslim(trajectory_file,
             if exc.errno != errno.EEXIST:
                 raise
 
-    
-    # Begins of the fatslim analysis 
+
+    # Begins of the fatslim analysis
     fatslim = FatslimCommands(trajectory_file,
                               topology_file,
                               index_headgroups,
@@ -117,17 +119,17 @@ def module_fatslim(trajectory_file,
                               tck_cutoff)
     # progress bar
     pbar = ProgressBar().start()
-    
+
     if raw : # if the user required the raw data
         step = 4
         pbar.update((1/step)*100) # current step/total steps * 100
         fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
-                                 '/fatslim_apl/raw_apl.csv')  
-        
-        pbar.update((2/step)*100)  
+                                 '/fatslim_apl/raw_apl.csv')
+
+        pbar.update((2/step)*100)
         fatslim.raw_thickness(out_file = analysis_fatlism + \
                               '/fatslim_thickness/raw_thickness.csv'
-                              )    
+                              )
 
         pbar.update((3/step)*100)
         fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
@@ -135,7 +137,7 @@ def module_fatslim(trajectory_file,
 
         pbar.update((4/step)*100)
         fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
-    else: 
+    else:
         step = 2
         pbar.update((1/step)*100)
         fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
@@ -145,7 +147,7 @@ def module_fatslim(trajectory_file,
         fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
 
     pbar.finish()
-   
+
 
 def module_densmap(universe,
                    leaflets,
@@ -155,14 +157,14 @@ def module_densmap(universe,
     """
     Parameters
     -------------
-    universe : class 
+    universe : class
         MDAnalysis universe class
-    leaflets : dict 
+    leaflets : dict
         Dictionary with MDAnalysis AtomGroup as keys of all
-        the lipid residues in upper and lower leaflet. 
+        the lipid residues in upper and lower leaflet.
         Obtained using LeafletFinder class in MDAnalysis
     ncore : int
-        Number of cores for parallelization        
+        Number of cores for parallelization
     directory_name : str
         Name of the output folder
     """
@@ -175,11 +177,11 @@ def module_densmap(universe,
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
-    
+
     # progress bar
     pbar = ProgressBar().start()
     total_step = 2
-    step = 1 
+    step = 1
     u = universe
     for leaflet in leaflets:
         # compute density maps for each leaflet
@@ -189,11 +191,11 @@ def module_densmap(universe,
         # output file
         np.savetxt(folder+"/"+leaflet+"_2dmap.dat",
                    grid,
-                   delimiter='\t',fmt='%1.4f') 
+                   delimiter='\t',fmt='%1.4f')
         pbar.update((step/total_step)*100) # update status
         step += 1
     pbar.finish()
-  
+
 
 def module_enrichment(universe,
                       selection,
@@ -202,13 +204,13 @@ def module_enrichment(universe,
     """
     Parameters
     -------------
-    universe : class 
+    universe : class
         MDAnalysis universe class
-    selection : dict 
+    selection : dict
         MDAnalysis AtomGroup selection of all the
         lipid residue constituting the lipid bilayer
     ncore : int
-        Number of cores for parallelization        
+        Number of cores for parallelization
     directory_name : str
         Name of the output folder
     """
@@ -221,21 +223,21 @@ def module_enrichment(universe,
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
-   
+
     pbar = ProgressBar().start()
     total_step = 3
     d = {} # dictionary to store all the arrays for the dmaps
     # get composition of the membrane and density map of all membrane
     d["membrane"] = dmap_multiprocessing(universe,
-                                         selection.residues.atoms,ncore) 
+                                         selection.residues.atoms,ncore)
     membrane = np.unique(selection.residues.resnames)
-    
+
     # add protein to dictionary of arrays
     protein = universe.select_atoms("protein")
     d["protein"]= dmap_multiprocessing(universe,
                                        protein,
                                        ncore)
-   
+
 
     # add all the different lipid residues
     for lipid in membrane:
@@ -246,24 +248,24 @@ def module_enrichment(universe,
                                         ncore)
 
     pbar.update((1/3)*100)
-    
+
     sum_densmap = []
     d1 = {}
     for key in d:
         # ignore all the membrane and the protein
-        if key =="membrane" or key == "protein": 
+        if key =="membrane" or key == "protein":
             continue
         # normalize dividing single lipids by the membrane
         array = np.divide(d[key],
                       d["membrane"],
                       out=np.zeros_like(d[key]),
-                      where=d["membrane"]!=0)   
+                      where=d["membrane"]!=0)
         d1[key] = array
         sum_densmap.append(array) # store in densmap
-    
+
     pbar.update((2/3)*100)
 
-    # sum all the normalized density maps to have sum_denmaps 
+    # sum all the normalized density maps to have sum_denmaps
     # and substract the protein array to the sum_densmap
     sum_densmap = np.sum(sum_densmap,axis=0) - d["protein"]
 
@@ -271,15 +273,15 @@ def module_enrichment(universe,
         array = np.divide(d1[key],
                       sum_densmap,
                       out=np.zeros_like(d1[key]),
-                      where=sum_densmap!=0) # normalize  ignoring 0s  
+                      where=sum_densmap!=0) # normalize  ignoring 0s
         #d1[key] = array
         # substitute the first column and rows with their original values
-        array[:,0] = d[key][:,0] 
+        array[:,0] = d[key][:,0]
         array[0,:] = d[key][0,:]
         np.savetxt(folder+"/"+key+"_enrich.dat",
                    array,
                    delimiter='\t',
-                   fmt='%1.4f') 
+                   fmt='%1.4f')
     pbar.update((3/3)*100)
     pbar.finish()
 
@@ -288,11 +290,11 @@ def module_enrichment(universe,
 def module_movements(universe,
                      leaflets,
                      directory_name):
-         
+
     # Creates different folder in which the output is stored
 
-    """From the imported module uses these function to extract the 
-    trajectories associated with each lipids of both upper and lower 
+    """From the imported module uses these function to extract the
+    trajectories associated with each lipids of both upper and lower
     leaflet
 
     Parameters
@@ -301,7 +303,7 @@ def module_movements(universe,
             Universe object from MDAnalysis library
     leaflets : dict
         Dictionary with MDAnalysis AtomGroup as keys of all
-        the lipid residues in upper and lower leaflet. 
+        the lipid residues in upper and lower leaflet.
         Obtained using LeafletFinder class in MDAnalysis
     directory_name : str
             Name of the output folder
@@ -315,15 +317,15 @@ def module_movements(universe,
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
-    
+
     # progress bar
     pbar = ProgressBar().start()
     total_step = len(leaflets["upper_leaflet"].residues)*2
-    step = 1 
+    step = 1
 
     # iterate through the dictionary
     for leaflet in leaflets:
-        if leaflet == "upper_leaflet": 
+        if leaflet == "upper_leaflet":
             filename = "Upper_leaflet_coordinates.dat"
         else:
             filename = "Lower_leaflet_coordinates.dat"
@@ -335,11 +337,11 @@ def module_movements(universe,
                 g.write("> " + str(residue).strip("<>").replace(",","")+"\n")
                 # for every frame in the trajectory
 
-                for ts in universe.trajectory: 
+                for ts in universe.trajectory:
                     # extract x and y coordinate of the center of mass
                     g.write(np.array2string(
                                 residue.atoms.center_of_mass()[0:2]/10,\
-                                precision=3, separator='\t').strip("[]")+"\n") 
+                                precision=3, separator='\t').strip("[]")+"\n")
                 pbar.update((step/total_step)*100)
                 step += 1
     pbar.finish()
@@ -351,19 +353,19 @@ def module_order_parameter(trajectory_file,
                            topology_file,
                            directory_name
                            ):
-    
+
     """
     Parameters
     ----------
     trajectory_file : str
-            Name of the processed .xtc file. 
-    topology_file : str 
+            Name of the processed .xtc file.
+    topology_file : str
             Name of the last producte .gro file.
     directory_name : str
             Name of the output folder
     """
-    
-    
+
+
     # Creates different folder in which the output is stored
 
     order_folder = directory_name + '/Order_Parameter/'
@@ -378,12 +380,12 @@ def module_order_parameter(trajectory_file,
 
     # retrieve def file for the op in the package folder
     dirs =  pkg_resources.resource_listdir('LipidDyn','/definitions_files/')
-    
+
     pbar = ProgressBar().start()
     total_step = len(dirs)
-    step = 1 
+    step = 1
     for def_file in dirs:
-        
+
         # get the lipid name
         lipid_name = def_file.split('.')[0]
         # retrieve the def files from the package
@@ -400,43 +402,43 @@ def module_order_parameter(trajectory_file,
 
         for op in ordPars.values():
             (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
-        
-     
-        # writes the output file in  file 
+
+
+        # writes the output file in  file
         try:
             with open('Order_Parameter_'+ lipid_name +'.csv',"w") as f:
                 f.write("{},{},{},{},{},{},{}  \n".format(
                 'OP_name','resname','atom1','atom2','OP_mean','OP_stddev','OP_stem'))
                 for op in ordPars.values():
                     # output in csv file format comma separated
-                    f.write( 
+                    f.write(
                         "{},{},{},{},{: 2.5f},{: 2.5f},{: 2.5f} \n".format(
                               op.name, op.resname, op.atAname,
                               op.atBname,op.avg, op.std, op.stem)
                            )
         except:
             logging.warning("Problem writing the main outputfile")
-        
+
 
         with open('Order_Parameter_'+ lipid_name +'.csv','r') as g :
             if "nan" in g.read():
                 os.remove('Order_Parameter_'+ lipid_name +'.csv')
             else:
                 shutil.move('Order_Parameter_'+ lipid_name +'.csv',
-                             order_folder) 
-        
+                             order_folder)
+
         pbar.update((step/total_step)*100)
         step += 1
     pbar.finish()
 
-         
+
 def cleaning_all():
 
-    # Clean all the temporary files which were created 
+    # Clean all the temporary files which were created
     os.remove('index_headgroups.ndx')
     os.remove('true_bilayer.ndx')
 
-    
+
 
 
 def main():
@@ -444,9 +446,9 @@ def main():
     description= 'LipidDyn pipeline for calculating different parameters' \
                  'of a lipid membrane Molecular Dynamics simulation'
 
-    usage = 'LypidDyn -t ["".xtc/trr] -f ["".gro/tpr] -all [True/False] ' \
+    usage = 'LypidDyn -t ["".xtc/trr] -f ["".gro/tpr] -hg ["".yml] -all [True/False] ' \
             '-c -fatslim -2d -mov -ordpar -d [directory name] -raw[True/False]'
-             
+
 
     parser = argparse.ArgumentParser(description=description, usage=usage)
 
@@ -468,6 +470,12 @@ def main():
                         help='Molecular topology file [.gro/.tpr]',
                         )
 
+   parser.add_argument('-conf',
+                       '--config-file',
+                       default='./test/data/full_atom/full_atom.yml',
+                       type=str,
+                       required=False,
+                       help='Configuration file for headgroups selection)
 
     parser.add_argument('-d',
                         '--dir_name',
@@ -524,7 +532,7 @@ def main():
     parser.add_argument('-2d',
                         '--2d_maps',
                         action='store_true',
-                        dest='mod_maps', 
+                        dest='mod_maps',
                         required = False,
                         help='Execute only the density maps module of the \
                               pipeline'
@@ -597,19 +605,21 @@ def main():
     # Define Flags
     traj = os.path.abspath(args.trajectory)
     topol = os.path.abspath(args.topology)
+    hg_sel = os.path.abspath(args.conf)
     dir_name = args.directory
     ncore = int(args.mpi)
     cleaning = args.clean
     apl_cutoff = float(args.apl_cutoff)
     tck_cutoff = float(args.tck_cutoff)
     raw = args.raw
-    
-    
+
+
     starting_directory = os.getcwd()
 
     # setup of the MDA universe
     u = mda.Universe(topol,traj)
-    
+
+
     if not os.path.exists(dir_name):
         try:
             os.mkdir((dir_name))
@@ -617,15 +627,15 @@ def main():
             if exc.errno != errno.EEXIST:
                 raise
 
+    # load config file for headgroup selections
+    with open(hg_sel) as config:
+        parsed_yaml=yaml.load(config, Loader=yaml.FullLoader)
+        dict_selection=parsed_yaml["lipids"]
+
     # Means a protein is embedded in the bilayer
     if args.prot :
-        # index for the fatslim analysis
-        # P is for all phopholipids 
-        # resname CHOL to check for cholesterol
-        # resname ERG to check for ergosterol
-        g = u.select_atoms("name P") + \
-            u.select_atoms("resname ERG and name O3") +  \
-            u.select_atoms("resname CHL1 and name O3")
+        # call utils module for heagroup selection
+        g = select_lipid_headgroups(u,dict_selection)
         p = u.select_atoms("protein and not name H*")
 
         with mda.selections.gromacs.SelectionWriter(
@@ -635,27 +645,21 @@ def main():
             ndx.write(p, name="protein", frame=0)
 
     else:
-        
-        # index for the fatslim analysis
-        # P is for all phopholipids 
-        # resname CHOL to check for cholesterol
-        # resname ERG to check for ergosterol
-        g = u.select_atoms("name P") + \
-            u.select_atoms("resname ERG and name O3") +  \
-            u.select_atoms("resname CHL1 and name O3")
-        
+
+        # call utils module for the heagroup selection
+        g = select_lipid_headgroups(u, dict_selection)
         with mda.selections.gromacs.SelectionWriter(
                                         'index_headgroups.ndx',
                                          mode='w') as ndx:
             ndx.write(g, name="headgroups", frame=0)
-  
+
     # Find leaflets and store them in a dictionary
     L =  LeafletFinder(u,g)
     upper_leaflet = L.groups(0)
     lower_leaflet = L.groups(1)
     leaflets = {"upper_leaflet":upper_leaflet,
                 "lower_leaflet":lower_leaflet}
-  
+
     # index file of headgroups
     index_headgroups = starting_directory + \
                        '/index_headgroups.ndx'
@@ -663,23 +667,23 @@ def main():
 
 
     # Create an index file in which the different layers of the membrane
-    # are listed 
+    # are listed
 
     with mda.selections.gromacs.SelectionWriter('true_bilayer.ndx',
                                                  mode='w') as ndx:
             ndx.write(upper_leaflet, name="upper_leaflet")
             ndx.write(lower_leaflet, name="lower_leaflet")
-    
-    
+
+
     # The user selected the -all flag for all the analysis
 
     if args.all_modules :
-        
-   
+
+
         logging.info("Starting now with the calculation, please stand by...")
         logging.info(u"\u2622")
-      
-    
+
+
         logging.info("Analysis: Area per lipid & Thickness calculation")
         module_fatslim(traj,
                        topol,
@@ -690,19 +694,19 @@ def main():
                        raw,
                        ncore
                        )
-        
-        
+
+
         logging.info("--------------------------------------")
-      
+
 
         logging.info("Analysis: Density maps")
         module_densmap(u,
                        leaflets,
                        ncore,
                        dir_name)
-  
+
         logging.info("--------------------------------------")
-     
+
         if args.prot:
             # add enrichment analysis with a protein
             logging.info("Analysis: Enrichment Analysis")
@@ -710,9 +714,9 @@ def main():
                               g,
                               ncore,
                               dir_name)
-            
+
             logging.info("--------------------------------------")
-            
+
 
 
 
@@ -720,25 +724,25 @@ def main():
         module_movements(u,
                          leaflets,
                          dir_name)
-      
+
         logging.info("--------------------------------------")
-       
+
 
         logging.info("Analysis: Order Parameter")
         module_order_parameter(traj,
                                topol,
                                dir_name
                                )
-     
+
         logging.info("--------------------------------------")
-     
-    
+
+
     else:
         logging.info("Starting now with the calculation, please stand by")
         logging.info(u"\u2622")
-   
 
-        if args.mod_fat : 
+
+        if args.mod_fat :
 
             logging.info("Analysis: Area per lipid & Thickness calculation")
             module_fatslim(traj,
@@ -752,17 +756,17 @@ def main():
             logging.info("--------------------------------------")
 
         if args.mod_maps :
-            
+
             logging.info("Analysis: Density maps")
             module_densmap(u,
                            leaflets,
                            ncore,
                            dir_name)
             logging.info("--------------------------------------")
-       
+
         if args.enrichment and args.prot:
             # add enrichment analysis with a protein
-            # do it if there is also the flag for the 
+            # do it if there is also the flag for the
             # prot
             logging.info("Analysis: Enrichment Analysis")
             module_enrichment(u,
@@ -771,9 +775,9 @@ def main():
                               dir_name)
             logging.info("--------------------------------------")
 
- 
+
         if args.mod_mov :
-            
+
             logging.info("Analysis: Diffusion movements")
             module_movements(u,
                              leaflets,
@@ -787,7 +791,7 @@ def main():
                                    topol,
                                    dir_name)
             logging.info("--------------------------------------")
-     
+
     if args.clean :
         cleaning_all()
 
