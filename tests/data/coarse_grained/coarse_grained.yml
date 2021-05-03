@@ -1,0 +1,10 @@
+lipids:
+    POPC:
+        headgroup: PO4
+    DOPC:
+        headgroup: PO4
+    PSM:
+        headgroup: P
+    CHOL:
+        headgroup: ROH
+

@@ -1,0 +1,9 @@
+lipids:
+    POPC:
+        headgroup: P
+    DOPC:
+        headgroup: P
+    PSM:
+        headgroup: P
+    CHL1:
+        headgroup: O3
