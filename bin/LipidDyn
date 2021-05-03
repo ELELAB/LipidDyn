@@ -474,8 +474,8 @@ def main():
                        '--config-file',
                        default='./test/data/full_atom/full_atom.yml',
                        type=str,
-                       required=False,
-                       help='Configuration file for headgroups selection)
+                       required=True,
+                       help='Configuration file for headgroups selection')
 
     parser.add_argument('-d',
                         '--dir_name',
