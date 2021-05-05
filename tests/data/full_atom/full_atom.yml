@@ -7,3 +7,4 @@ lipids:
         headgroup: P
     CHL1:
         headgroup: O3
+protein: "protein and not name H*"
