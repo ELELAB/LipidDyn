@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2020, Alessia Campo <alessia.campo@studio.unibo.it>,
+# Copyright (C) 2021, Alessia Campo <alessia.campo@studio.unibo.it>,
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 def select_lipid_headgroups(u, dict_selection):
 
-    ''' 
+    '''
         Parameters:
             u: universe object
                 Universe on which the selection is performed
@@ -39,13 +39,13 @@ def select_lipid_headgroups(u, dict_selection):
     keys_set=set(dict_selection.keys())
 
     # intersection between the two sets
-    intersection=system_set.intersection(keys_set)   
+    intersection=system_set.intersection(keys_set)
 
 
     # select headgroup atom for each identified type
     for res in intersection:
         selection.append(u.select_atoms(f"resname {res} \
-                        and name {dict_selection[res]}"))
+                        and name {dict_selection[res]['headgroup']}"))
 
     # return single selection including all the atoms
     return sum(selection)
