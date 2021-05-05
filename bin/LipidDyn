@@ -446,7 +446,7 @@ def main():
     description= 'LipidDyn pipeline for calculating different parameters' \
                  'of a lipid membrane Molecular Dynamics simulation'
 
-    usage = 'LypidDyn -t ["".xtc/trr] -f ["".gro/tpr] -hg ["".yml] -all [True/False] ' \
+    usage = 'LypidDyn -t ["".xtc/trr] -f ["".gro/tpr] -g ["".yml] -all [True/False] ' \
             '-c -fatslim -2d -mov -ordpar -d [directory name] -raw[True/False]'
 
 
@@ -470,8 +470,9 @@ def main():
                         help='Molecular topology file [.gro/.tpr]',
                         )
 
-   parser.add_argument('-conf',
+   parser.add_argument('-g',
                        '--config-file',
+                       dest='configuration',
                        default='./test/data/full_atom/full_atom.yml',
                        type=str,
                        required=True,
@@ -605,7 +606,7 @@ def main():
     # Define Flags
     traj = os.path.abspath(args.trajectory)
     topol = os.path.abspath(args.topology)
-    hg_sel = os.path.abspath(args.conf)
+    hg_sel = os.path.abspath(args.configuration)
     dir_name = args.directory
     ncore = int(args.mpi)
     cleaning = args.clean
@@ -626,17 +627,31 @@ def main():
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
+    try:
+        if hg_sel.split('.')[1] != 'yml':
+            sys.stdout.write('Wrong configuration file format')
+            quit()
+        else:
 
-    # load config file for headgroup selections
-    with open(hg_sel) as config:
-        parsed_yaml=yaml.load(config, Loader=yaml.FullLoader)
-        dict_selection=parsed_yaml["lipids"]
+            # load config file for headgroup selections
+            with open(hg_sel) as config:
+                parsed_yaml=yaml.load(config, Loader=yaml.FullLoader)
+                dict_selection=parsed_yaml["lipids"]
+                dict_prot=parsed_yaml["proteins"]
+
+    except IOError as exc:
+
+        if exc.errno != errno.EEXIST:
+            raise
+        if exc.errno == errno.EACCESS:
+            raise
+        quit()
 
     # Means a protein is embedded in the bilayer
     if args.prot :
         # call utils module for heagroup selection
         g = select_lipid_headgroups(u,dict_selection)
-        p = u.select_atoms("protein and not name H*")
+        p = u.select_atoms(f'{dict_prot}')
 
         with mda.selections.gromacs.SelectionWriter(
                                         'index_headgroups.ndx',
