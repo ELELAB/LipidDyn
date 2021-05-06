@@ -7,4 +7,4 @@ lipids:
         headgroup: P
     CHOL:
         headgroup: ROH
-proteins: "protein and not name H*"
+protein: "protein and not name H*"
