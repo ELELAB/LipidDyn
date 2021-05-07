@@ -3,8 +3,8 @@ lipids:
         headgroup: PO4
     DOPC:
         headgroup: PO4
-    PSM:
-        headgroup: P
+    DPSM:
+        headgroup: PO4
     CHOL:
         headgroup: ROH
 protein: "protein and not name H*"
