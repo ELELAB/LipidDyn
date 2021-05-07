@@ -31,8 +31,7 @@ from progressbar import ProgressBar
 import numpy as np
 import logging
 import yaml
-#from collections import OrderedDict
-import collections
+
 #Import the classes and functions from the utils
 from LipidDyn.core import *
 from LipidDyn.utils import *
@@ -631,12 +630,13 @@ def main():
                            
     try:
 
-        # load config file for headgroup selections
+        # load config file for atom selections
         with open(hg_sel) as config:
             parsed_yaml=yaml.load(config, Loader=yaml.FullLoader)
         
-            if not isinstance(parsed_yaml, dict):
-              
+            
+            if not isinstance(parsed_yaml, dict):  
+            
                 logging.error("Wrong file format for configuration file")
                 exit(1)
     
@@ -655,14 +655,13 @@ def main():
 
         # define dictionary selections                
         dict_selection=parsed_yaml["lipids"]    
-        dict_prot=(parsed_yaml["proteins"])
+        dict_prot=(parsed_yaml["protein"])
     
     except KeyError:        
                     
             logging.error("Wrong file format for configuration file")
             exit(1)
                 
-
             
     
     # Means a protein is embedded in the bilayer
