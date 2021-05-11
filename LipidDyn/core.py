@@ -32,7 +32,7 @@ import argparse
 import shutil
 import multiprocessing as mp
 import tempfile
-
+import logging as log
 
 #/******************************************************************
 #*    Title: calcOrderParameters.py
@@ -200,7 +200,7 @@ class Density:
 
     def __init__ (self,
                   universe,
-                  bins = 0.02):
+                  bin_size = 0.02):
 
         """Initialize the class 
 
@@ -211,7 +211,7 @@ class Density:
         """
 
         self.universe = universe
-        self.bin_size = bins
+        self.bin_size = bin_size
         self.ts = self.universe.trajectory[0] 
         # divide by ten the coordinates to convert in nm 
         # X coordinate of box
@@ -360,12 +360,9 @@ class Thickness:
      
     def __init__ (self,
                   universe,
-                  membrane,
-                  protein,
                   ncore,
                   cutoff,
                   raw,
-                  out_dir
                   ):
 
         """Initialize the class 
@@ -390,15 +387,16 @@ class Thickness:
  
         self.universe = universe
         self.ncore = ncore
-        self.membrane = membrane
-        self.protein = protein
         self.cutoff = float(cutoff)
         self.raw = raw
-        self.out_dir = out_dir
+        
 
     def run(self,
+            membrane,
+            protein,
             out_file,
-            keep_out = False):
+            out_dir,
+            keep_output_file = False):
 
         """Execute the thickness command of fatslim.
         It computes the average thickness along the 
@@ -414,32 +412,32 @@ class Thickness:
         """
 
         # Switch True/False for race condition folder
-        if keep_out: 
-            if os.path.isdir(self.out_dir):
-                raise UserWarning('Directory already present')
+        if keep_output_file: 
+            if os.path.isdir(out_dir):
+                raise log.warning('Directory already present')
             else:
-                os.mkdir(self.out_dir)
-                tmp_file = os.path.join(self.out_dir, out_file)
-                tmp_ndx = os.path.join(self.out_dir, 'headgroups.ndx')
+                os.mkdir(out_dir)
+                tmp_file = os.path.join(out_dir, out_file)
+                tmp_ndx = os.path.join(out_dir, 'headgroups.ndx')
         else:
             f = tempfile.TemporaryDirectory()
             tmp_file = os.path.join(f.name,out_file)
             tmp_ndx = os.path.join(f.name,'headgroups.ndx')
 
-        if self.protein :
+        if protein :
             # index for the fatslim analysis
             with mda.selections.gromacs.SelectionWriter(
                                                  tmp_ndx,
                                                  mode='a') as ndx:
-                ndx.write(self.membrane, name="headgroups", frame=0)
-                ndx.write(self.protein, name="protein", frame=0)
+                ndx.write(membrane, name="headgroups", frame=0)
+                ndx.write(protein, name="protein", frame=0)
 
         else:
             # index for the fatslim analysis
             with mda.selections.gromacs.SelectionWriter(
                                              tmp_ndx,
                                              mode='w') as ndx:
-                ndx.write(self.membrane, name="headgroups", frame=0)
+                ndx.write(membrane, name="headgroups", frame=0)
         
         # Filenames
         traj = self.universe.trajectory.filename
@@ -481,12 +479,9 @@ class AreaPerLipid:
      
     def __init__ (self,
                   universe,
-                  membrane,
-                  protein,
                   ncore,
                   cutoff,
                   raw,
-                  out_dir
                   ):
 
         """Initialize the class 
@@ -511,15 +506,15 @@ class AreaPerLipid:
  
         self.universe = universe
         self.ncore = ncore
-        self.membrane = membrane
-        self.protein = protein
         self.cutoff = float(cutoff)
         self.raw = raw
-        self.out_dir = out_dir
 
     def run(self,
+            membrane,
+            protein,
             out_file,
-            keep_out = False):
+            out_dir,
+            keep_output_file = False):
 
         """Execute the thickness command of fatslim.
         It computes the average thickness along the 
@@ -535,32 +530,32 @@ class AreaPerLipid:
         """
 
         # Switch True/False for race condition folder
-        if keep_out: 
-            if os.path.isdir(self.out_dir):
-                raise UserWarning('Directory already present')
+        if keep_output_file: 
+            if os.path.isdir(out_dir):
+                raise log.warning('Directory already present')
             else:
-                os.mkdir(self.out_dir)
-                tmp_file = os.path.join(self.out_dir, out_file)
-                tmp_ndx = os.path.join(self.out_dir, 'headgroups.ndx')
+                os.mkdir(out_dir)
+                tmp_file = os.path.join(out_dir, out_file)
+                tmp_ndx = os.path.join(out_dir, 'headgroups.ndx')
         else:
             f = tempfile.TemporaryDirectory()
             tmp_file = os.path.join(f.name,out_file)
             tmp_ndx = os.path.join(f.name,'headgroups.ndx')
 
-        if self.protein :
+        if protein :
             # index for the fatslim analysis
             with mda.selections.gromacs.SelectionWriter(
                                                  tmp_ndx,
                                                  mode='a') as ndx:
-                ndx.write(self.membrane, name="headgroups", frame=0)
-                ndx.write(self.protein, name="protein", frame=0)
+                ndx.write(membrane, name="headgroups", frame=0)
+                ndx.write(protein, name="protein", frame=0)
 
         else:
             # index for the fatslim analysis
             with mda.selections.gromacs.SelectionWriter(
                                              tmp_ndx,
                                              mode='w') as ndx:
-                ndx.write(self.membrane, name="headgroups", frame=0)
+                ndx.write(membrane, name="headgroups", frame=0)
         
         # Filenames
         traj = self.universe.trajectory.filename

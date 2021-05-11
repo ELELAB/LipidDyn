@@ -82,15 +82,17 @@ def module_thickness(universe,
     
     # Begins of the fatslim analysis 
     thickness = Thickness(universe,
-                          membrane,
-                          protein,
                           ncore,
                           cutoff,
                           raw,
-                          analysis_thickness)
+                          )
 
     # Execute Fatslim commands
-    df = thickness.run(out_file = 'thickness.xvg')
+    df = thickness.run(membrane,
+                       protein,
+                       'thickness.xvg',
+                       analysis_thickness
+                       )
     df.to_csv(os.path.join(analysis_thickness,'thickness.csv'),
                            index=False)
     return(df)
@@ -137,15 +139,16 @@ def module_apl(universe,
     
     # Begins of the fatslim analysis 
     apl = AreaPerLipid(universe,
-                       membrane,
-                       protein,
                        ncore,
                        cutoff,
-                       raw,
-                       analysis_apl)
+                       raw)
 
     # Execute Fatslim commands
-    df = apl.run(out_file ='apl.xvg')
+    df = apl.run(membrane,
+                 protein,
+                 'apl.xvg',
+                 analysis_apl,
+                 )
     df.to_csv(os.path.join(analysis_apl,'apl.csv'),
                            index=False)
     return(df)
