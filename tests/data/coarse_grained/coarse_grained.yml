@@ -3,7 +3,29 @@ lipids:
         headgroup: PO4
     DOPC:
         headgroup: PO4
+    PIPI:
+        headgroup: PO4
     DPSM:
+        headgroup: PO4
+    DVPC:
+        headgroup: PO4
+    DOPE:
+        headgroup: PO4
+    POPI:
+        headgroup: PO4
+    PIPE:
+        headgroup: PO4
+    PAPI:
+        headgroup: PO4
+    PAPE:
+        headgroup: PO4
+    POPS:
+        headgroup: PO4
+    DOPA:
+        headgroup: PO4
+    PNSM:
+        headgroup: PO4
+    POPG:
         headgroup: PO4
     CHOL:
         headgroup: ROH
