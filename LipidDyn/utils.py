@@ -12,8 +12,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-#You should have received a copy of the GNU General Public License
-#along with this program. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import MDAnalysis as mda 
 import numpy as np
@@ -30,36 +30,25 @@ def select_lipid_headgroups(u, dict_selection):
             selections of all the headgroup atoms
     '''
 
-    # initialize an empty list to store the atom selection
-
-    selection=list()
-
     # create a set to store the lipid residue names from the system
-
-    system_set=set(u.atoms.resnames)
+    system_set = set(u.atoms.resnames)
 
     # create a set to store the lipid residue names from the dict
-
-    keys_set=set(dict_selection.keys())
+    keys_set = set(dict_selection.keys())
 
     # intersection between the two sets
-
-    intersection=system_set.intersection(keys_set)
+    intersection = system_set.intersection(keys_set)
     
     # select headgroup atom for each identified type
+    selection = list()
 
     for res in intersection:
         selection.append(u.select_atoms(f"resname {res} \
                         and name {dict_selection[res]['headgroup']}"))
 
     # create a single selection including all the atoms
-
-    sel=sum(selection)
+    sel = sum(selection)
     
-    # create a new AtomGroup instance with the sorted indices of the selection
+    # create a new AtomGroup instance with sorted atoms
+    return mda.AtomGroup(np.sort(sel.indices), u)
 
-    sorted_sel=mda.AtomGroup(np.sort(sel.indices),u)
-
-    # return single sorted selection
-    
-    return sorted_sel
