@@ -5,6 +5,12 @@ lipids:
         headgroup: P
     PSM:
         headgroup: P
+    NSM:
+        headgroup: P 
+    LSM:
+        headgroup: P
+    SSM:
+        headgroup: P    
     CHL1:
         headgroup: O3
 protein: "protein and not name H*"
