@@ -64,7 +64,6 @@ def module_fatslim(trajectory_file,
                    topology_file,
                    index_headgroups,
                    out_dir,
-                   directory_name,
                    apl_cutoff,
                    tck_cutoff,
                    raw,
@@ -98,7 +97,7 @@ def module_fatslim(trajectory_file,
 
 
     # Output directory
-    analysis_fatlism = os.path.abspath(out_dir + directory_name + '/Fatslim/')
+    analysis_fatlism = os.path.abspath(out_dir + '/Fatslim/')
     
     if not os.path.exists(analysis_fatlism):
         try:
@@ -151,8 +150,7 @@ def module_fatslim(trajectory_file,
 def module_densmap(universe,
                    leaflets,
                    ncore,
-                   out_dir,
-                   directory_name):
+                   out_dir):
 
     """
     Parameters
@@ -170,7 +168,7 @@ def module_densmap(universe,
     """
 
     # output directory
-    folder = os.path.abspath(out_dir + directory_name +'/2D_maps/')
+    folder = os.path.abspath(out_dir +'/2D_maps/')
     if not os.path.exists(folder):
         try:
             os.mkdir((folder))
@@ -200,8 +198,7 @@ def module_densmap(universe,
 def module_enrichment(universe,
                       selection,
                       ncore,
-                      out_dir,
-                      directory_name):
+                      out_dir):
     """
     Parameters
     -------------
@@ -217,7 +214,7 @@ def module_enrichment(universe,
     """
 
     # output directory
-    folder = os.path.abspath(out_dir + directory_name +'/Enrichment/')
+    folder = os.path.abspath(out_dir +'/Enrichment/')
     if not os.path.exists(folder):
         try:
             os.mkdir((folder))
@@ -290,8 +287,7 @@ def module_enrichment(universe,
 
 def module_movements(universe,
                      leaflets,
-                     out_dir,
-                     directory_name):
+                     out_dir):
 
     # Creates different folder in which the output is stored
 
@@ -312,7 +308,7 @@ def module_movements(universe,
     """
 
     # output directory
-    analysis_traj = os.path.abspath(out_dir + directory_name + "/Diffusion_movements/")
+    analysis_traj = os.path.abspath(out_dir +  "/Diffusion_movements/")
     if not os.path.exists(analysis_traj):
         try:
             os.mkdir((analysis_traj))
@@ -353,8 +349,7 @@ def module_movements(universe,
 
 def module_order_parameter(trajectory_file,
                            topology_file,
-                           out_dir,
-                           directory_name
+                           out_dir
                            ):
 
     """
@@ -371,7 +366,7 @@ def module_order_parameter(trajectory_file,
 
     # Creates different folder in which the output is stored
 
-    order_folder = out_dir + directory_name + '/Order_Parameter/'
+    order_folder = out_dir + '/Order_Parameter/'
 
     if not os.path.exists(order_folder):
         try:
@@ -443,7 +438,7 @@ def main():
                  'of a lipid membrane Molecular Dynamics simulation'
 
     usage = 'LypidDyn -t ["".xtc/trr] -f ["".gro/tpr] -g ["".yml] -all [True/False] ' \
-            '-c -fatslim -2d -mov -ordpar -o [path/directory name] -d [directory name] -raw[True/False]'
+            '-c -fatslim -2d -mov -ordpar -o [path/directory name] -raw[True/False]'
 
 
     parser = argparse.ArgumentParser(description=description, usage=usage)
@@ -482,17 +477,6 @@ def main():
                         required=False,
                         metavar='',
                         help="Select the directory to store the outputs of the pipeline")
-
-
-    parser.add_argument('-d',
-                        '--dir_name',
-                        default = 'Analysis',
-                        dest='directory',
-                        type=str,
-                        required=False,
-                        metavar='',
-                        help='The directory name for outputs of the pipeline',
-                        )
 
 
     parser.add_argument('-c',
@@ -612,7 +596,7 @@ def main():
     topol = os.path.abspath(args.topology)
     hg_sel = os.path.abspath(args.configuration)
     out_dir = args.output_dir
-    dir_name = args.directory
+    #dir_name = args.directory
     ncore = int(args.mpi)
     cleaning = args.clean
     apl_cutoff = float(args.apl_cutoff)
@@ -636,9 +620,9 @@ def main():
     u = mda.Universe(topol,traj)
 
 
-    if not os.path.exists(out_dir + dir_name):
+    if not os.path.exists(out_dir):
         try:
-            os.mkdir((out_dir + dir_name))
+            os.mkdir((out_dir))
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
@@ -722,7 +706,6 @@ def main():
                        topol,
                        index_headgroups,
                        out_dir,
-                       dir_name,
                        apl_cutoff,
                        tck_cutoff,
                        raw,
@@ -737,8 +720,7 @@ def main():
         module_densmap(u,
                        leaflets,
                        ncore,
-                       out_dir,
-                       dir_name)
+                       out_dir)
 
         logging.info("--------------------------------------")
 
@@ -748,8 +730,7 @@ def main():
             module_enrichment(u,
                               g,
                               ncore,
-                              out_dir,
-                              dir_name)
+                              out_dir)
 
             logging.info("--------------------------------------")
 
@@ -759,8 +740,7 @@ def main():
         logging.info("Analysis: Diffusion movements")
         module_movements(u,
                          leaflets,
-                         out_dir,
-                         dir_name)
+                         out_dir)
 
         logging.info("--------------------------------------")
 
@@ -768,8 +748,7 @@ def main():
         logging.info("Analysis: Order Parameter")
         module_order_parameter(traj,
                                topol,
-                               out_dir,
-                               dir_name
+                               out_dir
                                )
 
         logging.info("--------------------------------------")
@@ -787,7 +766,6 @@ def main():
                            topol,
                            index_headgroups,
                            out_dir,
-                           dir_name,
                            apl_cutoff,
                            tck_cutoff,
                            raw,
@@ -800,8 +778,7 @@ def main():
             module_densmap(u,
                            leaflets,
                            ncore,
-                           out_dir,
-                           dir_name)
+                           out_dir)
             logging.info("--------------------------------------")
 
         if args.enrichment and args.prot:
@@ -812,8 +789,7 @@ def main():
             module_enrichment(u,
                               g,
                               ncore,
-                              out_dir,
-                              dir_name)
+                              out_dir)
             logging.info("--------------------------------------")
 
 
@@ -822,8 +798,7 @@ def main():
             logging.info("Analysis: Diffusion movements")
             module_movements(u,
                              leaflets,
-                             out_dir,
-                             dir_name)
+                             out_dir)
             logging.info("--------------------------------------")
 
         if args.mod_ord :
@@ -831,8 +806,7 @@ def main():
             logging.info("Analysis: Order Parameter")
             module_order_parameter(traj,
                                    topol,
-                                   out_dir,
-                                   dir_name)
+                                   out_dir)
             logging.info("--------------------------------------")
 
     if args.clean :
