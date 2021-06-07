@@ -97,8 +97,7 @@ def module_fatslim(trajectory_file,
 
 
     # Output directory
-    analysis_fatlism = os.path.abspath(out_dir + '/Fatslim/')
-    
+    analysis_fatlism = os.path.abspath(os.path.join(out_dir, 'Fatslim'))
     if not os.path.exists(analysis_fatlism):
         try:
             os.mkdir((analysis_fatlism))
@@ -168,7 +167,7 @@ def module_densmap(universe,
     """
 
     # output directory
-    folder = os.path.abspath(out_dir +'/2D_maps/')
+    folder = os.path.abspath(os.path.join(out_dir,'2D_maps'))
     if not os.path.exists(folder):
         try:
             os.mkdir((folder))
@@ -214,7 +213,7 @@ def module_enrichment(universe,
     """
 
     # output directory
-    folder = os.path.abspath(out_dir +'/Enrichment/')
+    folder = os.path.abspath(os.path.join(out_dir +'Enrichment'))
     if not os.path.exists(folder):
         try:
             os.mkdir((folder))
@@ -308,7 +307,7 @@ def module_movements(universe,
     """
 
     # output directory
-    analysis_traj = os.path.abspath(out_dir +  "/Diffusion_movements/")
+    analysis_traj = os.path.abspath(os.path.join(out_dir,  "Diffusion_movements"))
     if not os.path.exists(analysis_traj):
         try:
             os.mkdir((analysis_traj))
@@ -366,7 +365,7 @@ def module_order_parameter(trajectory_file,
 
     # Creates different folder in which the output is stored
 
-    order_folder = out_dir + '/Order_Parameter/'
+    order_folder = os.path.join(out_dir, 'Order_Parameter')
 
     if not os.path.exists(order_folder):
         try:
@@ -596,36 +595,36 @@ def main():
     topol = os.path.abspath(args.topology)
     hg_sel = os.path.abspath(args.configuration)
     out_dir = args.output_dir
-    #dir_name = args.directory
     ncore = int(args.mpi)
     cleaning = args.clean
     apl_cutoff = float(args.apl_cutoff)
     tck_cutoff = float(args.tck_cutoff)
     raw = args.raw
     
-    # Setup log module
-    logging.basicConfig(filename=out_dir + 'LipidDynRun.log',
+    
+     # Setup log module
+    logging.basicConfig(filename=os.path.join(out_dir, 'LipidDynRun.log'),
                         level=logging.INFO,
                         format='%(asctime)s:%(levelname)s:%(message)s')
-
-
     
 
-
-
-
     starting_directory = os.getcwd()
-   
+ 
+
+    # Check if the output directory exists 
+    if not os.path.exists(out_dir):
+        logging.error("The output directory doesn't exist")
+        exit(1)
+    
+    # Check if the selected filename is actually a directory
+    if not os.path.isdir(out_dir):
+        logging.error(f"{out_dir} is not a directory")
+        exit(1)
+
+
     # setup of the MDA universe
     u = mda.Universe(topol,traj)
 
-
-    if not os.path.exists(out_dir):
-        try:
-            os.mkdir((out_dir))
-        except OSError as exc: # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
     # load config file for atom selections   
     try:
         with open(hg_sel) as config:
@@ -658,8 +657,8 @@ def main():
         g = select_lipid_headgroups(u, dict_selection)
         p = u.select_atoms(dict_prot)
 
-        with mda.selections.gromacs.SelectionWriter(out_dir +
-                                        'index_headgroups.ndx',
+        with mda.selections.gromacs.SelectionWriter(os.path.join(out_dir,
+                                        'index_headgroups.ndx'),
                                          mode='a') as ndx:
             ndx.write(g, name="headgroups", frame=0)
             ndx.write(p, name="protein", frame=0)
@@ -667,8 +666,8 @@ def main():
     else:
         # call utils module for the heagroup selection
         g = select_lipid_headgroups(u, dict_selection)
-        with mda.selections.gromacs.SelectionWriter(out_dir +
-                                        'index_headgroups.ndx',
+        with mda.selections.gromacs.SelectionWriter(os.path.join(out_dir,
+                                        'index_headgroups.ndx'),
                                          mode='w') as ndx:
             ndx.write(g, name="headgroups", frame=0)
 
@@ -680,14 +679,15 @@ def main():
                 "lower_leaflet":lower_leaflet}
 
     # index file of headgroups
-    index_headgroups = out_dir + \
-                       'index_headgroups.ndx'
+    index_headgroups = os.path.join(out_dir,
+                       'index_headgroups.ndx')
 
 
     # Create an index file in which the different layers of the membrane
     # are listed
 
-    with mda.selections.gromacs.SelectionWriter(out_dir + 'true_bilayer.ndx',
+    with mda.selections.gromacs.SelectionWriter(os.path.join(out_dir, 
+                                                'true_bilayer.ndx'),
                                                  mode='w') as ndx:
             ndx.write(upper_leaflet, name="upper_leaflet")
             ndx.write(lower_leaflet, name="lower_leaflet")
@@ -810,8 +810,8 @@ def main():
             logging.info("--------------------------------------")
 
     if args.clean :
-        os.remove(out_dir + 'index_headgroups.ndx')
-        os.remove(out_dir + 'true_bilayer.ndx')
+        os.remove(os.path.join(out_dir, 'index_headgroups.ndx'))
+        os.remove(os.path.join(out_dir, 'true_bilayer.ndx'))
 
 if __name__ == "__main__":
     main()
