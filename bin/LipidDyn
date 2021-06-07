@@ -213,7 +213,7 @@ def module_enrichment(universe,
     """
 
     # output directory
-    folder = os.path.abspath(os.path.join(out_dir +'Enrichment'))
+    folder = os.path.abspath(os.path.join(out_dir,'Enrichment'))
     if not os.path.exists(folder):
         try:
             os.mkdir((folder))
