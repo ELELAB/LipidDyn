@@ -475,7 +475,7 @@ def main():
                         default='./',
                         required=False,
                         metavar='',
-                        help="Select the directory to store the outputs of the pipeline")
+                        help="Directory where the output of the analyses will be written")
 
 
     parser.add_argument('-c',
