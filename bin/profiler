@@ -33,11 +33,9 @@ sns.set()
 def profiler(data,
              xlab,
              ylab,
-             upper,
-             lower,
-             memb,
              title,
-             out):
+             out,
+             dist):
 
     """
     Parameters
@@ -48,66 +46,138 @@ def profiler(data,
             string containing the x axis label
     ylab : str 
             string containing the x axis label
-    upper : bool
-            boolean value that indicates the leaflet to plot
-    lower : bool
-            boolean value that indicates the leaflet to plot
-    memb : bool
-            boolean value that indicates the leaflet to plot
     title : str 
             string containing the title
     out : str 
             string containing the output filename
+    
+    dist: str
+            string containing the output distribution filename
     """
 
+    fig = plt.figure(figsize=(7,10))
+   
+    axs = fig.subplots(nrows=3, 
+                       cols=2, 
+                       sharey=True,
+                       sharex="col")
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+
     palette = sns.color_palette('husl', 3)
     legend = OrderedDict()
-  
-    if upper:
-    	# plot upper leaflet
-        up, = ax.plot(data['Time'],
-                 data['Upper_Leaflet'],
-                 color=palette[0],
-                 antialiased =True,
-                 marker = '_')
-        legend['Upper_Leaflet'] = up,
-      
 
-    if lower : 
-    	# plot lower leaflet
-        low, = ax.plot(data['Time'],
-                 data['Lower_Leaflet'],
-                 color=palette[1],
-                 antialiased =True,
-                 marker = '_')
-        legend['Lower_Leaflet'] = low,
-      
-
-    if memb:    	
-       # plot the average membrane value
-        memb,=ax.plot(data['Time'],
-                 data['Membrane'],
-                 color=palette[2],
-                 antialiased =True,
-                 marker='_',
-                 alpha=0.6)
-        legend['Membrane'] = memb,
+    # upper leaflet lineplot 
+    up = axs[0][0].plot(data["Time"],
+                      data["Upper_Leaflet"], 
+                      color=palette[0],
+                      linewidth=0.5)
     
-    ax.legend(legend.values(),legend.keys())
-    ax.set_xlabel(xlab)
-    ax.set_ylabel(ylab)
-    ax.set_title(title)
-    plt.tight_layout()
+    # upper leaflet distribution plot
+    sns.distplot(data["Upper_Leaflet"],
+                 vertical=True,ax=axs[0][1], 
+                 kde=True,
+                 color=palette[0], 
+                 hist=True, 
+                 hist_kws={"histtype":"stepfilled"})
+    
+    legend["Upper_Leaflet"] = up
+    
+    # lower leaflet lineplot
+    low = axs[1][0].plot(data["Time"],
+                       data["Lower_Leaflet"], 
+                       color=palette[1],
+                       linewidth=0.5)
+    
+    # lower leaflet distribution plot
+    sns.distplot(data["Lower_Leaflet"],
+                 vertical=True, 
+                 ax=axs[1][1], 
+                 kde=True,
+                 color=palette[1], 
+                 hist=True,
+                 hist_kws={"histtype":"stepfilled"})
+    
+    legend["Lower_Leaflet"] = low
+    
+    # membrane lineplot 
+    memb = axs[2][0].plot(data["Time"],
+                        data["Membrane"], 
+                        color=palette[2],
+                        linewidth=0.5)
+    
+    # membrane distribution plot
+    sns.distplot(data["Membrane"],
+                 vertical=True, 
+                 ax=axs[2][1], 
+                 kde=True,
+                 color=palette[2],
+                 hist=True,
+                 hist_kws={"histtype":"stepfilled"})
+    
+    legend["Membrane"] = memb
+    
+    # set legend 
+    axs[0][0].legend(up,labels=(list(legend.keys())[0],), fontsize=7)
+    axs[1][0].legend(up,labels=(list(legend.keys())[1],),fontsize=7)
+    axs[2][0].legend(up,labels=(list(legend.keys())[2],),fontsize=7)
+
+    # set y-axis labels
+    axs[0][0].set_ylabel(ylab)
+    axs[1][0].set_ylabel(ylab)
+    axs[2][0].set_ylabel(ylab)
+    
+    # set x-axis label 
+    axs[2][0].set_xlabel(xlab)   
+    
+    # set title and save
+    fig.tight_layout()
+    fig.suptitle(title)
+    fig.subplots_adjust(top=0.90)
+
     plt.savefig(out, dpi=300 )
+    
 
+    # flag to visualize the merged distribution plots in another output file
+    if dist:
+        
+        fig1 = plt.figure(figsize=(7,7))
+        axs_d = fig1.add_subplot(111)
+        
+        sns.distplot(data["Upper_Leaflet"],
+                     vertical=False, 
+                     kde=True,color=palette[0],
+                     hist=False, 
+                     kde_kws={"shade": True})
+        
+        sns.distplot(data["Lower_Leaflet"], 
+                     vertical=False, 
+                     kde=True, 
+                     color=palette[1],
+                     hist=False, 
+                     kde_kws={"shade": True})
+        
+        sns.distplot(data["Membrane"],
+                     vertical=False,
+                     kde=True,
+                     color=palette[2],
+                     hist=False,
+                     kde_kws={"shade": True})
 
+        # set x-axis label
+        axs_d.set_xlabel(ylab)
+        # set legend
+        axs_d.legend(labels=legend.keys())
+        
+        # set title and save
+        fig1.tight_layout()
+        fig1.suptitle("Merged distributions")
+        fig1.subplots_adjust(top=0.95)
+        plt.savefig(dist, dpi=300)
+    
 
-usage = ('profiler -i ["".xvg] -plot [apl/thick] -upp [True/False]' \
-         '-low [True/False] -memb [True/False] -xlab [xlabel]' \
-         '-ylab [ylabel] -t [Title of plot] -o ["".png/pdf]')
+usage = ('profiler -i ["".xvg] -plot [apl/thick]' \
+         ' -xlab [xlabel]' '-ylab [ylabel]' \
+         '-t [Title of plot] -o ["".png/pdf] -d ["".png/pdf]')
 
 
 description='This script is to plot the average values of '\
@@ -158,7 +228,7 @@ parser.add_argument('-t',
                     dest='title',
                     type=str,
                     required=False,
-                    default='Profile',
+                    default='Profiles and distributions',
                     metavar='',
                     help='Title to assign to the plot',
                     )
@@ -173,30 +243,15 @@ parser.add_argument('-out',
                     help='output name of the file',
                     )
 
-
-parser.add_argument('-upp',
-                    '--upper',
-                    action='store_true',
-                    dest='upp',
-                    required = False,
-                    help='leaflet to plot'
-                   )
-
-parser.add_argument('-low',
-                    '--lower',
-                    action='store_true',
-                    dest='low',
-                    required = False,
-                    help='leaflet to plot'
-                   )
-
-parser.add_argument('-memb',
-                    '--membrane',
-                    action='store_true',
-                    dest='mem',
-                    required = False,
-                    help='leaflet to plot'
-                   )
+parser.add_argument('-d',
+                    '--distribution-output',
+                    dest='distribution',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    default= 'distribution.pdf',
+                    help='output name of the file',
+                    )
 
 args = parser.parse_args()
 
@@ -205,10 +260,8 @@ xlab = args.xlabel
 ylab = args.ylabel
 out = args.output
 title = args.title
-upp = args.upp
-low = args.low
-mem = args.mem
 plot = args.plot
+dist = args.distribution
 
 df = pd.read_csv(data,
                  skiprows=15,
@@ -223,16 +276,13 @@ if args.plot == 'apl':
     ylab = ylab[0]
 
 
+
+
 profiler(df,
          xlab,
          ylab,
-         upp,
-         low,
-         mem,
          title,
-         out)
-
-
+         out,dist)
 
 
 
