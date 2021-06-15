@@ -58,13 +58,16 @@ def profiler(data,
     fig = plt.figure(figsize=(7,10))
    
     axs = fig.subplots(nrows=3, 
-                       cols=2, 
+                       ncols=2,
+                       gridspec_kw={'width_ratios':[4,1]}, 
                        sharey=True,
                        sharex="col")
 
 
     palette = sns.color_palette('husl', 3)
     legend = OrderedDict()
+
+
 
     # upper leaflet lineplot 
     up = axs[0][0].plot(data["Time"],
@@ -74,13 +77,15 @@ def profiler(data,
     
     # upper leaflet distribution plot
     sns.distplot(data["Upper_Leaflet"],
-                 vertical=True,ax=axs[0][1], 
+                 bins=20,
+                 vertical=True,
+                 ax=axs[0][1], 
                  kde=True,
                  color=palette[0], 
-                 hist=True, 
-                 hist_kws={"histtype":"stepfilled"})
+                 hist=True,
+                 )
     
-    legend["Upper_Leaflet"] = up
+    
     
     # lower leaflet lineplot
     low = axs[1][0].plot(data["Time"],
@@ -90,14 +95,16 @@ def profiler(data,
     
     # lower leaflet distribution plot
     sns.distplot(data["Lower_Leaflet"],
+                 bins=20,
                  vertical=True, 
                  ax=axs[1][1], 
                  kde=True,
                  color=palette[1], 
                  hist=True,
-                 hist_kws={"histtype":"stepfilled"})
+                 )
+                 
     
-    legend["Lower_Leaflet"] = low
+    
     
     # membrane lineplot 
     memb = axs[2][0].plot(data["Time"],
@@ -107,19 +114,20 @@ def profiler(data,
     
     # membrane distribution plot
     sns.distplot(data["Membrane"],
+                 bins=20,                
                  vertical=True, 
                  ax=axs[2][1], 
                  kde=True,
                  color=palette[2],
                  hist=True,
-                 hist_kws={"histtype":"stepfilled"})
+                 )
     
-    legend["Membrane"] = memb
+   
     
     # set legend 
-    axs[0][0].legend(up,labels=(list(legend.keys())[0],), fontsize=7)
-    axs[1][0].legend(up,labels=(list(legend.keys())[1],),fontsize=7)
-    axs[2][0].legend(up,labels=(list(legend.keys())[2],),fontsize=7)
+    axs[0][0].legend(up,labels=('Upper Leaflet',), fontsize=7)
+    axs[1][0].legend(up,labels=('Lower Leaflet',),fontsize=7)
+    axs[2][0].legend(up,labels=('Membrane',),fontsize=7)
 
     # set y-axis labels
     axs[0][0].set_ylabel(ylab)
@@ -134,7 +142,7 @@ def profiler(data,
     fig.suptitle(title)
     fig.subplots_adjust(top=0.90)
 
-    plt.savefig(out, dpi=300 )
+    plt.savefig(out, dpi=300, format='pdf')
     
 
     # flag to visualize the merged distribution plots in another output file
@@ -144,35 +152,45 @@ def profiler(data,
         axs_d = fig1.add_subplot(111)
         
         sns.distplot(data["Upper_Leaflet"],
+                     bins=20,
                      vertical=False, 
                      kde=True,color=palette[0],
-                     hist=False, 
-                     kde_kws={"shade": True})
+                     hist=True, 
+                     kde_kws={"shade": True},
+                     hist_kws={"histtype":"step"},
+                     label="Upper Leaflet")
         
-        sns.distplot(data["Lower_Leaflet"], 
+        sns.distplot(data["Lower_Leaflet"],
+                     bins=20, 
                      vertical=False, 
                      kde=True, 
                      color=palette[1],
-                     hist=False, 
-                     kde_kws={"shade": True})
+                     hist=True, 
+                     kde_kws={"shade": True},
+                     hist_kws={"histtype":"step"},
+                     label="Lower Leaflet")
         
         sns.distplot(data["Membrane"],
+                     bins=20,
                      vertical=False,
                      kde=True,
                      color=palette[2],
-                     hist=False,
-                     kde_kws={"shade": True})
+                     hist=True,
+                     kde_kws={"shade": True},
+                     hist_kws={"histtype":"step"},
+                     label="Membrane")
 
         # set x-axis label
         axs_d.set_xlabel(ylab)
         # set legend
-        axs_d.legend(labels=legend.keys())
+        axs_d.legend()
         
         # set title and save
         fig1.tight_layout()
         fig1.suptitle("Merged distributions")
         fig1.subplots_adjust(top=0.95)
-        plt.savefig(dist, dpi=300)
+        
+        plt.savefig(dist, dpi=300, format='pdf')
     
 
 usage = ('profiler -i ["".xvg] -plot [apl/thick]' \
@@ -207,7 +225,7 @@ parser.add_argument('-xlab',
                     '--xlabel',
                     dest='xlabel',
                     type=str,
-                    default='Time(ps)',
+                    default='Time(ns)',
                     required=False,
                     metavar='',
                     help='xlabel to assign to the plot',
@@ -218,7 +236,7 @@ parser.add_argument('-ylab',
                     dest='ylabel',
                     type=str,
                     required=False,
-                    default=['APL $nm^2$', 'nm'],
+                    default=['APL $nm^2$', 'Thickness (nm)'],
                     metavar='',
                     help='ylabel to assign to the plot',
                     )
@@ -268,6 +286,7 @@ df = pd.read_csv(data,
                  names = ['Time','Membrane','Lower_Leaflet','Upper_Leaflet'],
                  sep="   ")
 
+df["Time"]=df["Time"].divide(1000)
 
 
 if args.plot == 'thick':
