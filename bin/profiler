@@ -25,6 +25,7 @@ import argparse
 import seaborn as sns
 from LipidDyn.core import *
 from collections import OrderedDict
+import logging
 sns.set()
 
 
@@ -33,6 +34,9 @@ sns.set()
 def profiler(data,
              xlab,
              ylab,
+             y_min,
+             y_max,
+             n_bins,
              unit,
              title,
              out,
@@ -42,15 +46,30 @@ def profiler(data,
     Parameters
     ----------
     df : pandas dataframe
-            dataframe with apl data 
+            dataframe with apl/thickness data 
+
     xlab : str
             string containing the x axis label
-    ylab : str 
+
+    ylab : str  
             string containing the x axis label
+
+    y_min : float
+            float specifying the y-axis lower limit
+
+    y_max : float
+            float specifying the y-axis upper limit
+    
+    n_bins: int
+            
+            int specifying the numeber of bins 
+
     unit : str
             string containing the unit measure for the legend
+
     title : str 
             string containing the title
+
     out : str 
             string containing the output filename
     
@@ -82,15 +101,15 @@ def profiler(data,
     
     # upper leaflet distribution plot
     sns.distplot(data["Upper_Leaflet"],
+                 bins=n_bins,
                  vertical=True,
                  ax=axs[0][1], 
                  kde=True,
                  color=palette[0], 
                  hist=True,
-                 hist_kws={"range": [min(data["Upper_Leaflet"]), max(data["Upper_Leaflet"])]}
+                 hist_kws={'range': (y_min,y_max)}
                  )
-    
-    
+        
     
     # lower leaflet lineplot
     low = axs[1][0].plot(data["Time"],
@@ -101,12 +120,14 @@ def profiler(data,
 
     # lower leaflet distribution plot
     sns.distplot(data["Lower_Leaflet"],
+                 bins=n_bins,
                  vertical=True, 
                  ax=axs[1][1], 
                  kde=True,
                  color=palette[1], 
                  hist=True,
-                 hist_kws={"range": [min(data["Lower_Leaflet"]), max(data["Lower_Leaflet"])]})
+                 hist_kws={'range': (y_min,y_max)}
+                 )
                  
     
     
@@ -118,14 +139,16 @@ def profiler(data,
                         linewidth=0.5)
 
     # membrane distribution plot
-    sns.distplot(data["Membrane"],               
+    sns.distplot(data["Membrane"],
+                 bins=n_bins,               
                  vertical=True, 
                  ax=axs[2][1], 
                  kde=True,
                  color=palette[2],
                  hist=True,
-                 hist_kws={"range": [min(data["Membrane"]), max(data["Membrane"])]}
+                 hist_kws={'range': (y_min,y_max)}
                  )
+
     
        
     # set legend 
@@ -144,6 +167,9 @@ def profiler(data,
                     title=f'MEAN \u00B1 SD: {round(data["Membrane"].mean(),3)} \u00B1 {round(data["Membrane"].std(),3)}{unit}', 
                     title_fontsize=5)
 
+
+
+
     # set y-axis labels
     axs[0][0].set_ylabel(ylab)
     axs[1][0].set_ylabel(ylab)
@@ -152,11 +178,13 @@ def profiler(data,
     # set x-axis label 
     axs[2][0].set_xlabel(xlab)   
     
+    # set y-axis limits
+    plt.ylim(y_min, y_max)
+
     # set title and save
     fig.tight_layout()
     fig.suptitle(title)
     fig.subplots_adjust(top=0.90)
-
     plt.savefig(out, dpi=300, format='pdf')
     
 
@@ -167,7 +195,6 @@ def profiler(data,
         axs_d = fig1.add_subplot(111)
         
         sns.distplot(data["Upper_Leaflet"],
-                     bins=20,
                      vertical=False, 
                      kde=True,color=palette[0],
                      kde_kws={"shade": True},
@@ -175,7 +202,6 @@ def profiler(data,
                      label="Upper Leaflet")
         
         sns.distplot(data["Lower_Leaflet"],
-                     bins=20, 
                      vertical=False, 
                      kde=True, 
                      color=palette[1], 
@@ -184,7 +210,6 @@ def profiler(data,
                      label="Lower Leaflet")
         
         sns.distplot(data["Membrane"],
-                     bins=20,
                      vertical=False,
                      kde=True,
                      color=palette[2],
@@ -198,6 +223,8 @@ def profiler(data,
         # set legend
         axs_d.legend()
         
+      
+
         # set title and save
         fig1.tight_layout()
         fig1.suptitle("Merged distributions")
@@ -208,7 +235,9 @@ def profiler(data,
 
 usage = ('profiler -i ["".xvg] -plot [apl/thick]' \
          ' -xlab [xlabel]' '-ylab [ylabel]' \
-         '-t [Title of plot] -o ["".png/pdf] -d ["".png/pdf]')
+         '-ymin [y minimum] -ymax [y maximum]' \
+         '-b [number of bins]' '-t [Title of plot]' \
+         '-o ["".png/pdf] -d ["".png/pdf]')
 
 
 description='This script is to plot the average values of '\
@@ -254,6 +283,33 @@ parser.add_argument('-ylab',
                     help='ylabel to assign to the plot',
                     )
 
+parser.add_argument('-ymin',
+                    '--ymin-limit',
+                    dest='yminimum',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='y-axis minimum limit to assign to the plot',
+                    )
+
+parser.add_argument('-ymax',
+                    '--ymax-limit',
+                    dest='ymaximum',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='y-axis maximum limit to assign to the plot',
+                    )
+
+parser.add_argument('-b',
+                    '--bins',
+                    dest='bins_number',
+                    type=int,
+                    required=False,
+                    metavar='',
+                    help='number of bins of the histogram',
+                    )
+
 parser.add_argument('-t',
                     '--title',
                     dest='title',
@@ -290,6 +346,9 @@ args = parser.parse_args()
 data = args.input
 xlab = args.xlabel
 ylab = args.ylabel
+ymin = args.yminimum
+ymax = args.ymaximum
+bins = args.bins_number
 out = args.output
 title = args.title
 plot = args.plot
@@ -298,25 +357,66 @@ dist = args.distribution
 df = pd.read_csv(data,
                  skiprows=15,
                  names = ['Time','Membrane','Lower_Leaflet','Upper_Leaflet'],
+                 engine='python',
                  sep="   ")
+
+
 
 # convert ps to ns
 df["Time"]=df["Time"].divide(1000)
 
 
-# set unit measure and y-axis label 
 if args.plot == 'thick':
+    # assign unit and y-axis label
     unit = ylab[2]
-    ylab = ylab[1]    
+    ylab = ylab[1]
+
+    # detect and remove uncommon values 
+    frame = df.loc[(df['Upper_Leaflet'] < 1) | (df['Lower_Leaflet'] < 1) | (df['Membrane'] < 1)]
+    df = df[(df['Upper_Leaflet'] > 1) & (df['Lower_Leaflet'] > 1) & (df['Membrane'] > 1)]
+    
+    if frame.empty == False:
+        logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n {frame} \n  will be discarded')    
+
+
 if args.plot == 'apl':
+    # assign unit and y-axis label
     unit = ylab[3]
     ylab = ylab[0]
-    
 
+    # detect and remove uncommon values
+    frame = df.loc[(df['Upper_Leaflet'] < 0) | (df['Lower_Leaflet'] < 0) | (df['Membrane'] < 0)]
+    df = df[(df['Upper_Leaflet'] > 0) & (df['Lower_Leaflet'] > 0) & (df['Membrane'] > 0)]
+    
+    if frame.empty == False:
+        logging.warning(f'Uncommon {args.plot} values for the following frame \n  {frame} \n  will be discarded')
+
+
+# set y-axis lower limit
+if ymin:
+    y_min = ymin     
+else:
+    y_min = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].min().min()) - 0.005
+    
+# set y-axis upper limit
+if ymax:
+    y_max = ymax
+else:
+    y_max = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].max().max()) + 0.005
+
+# set number of bins
+if bins:
+    n_bins = bins
+else:
+    n_bins=30
+    
 
 profiler(df,
          xlab,
          ylab,
+         y_min,
+         y_max,
+         n_bins,
          unit,
          title,
          out,
