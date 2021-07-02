@@ -223,7 +223,7 @@ def profiler(data,
         # set legend
         axs_d.legend()
         
-      
+        plt.xlim(y_min,y_max)
 
         # set title and save
         fig1.tight_layout()
