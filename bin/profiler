@@ -223,13 +223,17 @@ def profiler(data,
         # set legend
         axs_d.legend()
         
-        plt.xlim(y_min,y_max)
+
+        
 
         # set title and save
         fig1.tight_layout()
         fig1.suptitle("Merged distributions")
         fig1.subplots_adjust(top=0.95)
         
+        # set x-axis limits 
+        plt.xlim(y_min,y_max)
+
         plt.savefig(dist, dpi=300, format='pdf')
     
 
@@ -372,8 +376,8 @@ if args.plot == 'thick':
     ylab = ylab[1]
 
     # detect and remove uncommon values 
-    frame = df.loc[(df['Upper_Leaflet'] < 1) | (df['Lower_Leaflet'] < 1) | (df['Membrane'] < 1)]
-    df = df[(df['Upper_Leaflet'] > 1) & (df['Lower_Leaflet'] > 1) & (df['Membrane'] > 1)]
+    frame = df.loc[(df['Upper_Leaflet'] < 1.5) | (df['Lower_Leaflet'] < 1.5) | (df['Membrane'] < 1.5)]
+    df = df[(df['Upper_Leaflet'] > 1.5) & (df['Lower_Leaflet'] > 1.5) & (df['Membrane'] > 1.5)]
     
     if frame.empty == False:
         logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n {frame} \n  will be discarded')    
