@@ -130,8 +130,6 @@ def profiler(data,
                  )
                  
     
-    
-    
     # membrane lineplot 
     memb = axs[2][0].plot(data["Time"],
                         data["Membrane"], 
@@ -188,6 +186,7 @@ def profiler(data,
     plt.savefig(out, dpi=300, format='pdf')
     
 
+
     # flag to visualize the merged distribution plots 
     if dist:
         
@@ -221,11 +220,8 @@ def profiler(data,
         axs_d.set_xlabel(ylab)
         
         # set legend
-        axs_d.legend()
+        axs_d.legend(['Upper Leaflet avg', 'Lower Leaflet avg','Membrane avg'])
         
-
-        
-
         # set title and save
         fig1.tight_layout()
         fig1.suptitle("Merged distributions")
@@ -237,10 +233,12 @@ def profiler(data,
         plt.savefig(dist, dpi=300, format='pdf')
     
 
+
 usage = ('profiler -i ["".xvg] -plot [apl/thick]' \
          ' -xlab [xlabel]' '-ylab [ylabel]' \
          '-ymin [y minimum] -ymax [y maximum]' \
          '-b [number of bins]' '-t [Title of plot]' \
+         '-th [threshold value]' \
          '-o ["".png/pdf] -d ["".png/pdf]')
 
 
@@ -310,6 +308,7 @@ parser.add_argument('-b',
                     dest='bins_number',
                     type=int,
                     required=False,
+                    default=30,
                     metavar='',
                     help='number of bins of the histogram',
                     )
@@ -322,6 +321,16 @@ parser.add_argument('-t',
                     default='Profiles and distributions',
                     metavar='',
                     help='Title to assign to the plot',
+                    )
+
+parser.add_argument('-th',
+                    '--threshold-value',
+                    dest='threshold_value',
+                    type=float,
+                    required=False,
+                    default=0,
+                    metavar='',
+                    help='Treshold to exclude uncommon thick/apl values in the plotting',
                     )
 
 parser.add_argument('-out',
@@ -352,9 +361,10 @@ xlab = args.xlabel
 ylab = args.ylabel
 ymin = args.yminimum
 ymax = args.ymaximum
-bins = args.bins_number
-out = args.output
+n_bins = args.bins_number
 title = args.title
+out = args.output
+th = args.threshold_value
 plot = args.plot
 dist = args.distribution
 
@@ -369,31 +379,24 @@ df = pd.read_csv(data,
 # convert ps to ns
 df["Time"]=df["Time"].divide(1000)
 
-
-if args.plot == 'thick':
-    # assign unit and y-axis label
+# assign unit and y-axis label
+if args.plot == 'thick':    
     unit = ylab[2]
     ylab = ylab[1]
+   
 
-    # detect and remove uncommon values 
-    frame = df.loc[(df['Upper_Leaflet'] < 1.5) | (df['Lower_Leaflet'] < 1.5) | (df['Membrane'] < 1.5)]
-    df = df[(df['Upper_Leaflet'] > 1.5) & (df['Lower_Leaflet'] > 1.5) & (df['Membrane'] > 1.5)]
-    
-    if frame.empty == False:
-        logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n {frame} \n  will be discarded')    
-
-
-if args.plot == 'apl':
-    # assign unit and y-axis label
+# assign unit and y-axis label
+if args.plot == 'apl':    
     unit = ylab[3]
     ylab = ylab[0]
 
-    # detect and remove uncommon values
-    frame = df.loc[(df['Upper_Leaflet'] < 0) | (df['Lower_Leaflet'] < 0) | (df['Membrane'] < 0)]
-    df = df[(df['Upper_Leaflet'] > 0) & (df['Lower_Leaflet'] > 0) & (df['Membrane'] > 0)]
-    
-    if frame.empty == False:
-        logging.warning(f'Uncommon {args.plot} values for the following frame \n  {frame} \n  will be discarded')
+
+# detect uncommon values and remove them
+frame = df.loc[(df['Upper_Leaflet'] < th) | (df['Lower_Leaflet'] < th) | (df['Membrane'] < th)]
+df = df[(df['Upper_Leaflet'] > th) & (df['Lower_Leaflet'] > th) & (df['Membrane'] > th)]
+
+if frame.empty == False:
+    logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n  {frame} \n  will be discarded')
 
 
 # set y-axis lower limit
@@ -408,11 +411,6 @@ if ymax:
 else:
     y_max = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].max().max()) + 0.005
 
-# set number of bins
-if bins:
-    n_bins = bins
-else:
-    n_bins=30
     
 
 profiler(df,
