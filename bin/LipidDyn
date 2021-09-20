@@ -180,11 +180,15 @@ def module_densmap(universe,
     total_step = 2
     step = 1
     u = universe
+    #u.transfer_to_memory(verbose=True) #transfer traj to memory 
+
     for leaflet in leaflets:
+        #print(leaflet)
         # compute density maps for each leaflet
         grid = dmap_multiprocessing(u,
                                     leaflets[leaflet].residues.atoms,
                                     ncore)
+        
         # output file
         np.savetxt(folder+"/"+leaflet+"_2dmap.dat",
                    grid,
@@ -623,8 +627,8 @@ def main():
 
 
     # setup of the MDA universe
-    u = mda.Universe(topol,traj)
-
+    u = mda.Universe(topol,traj,in_memory=True)  
+     
     # load config file for atom selections   
     try:
         with open(hg_sel) as config:
@@ -691,8 +695,10 @@ def main():
                                                  mode='w') as ndx:
             ndx.write(upper_leaflet, name="upper_leaflet")
             ndx.write(lower_leaflet, name="lower_leaflet")
-
-
+    
+    '''with mda.selections.gromacs.SelectionWriter('True_Bilayer.ndx', mode='w'):
+                        ndx.write(leaflets['upper_leaflet'].residues.atoms, name='upper_leaflet')
+                        ndx.write(leaflets['lower_leaflet'].residues.atoms, name='lower_leaflet')'''
     # The user selected the -all flag for all the analysis
     if args.all_modules :
 

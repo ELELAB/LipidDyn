@@ -31,6 +31,8 @@ def plotting(array,
              enrichment,
              cmap,
              title,
+             min_d,
+             max_d,
              out):
     
     """
@@ -53,16 +55,22 @@ def plotting(array,
     
     if enrichment:
         sns_plot = sns.heatmap(np.rot90(array),
+                           linewidths=0.0,
+                           rasterized=True,
                            cmap = cmap ,
-                           cbar_kws={'label': '$nm^3$'},
-                           vmax = 1,
+                           cbar_kws={'label': '$nm^-3$'},
+                           vmax=1,
                            vmin=0)
     else:
         # heatmap rotate the final plot of 90 degree so
         # we adjust it
         sns_plot = sns.heatmap(np.rot90(array),
+                           linewidths=0.0,
+                           rasterized=True,
                            cmap = cmap ,
-                           cbar_kws={'label': '$nm^3$'})
+                           cbar_kws={'label': '$nm^-3$'},
+                           vmax=max_d,
+                           vmin=min_d)
 
     # get the xtick in int and store in a list
     xtick_list = list(map(int, ax.get_xticks().tolist()))
@@ -88,10 +96,9 @@ def plotting(array,
         if label >= 0 and label <= len(array[0,:]):
             # get the corrisponding label from the array
             ytick_list[ind] = round(array[label][0],2)
-    # plot the new labels and revert them   
-    sns_plot.set_yticklabels(ytick_list)
-    ax.invert_yaxis() 
-   
+    # plot the new labels and revert them    
+    sns_plot.set_yticklabels(ytick_list[::-1])
+
     # Hide some label to avoid a messy plot
     for ind, label in enumerate(sns_plot.get_yticklabels()):
         if ind % 4 == 0:  
@@ -110,10 +117,11 @@ def plotting(array,
 
 
 
-usage = ('dmaps -i [.dat] -c [colormap] -t [Title of the plot] -out ["".png/pdf]' \
-         ' -enr [True/False]')
+usage = ('dmaps -i [.dat] -c [colormap] -t [Title of the plot] \
+            -min [float] -max[float] -out ["".png/pdf]' \
+            ' -enr [True/False]')
 
-description='This script is to plot the diffusion movements of' \
+description='This script is to plot the density maps of' \
              'the lipids composing the  leaflet in the box.'\
              'The input file is an .dat file coming from the'\
              'analysis '
@@ -150,6 +158,25 @@ parser.add_argument('-t',
                     help='Title to assign to the plot',
                     )
 
+parser.add_argument('-min',
+                    '--minimum-density',
+                    dest='minimum_density',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='Minimum value of density in the plotting',
+                    )
+
+parser.add_argument('-max',
+                    '--maximum-density',
+                    dest='maximum_density',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='Maximum value of density in the plotting',
+                    )
+
+
 parser.add_argument('-out',
                     '--output',
                     dest='output',
@@ -174,8 +201,22 @@ args = parser.parse_args()
 dat = args.input
 out = args.output
 title = args.title
+min_dens=args.minimum_density
+max_dens=args.maximum_density
 cmap= args.cmap
 enr = args.enr
 array = np.loadtxt(dat)
 
-plotting(array,enr,cmap,title,out)
+# set min and max density range to plot
+if min_dens:
+    min_d=min_dens
+else:
+    min_d=array.min()
+
+if max_dens:
+    max_d=max_dens
+else:
+    max_d=array.max() 
+
+
+plotting(array,enr,cmap,title,min_d,max_d,out)
