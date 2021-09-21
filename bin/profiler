@@ -93,9 +93,9 @@ def profiler(data,
 
     # upper leaflet lineplot 
     up = axs[0][0].plot(data["Time"],
-                      data["Upper_Leaflet"], 
-                      color=palette[0],
-                      linewidth=0.5)
+                        data["Upper_Leaflet"], 
+                        color=palette[0],
+                        linewidth=0.5)
 
     
     
@@ -113,9 +113,9 @@ def profiler(data,
     
     # lower leaflet lineplot
     low = axs[1][0].plot(data["Time"],
-                       data["Lower_Leaflet"], 
-                       color=palette[1],
-                       linewidth=0.5)
+                        data["Lower_Leaflet"], 
+                        color=palette[1],
+                        linewidth=0.5)
     
 
     # lower leaflet distribution plot
@@ -152,17 +152,23 @@ def profiler(data,
     # set legend 
     axs[0][0].legend(up,
                     labels=('Upper Leaflet',), 
-                    fontsize=7, title=f'MEAN \u00B1 SD: {round(data["Upper_Leaflet"].mean(),3)} \u00B1 {round(data["Upper_Leaflet"].std(),3)}{unit}', 
+                    fontsize=7, 
+                    title=f'MEAN \u00B1 SD: {round(data["Upper_Leaflet"].mean(),3)}'\
+                    f'\u00B1 {round(data["Upper_Leaflet"].std(),3)}{unit}', 
                     title_fontsize=5)
+    
     axs[1][0].legend(up,
                     labels=('Lower Leaflet',),
                     fontsize=7,
-                    title=f'MEAN \u00B1 SD: {round(data["Lower_Leaflet"].mean(),3)} \u00B1 {round(data["Lower_Leaflet"].std(),3)}{unit}',
+                    title=f'MEAN \u00B1 SD: {round(data["Lower_Leaflet"].mean(),3)}'\
+                    f'\u00B1 {round(data["Lower_Leaflet"].std(),3)}{unit}',
                     title_fontsize=5)
+    
     axs[2][0].legend(up,
                     labels=('Membrane',),
                     fontsize=7,
-                    title=f'MEAN \u00B1 SD: {round(data["Membrane"].mean(),3)} \u00B1 {round(data["Membrane"].std(),3)}{unit}', 
+                    title=f'MEAN \u00B1 SD: {round(data["Membrane"].mean(),3)}'
+                    f'\u00B1 {round(data["Membrane"].std(),3)}{unit}', 
                     title_fontsize=5)
 
 
@@ -220,7 +226,9 @@ def profiler(data,
         axs_d.set_xlabel(ylab)
         
         # set legend
-        axs_d.legend(['Upper Leaflet avg', 'Lower Leaflet avg','Membrane avg'])
+        axs_d.legend(['Upper Leaflet avg values', \
+                      'Lower Leaflet avg values',\
+                      'Membrane avg values'])
         
         # set title and save
         fig1.tight_layout()
@@ -234,19 +242,25 @@ def profiler(data,
     
 
 
-usage = ('profiler -i ["".xvg] -plot [apl/thick]' \
-         ' -xlab [xlabel]' '-ylab [ylabel]' \
-         '-ymin [y minimum] -ymax [y maximum]' \
-         '-b [number of bins]' '-t [Title of plot]' \
+usage = ('profiler -i ["".xvg]' \
+         '-plot [apl/thick]' \
+         ' -xlab [xlabel]' \
+         '-ylab [ylabel]' \
+         '-ymin [y minimum]' \
+         '-ymax [y maximum]' \
+         '-b [number of bins]' \
+         '-t [Title of plot]' \
          '-th [threshold value]' \
-         '-o ["".png/pdf] -d ["".png/pdf]')
+         '-o ["".png/pdf]' \
+         '-d ["".png/pdf]')
 
 
-description='This script is to plot the average values of '\
-             'upper,lower leaflet and the entire membrane' \
-             'along the simulation time.'\
-             'The input file is an .xvg file coming from the'\
-             'analysis '
+description= 'This script is to plot the average values of '\
+             'upper,lower leaflet and the entire membrane'\
+             'along with side distributions that can be also' \
+             'plotted as merged in a single file over' \
+             'the simulation time. It provides the input' \
+             '.xvg file coming from the analysis'
                                     
 
 parser = argparse.ArgumentParser(usage = usage,description= description)
@@ -330,7 +344,7 @@ parser.add_argument('-th',
                     required=False,
                     default=0,
                     metavar='',
-                    help='Treshold to exclude uncommon thick/apl values in the plotting',
+                    help='Threshold to exclude uncommon thick/apl values in the plotting',
                     )
 
 parser.add_argument('-out',
@@ -395,6 +409,12 @@ if args.plot == 'apl':
 frame = df.loc[(df['Upper_Leaflet'] < th) | (df['Lower_Leaflet'] < th) | (df['Membrane'] < th)]
 df = df[(df['Upper_Leaflet'] > th) & (df['Lower_Leaflet'] > th) & (df['Membrane'] > th)]
 
+# check if data frame is empty 
+if df.empty == True:
+    logging.error(f'Empty dataframe created: please check the threshold value, it could be too high')
+    exit(1)
+
+# warn user if there are rows to be removed due to uncommon values
 if frame.empty == False:
     logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n  {frame} \n  will be discarded')
 
