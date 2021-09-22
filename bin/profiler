@@ -25,6 +25,7 @@ import argparse
 import seaborn as sns
 from LipidDyn.core import *
 from collections import OrderedDict
+import logging
 sns.set()
 
 
@@ -33,88 +34,233 @@ sns.set()
 def profiler(data,
              xlab,
              ylab,
-             upper,
-             lower,
-             memb,
+             y_min,
+             y_max,
+             n_bins,
+             unit,
              title,
-             out):
+             out,
+             dist):
 
     """
     Parameters
     ----------
     df : pandas dataframe
-            dataframe with apl data 
+            dataframe with apl/thickness data 
+
     xlab : str
             string containing the x axis label
-    ylab : str 
+
+    ylab : str  
             string containing the x axis label
-    upper : bool
-            boolean value that indicates the leaflet to plot
-    lower : bool
-            boolean value that indicates the leaflet to plot
-    memb : bool
-            boolean value that indicates the leaflet to plot
+
+    y_min : float
+            float specifying the y-axis lower limit
+
+    y_max : float
+            float specifying the y-axis upper limit
+    
+    n_bins: int
+            
+            int specifying the numeber of bins 
+
+    unit : str
+            string containing the unit measure for the legend
+
     title : str 
             string containing the title
+
     out : str 
             string containing the output filename
+    
+    dist: str
+            string containing the output distribution filename
     """
 
+    fig = plt.figure(figsize=(7,10))
+   
+    axs = fig.subplots(nrows=3, 
+                       ncols=2,
+                       gridspec_kw={'width_ratios':[4,1]}, 
+                       sharey=True,
+                       sharex="col")
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+
     palette = sns.color_palette('husl', 3)
     legend = OrderedDict()
-  
-    if upper:
-    	# plot upper leaflet
-        up, = ax.plot(data['Time'],
-                 data['Upper_Leaflet'],
-                 color=palette[0],
-                 antialiased =True,
-                 marker = '_')
-        legend['Upper_Leaflet'] = up,
-      
 
-    if lower : 
-    	# plot lower leaflet
-        low, = ax.plot(data['Time'],
-                 data['Lower_Leaflet'],
-                 color=palette[1],
-                 antialiased =True,
-                 marker = '_')
-        legend['Lower_Leaflet'] = low,
-      
 
-    if memb:    	
-       # plot the average membrane value
-        memb,=ax.plot(data['Time'],
-                 data['Membrane'],
-                 color=palette[2],
-                 antialiased =True,
-                 marker='_',
-                 alpha=0.6)
-        legend['Membrane'] = memb,
+
+    # upper leaflet lineplot 
+    up = axs[0][0].plot(data["Time"],
+                        data["Upper_Leaflet"], 
+                        color=palette[0],
+                        linewidth=0.5)
+
     
-    ax.legend(legend.values(),legend.keys())
-    ax.set_xlabel(xlab)
-    ax.set_ylabel(ylab)
-    ax.set_title(title)
-    plt.tight_layout()
-    plt.savefig(out, dpi=300 )
+    
+    # upper leaflet distribution plot
+    sns.distplot(data["Upper_Leaflet"],
+                 bins=n_bins,
+                 vertical=True,
+                 ax=axs[0][1], 
+                 kde=True,
+                 color=palette[0], 
+                 hist=True,
+                 hist_kws={'range': (y_min,y_max)}
+                 )
+        
+    
+    # lower leaflet lineplot
+    low = axs[1][0].plot(data["Time"],
+                        data["Lower_Leaflet"], 
+                        color=palette[1],
+                        linewidth=0.5)
+    
+
+    # lower leaflet distribution plot
+    sns.distplot(data["Lower_Leaflet"],
+                 bins=n_bins,
+                 vertical=True, 
+                 ax=axs[1][1], 
+                 kde=True,
+                 color=palette[1], 
+                 hist=True,
+                 hist_kws={'range': (y_min,y_max)}
+                 )
+                 
+    
+    # membrane lineplot 
+    memb = axs[2][0].plot(data["Time"],
+                        data["Membrane"], 
+                        color=palette[2],
+                        linewidth=0.5)
+
+    # membrane distribution plot
+    sns.distplot(data["Membrane"],
+                 bins=n_bins,               
+                 vertical=True, 
+                 ax=axs[2][1], 
+                 kde=True,
+                 color=palette[2],
+                 hist=True,
+                 hist_kws={'range': (y_min,y_max)}
+                 )
+
+    
+       
+    # set legend 
+    axs[0][0].legend(up,
+                    labels=('Upper Leaflet',), 
+                    fontsize=7, 
+                    title=f'MEAN \u00B1 SD: {round(data["Upper_Leaflet"].mean(),3)}'\
+                    f'\u00B1 {round(data["Upper_Leaflet"].std(),3)}{unit}', 
+                    title_fontsize=5)
+    
+    axs[1][0].legend(up,
+                    labels=('Lower Leaflet',),
+                    fontsize=7,
+                    title=f'MEAN \u00B1 SD: {round(data["Lower_Leaflet"].mean(),3)}'\
+                    f'\u00B1 {round(data["Lower_Leaflet"].std(),3)}{unit}',
+                    title_fontsize=5)
+    
+    axs[2][0].legend(up,
+                    labels=('Membrane',),
+                    fontsize=7,
+                    title=f'MEAN \u00B1 SD: {round(data["Membrane"].mean(),3)}'
+                    f'\u00B1 {round(data["Membrane"].std(),3)}{unit}', 
+                    title_fontsize=5)
 
 
 
-usage = ('profiler -i ["".xvg] -plot [apl/thick] -upp [True/False]' \
-         '-low [True/False] -memb [True/False] -xlab [xlabel]' \
-         '-ylab [ylabel] -t [Title of plot] -o ["".png/pdf]')
+
+    # set y-axis labels
+    axs[0][0].set_ylabel(ylab)
+    axs[1][0].set_ylabel(ylab)
+    axs[2][0].set_ylabel(ylab)
+    
+    # set x-axis label 
+    axs[2][0].set_xlabel(xlab)   
+    
+    # set y-axis limits
+    plt.ylim(y_min, y_max)
+
+    # set title and save
+    fig.tight_layout()
+    fig.suptitle(title)
+    fig.subplots_adjust(top=0.90)
+    plt.savefig(out, dpi=300, format='pdf')
+    
 
 
-description='This script is to plot the average values of '\
-             'upper,lower leaflet and the entire membrane' \
-             'along the simulation time.'\
-             'The input file is an .xvg file coming from the'\
-             'analysis '
+    # flag to visualize the merged distribution plots 
+    if dist:
+        
+        fig1 = plt.figure(figsize=(7,7))
+        axs_d = fig1.add_subplot(111)
+        
+        sns.distplot(data["Upper_Leaflet"],
+                     vertical=False, 
+                     kde=True,color=palette[0],
+                     kde_kws={"shade": True},
+                     hist=False,
+                     label="Upper Leaflet")
+        
+        sns.distplot(data["Lower_Leaflet"],
+                     vertical=False, 
+                     kde=True, 
+                     color=palette[1], 
+                     kde_kws={"shade": True},
+                     hist=False,
+                     label="Lower Leaflet")
+        
+        sns.distplot(data["Membrane"],
+                     vertical=False,
+                     kde=True,
+                     color=palette[2],
+                     kde_kws={"shade": True},
+                     hist=False,
+                     label="Membrane")
+
+        # set x-axis label
+        axs_d.set_xlabel(ylab)
+        
+        # set legend
+        axs_d.legend(['Upper Leaflet avg values', \
+                      'Lower Leaflet avg values',\
+                      'Membrane avg values'])
+        
+        # set title and save
+        fig1.tight_layout()
+        fig1.suptitle("Merged distributions")
+        fig1.subplots_adjust(top=0.95)
+        
+        # set x-axis limits 
+        plt.xlim(y_min,y_max)
+
+        plt.savefig(dist, dpi=300, format='pdf')
+    
+
+
+usage = ('profiler -i ["".xvg]' \
+         '-plot [apl/thick]' \
+         ' -xlab [xlabel]' \
+         '-ylab [ylabel]' \
+         '-ymin [y minimum]' \
+         '-ymax [y maximum]' \
+         '-b [number of bins]' \
+         '-t [Title of plot]' \
+         '-th [threshold value]' \
+         '-o ["".png/pdf]' \
+         '-d ["".png/pdf]')
+
+
+description= 'This script is to plot the average values of '\
+             'upper,lower leaflet and the entire membrane'\
+             'along with side distributions that can be also' \
+             'plotted as merged in a single file over' \
+             'the simulation time. It provides the input' \
+             '.xvg file coming from the analysis'
                                     
 
 parser = argparse.ArgumentParser(usage = usage,description= description)
@@ -137,7 +283,7 @@ parser.add_argument('-xlab',
                     '--xlabel',
                     dest='xlabel',
                     type=str,
-                    default='Time(ps)',
+                    default='Time(ns)',
                     required=False,
                     metavar='',
                     help='xlabel to assign to the plot',
@@ -148,9 +294,37 @@ parser.add_argument('-ylab',
                     dest='ylabel',
                     type=str,
                     required=False,
-                    default=['APL $nm^2$', 'nm'],
+                    default=['APL $nm^2$', 'Thickness (nm)', 'nm','$nm^2$'],
                     metavar='',
                     help='ylabel to assign to the plot',
+                    )
+
+parser.add_argument('-ymin',
+                    '--ymin-limit',
+                    dest='yminimum',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='y-axis minimum limit to assign to the plot',
+                    )
+
+parser.add_argument('-ymax',
+                    '--ymax-limit',
+                    dest='ymaximum',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='y-axis maximum limit to assign to the plot',
+                    )
+
+parser.add_argument('-b',
+                    '--bins',
+                    dest='bins_number',
+                    type=int,
+                    required=False,
+                    default=30,
+                    metavar='',
+                    help='number of bins of the histogram',
                     )
 
 parser.add_argument('-t',
@@ -158,9 +332,19 @@ parser.add_argument('-t',
                     dest='title',
                     type=str,
                     required=False,
-                    default='Profile',
+                    default='Profiles and distributions',
                     metavar='',
                     help='Title to assign to the plot',
+                    )
+
+parser.add_argument('-th',
+                    '--threshold-value',
+                    dest='threshold_value',
+                    type=float,
+                    required=False,
+                    default=0,
+                    metavar='',
+                    help='Threshold to exclude uncommon thick/apl values in the plotting',
                     )
 
 parser.add_argument('-out',
@@ -173,66 +357,92 @@ parser.add_argument('-out',
                     help='output name of the file',
                     )
 
+parser.add_argument('-d',
+                    '--distribution-output',
+                    dest='distribution',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    default= 'distribution.pdf',
+                    help='output name of the file',
+                    )
 
-parser.add_argument('-upp',
-                    '--upper',
-                    action='store_true',
-                    dest='upp',
-                    required = False,
-                    help='leaflet to plot'
-                   )
-
-parser.add_argument('-low',
-                    '--lower',
-                    action='store_true',
-                    dest='low',
-                    required = False,
-                    help='leaflet to plot'
-                   )
-
-parser.add_argument('-memb',
-                    '--membrane',
-                    action='store_true',
-                    dest='mem',
-                    required = False,
-                    help='leaflet to plot'
-                   )
 
 args = parser.parse_args()
 
 data = args.input
 xlab = args.xlabel
 ylab = args.ylabel
-out = args.output
+ymin = args.yminimum
+ymax = args.ymaximum
+n_bins = args.bins_number
 title = args.title
-upp = args.upp
-low = args.low
-mem = args.mem
+out = args.output
+th = args.threshold_value
 plot = args.plot
+dist = args.distribution
 
 df = pd.read_csv(data,
                  skiprows=15,
                  names = ['Time','Membrane','Lower_Leaflet','Upper_Leaflet'],
+                 engine='python',
                  sep="   ")
 
 
 
-if args.plot == 'thick':
+# convert ps to ns
+df["Time"]=df["Time"].divide(1000)
+
+# assign unit and y-axis label
+if args.plot == 'thick':    
+    unit = ylab[2]
     ylab = ylab[1]
-if args.plot == 'apl':
+   
+
+# assign unit and y-axis label
+if args.plot == 'apl':    
+    unit = ylab[3]
     ylab = ylab[0]
 
+
+# detect uncommon values and remove them
+frame = df.loc[(df['Upper_Leaflet'] < th) | (df['Lower_Leaflet'] < th) | (df['Membrane'] < th)]
+df = df[(df['Upper_Leaflet'] > th) & (df['Lower_Leaflet'] > th) & (df['Membrane'] > th)]
+
+# check if data frame is empty 
+if df.empty == True:
+    logging.error(f'Empty dataframe created: please check the threshold value, it could be too high')
+    exit(1)
+
+# warn user if there are rows to be removed due to uncommon values
+if frame.empty == False:
+    logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n  {frame} \n  will be discarded')
+
+
+# set y-axis lower limit
+if ymin:
+    y_min = ymin     
+else:
+    y_min = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].min().min()) - 0.005
+    
+# set y-axis upper limit
+if ymax:
+    y_max = ymax
+else:
+    y_max = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].max().max()) + 0.005
+
+    
 
 profiler(df,
          xlab,
          ylab,
-         upp,
-         low,
-         mem,
+         y_min,
+         y_max,
+         n_bins,
+         unit,
          title,
-         out)
-
-
+         out,
+         dist)
 
 
 
