@@ -18,7 +18,6 @@
 
 
 import numpy as np
-import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -34,7 +33,7 @@ def plotting(array,
              title,
              min_d,
              max_d,
-             tick_range,
+             ticks_num,
              out):
     
     """
@@ -46,15 +45,15 @@ def plotting(array,
             Boolean flag to indicate if it is enrichment analysis
     cmap : str
             colormap to use in the plot
+    title : str 
+            string containing the title
     
     min_d:  float to define the lower limit density value
 
     max_d:  float to define the upper limit density value
 
-    tick_range: int to define the range of ticks to plot 
-
-    title : str 
-            string containing the title
+    tick_num: int to define the number of ticks for xy-axis         
+    
     out : str 
             string containing the output filename
     """
@@ -62,24 +61,16 @@ def plotting(array,
 
     fig, ax = plt.subplots()
     
-    # create a dataframe from the array
-    data=pd.DataFrame(array)
-    
     # get the first column and row
-    col=list(data.iloc[:,0])
-    row=list(data.iloc[0,:])
+    col = array[:,0]
+    row = array[0,:]
+    xticks = row[1:]
+    yticks = col[1:]
 
-    # convert df into array
-    array=data.to_numpy()
-
-    # exclude the first zeros positions
-    xticks=row[1:]
-    yticks=col[1:]
-    
-    
     if enrichment:
 
-        sns_plot=plt.imshow(np.rot90(array),
+
+        plot = plt.imshow(np.rot90(array),
                             cmap=cmap,
                             vmax=1,
                             vmin=0,
@@ -87,10 +78,8 @@ def plotting(array,
                             extent=[min(xticks),max(xticks),max(yticks), min(yticks)],
                             interpolation='nearest')   
     else:
-        # heatmap rotate the final plot of 90 degree 
-        # set the origin in lower left corner
-        # revert yticks order from max to min 
-        sns_plot=plt.imshow(np.rot90(array),
+
+        plot = plt.imshow(np.rot90(array),
                             cmap=cmap,
                             vmax=max_d,
                             vmin=min_d,
@@ -102,40 +91,24 @@ def plotting(array,
     # invert y-axis  
     ax.invert_yaxis()
     
-
     # set  ticks for x-axis  
-    x_pos=[]
-    for tick in range(0,len(xticks), tick_range):
-        x_pos.append(xticks[tick])
+    x_pos = np.linspace(0, xticks.max(), num=ticks_num)
     
-    # include the last tick to plot the limit 
-    for tick in range(len(xticks)):
-        
-        if tick == (len(xticks)-1):
-            x_pos.append(xticks[tick])
-
+    plt.xticks(x_pos, fontsize=6, rotation=45)
     
-    plt.xticks(x_pos, fontsize=4, rotation=45)
-
     # set ticks for y-axis 
-    y_pos=[]
-    for tick in range(0,len(yticks),tick_range):
-        
-        y_pos.append(yticks[tick])
-    # include the last tick to plot the limit 
-    for tick in range(len(yticks)):
-
-        if tick == (len(yticks)-1):
-
-            y_pos.append(yticks[tick])
-
-    plt.yticks(y_pos, fontsize=4)    
+    y_pos = np.linspace(0, yticks.max(), num=ticks_num)
+    
+    plt.yticks(y_pos, fontsize=6)    
  
     # set the color bar 
-    cbar=plt.colorbar()
+    cbar = plt.colorbar()
+    # set color bar label
     cbar.set_label('$nm^-3$')
-    ax.set(xlabel='x(nm)', ylabel='y(nm)')
+    # set axis labels and title
+    ax.set(xlabel='x(nm)', ylabel='y(nm)')   
     plt.title(title)
+    
     plt.tight_layout()
     plt.savefig(out, dpi= 300)
     
@@ -143,11 +116,11 @@ def plotting(array,
 
 
 
-usage = ('dmaps -i [.dat] -c [colormap] -t [Title of the plot] \
-            -min [float] -max[float] -out ["".png/pdf]' \
-            ' -enr [True/False]')
+usage = ('dmaps -i [.dat] -c [colormap] -t [Title of the plot]' \
+          '-min [float] -max[float] -n [int]' \
+          '-out ["".png/pdf] -enr [True/False]')
 
-description='This script is to plot the density maps of' \
+description ='This script is to plot the density maps of' \
              'the lipids composing the  leaflet in the box.'\
              'The input file is an .dat file coming from the'\
              'analysis '
@@ -193,14 +166,14 @@ parser.add_argument('-min',
                     help='Minimum value of density in the plotting',
                     )
 
-parser.add_argument('-r',
-                    '--range-ticks',
-                    dest='range_ticks',
+parser.add_argument('-n',
+                    '--ticks-number',
+                    dest='ticks_number',
                     type=int,
                     required=False,
-                    default = 40,
+                    default = 10,
                     metavar='',
-                    help='Value to define the interval of tick positions in the plot',
+                    help='Define the number of xy-axis ticks',
                     )
 
 parser.add_argument('-max',
@@ -209,7 +182,7 @@ parser.add_argument('-max',
                     type=float,
                     required=False,
                     metavar='',
-                    help='Maximum value of density in the plotting',
+                    help='Maximum value of density to plot',
                     )
 
 
@@ -237,26 +210,26 @@ args = parser.parse_args()
 dat = args.input
 out = args.output
 title = args.title
-min_dens=args.minimum_density
-max_dens=args.maximum_density
-tick_range=args.range_ticks
-cmap= args.cmap
+min_dens = args.minimum_density
+max_dens = args.maximum_density
+ticks_num = args.ticks_number
+cmap = args.cmap
 enr = args.enr
 array = np.loadtxt(dat)
 
 # set min and max density range to plot
 if min_dens:
-    min_d=min_dens
+    min_d = min_dens
 else:
-    min_d=array.min()
+    min_d = array.min()
 
 if max_dens:
-    max_d=max_dens
+    max_d = max_dens
 else:
-    max_d=array.max() 
+    max_d = array.max() 
 
 
-plotting(array,enr,cmap,title,min_d,max_d,tick_range,out)
+plotting(array,enr,cmap,title,min_d,max_d,ticks_num,out)
 
 
 
