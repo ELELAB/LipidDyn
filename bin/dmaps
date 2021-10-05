@@ -61,36 +61,33 @@ def plotting(array,
 
     fig, ax = plt.subplots()
     
-    # get the first column and row
-    col = array[:,0]
-    row = array[0,:]
-    xticks = row[1:]
-    yticks = col[1:]
-
+    # get the first column and row of the array
+    xticks = array[0,1:]
+    yticks = array[1:,0]
+    data = array[1:,1:]
+    
+    
     if enrichment:
 
 
-        plot = plt.imshow(np.rot90(array),
-                            cmap=cmap,
-                            vmax=1,
-                            vmin=0,
-                            origin='lower',
-                            extent=[min(xticks),max(xticks),max(yticks), min(yticks)],
-                            interpolation='nearest')   
+        plot = plt.imshow(data,
+                          cmap=cmap,
+                          vmax=1,
+                          vmin=0,
+                          origin='lower',
+                          extent=[xticks[0],xticks[-1],yticks[0], yticks[-1]])
+                             
     else:
 
-        plot = plt.imshow(np.rot90(array),
-                            cmap=cmap,
-                            vmax=max_d,
-                            vmin=min_d,
-                            origin='lower',
-                            extent=[min(xticks),max(xticks),max(yticks), min(yticks)],
-                            interpolation='nearest')
+        plot = plt.imshow(data,
+                          cmap=cmap,
+                          vmax=max_d,
+                          vmin=min_d,
+                          origin='lower',
+                          extent=[xticks[0],xticks[-1],yticks[0], yticks[-1]])
 
     
-    # invert y-axis  
-    ax.invert_yaxis()
-    
+
     # set  ticks for x-axis  
     x_pos = np.linspace(0, xticks.max(), num=ticks_num)
     
