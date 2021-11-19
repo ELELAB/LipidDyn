@@ -25,14 +25,17 @@ import argparse
 from collections import OrderedDict
 import seaborn as sns
 from LipidDyn.core import *
+import matplotlib as mpl
+import matplotlib.colors as colors
 
-
-def plotting(array,
+def plotting(data,
              enrichment,
              cmap,
              title,
-             min_d,
-             max_d,
+             min_dens,
+             max_dens,
+             xticks,
+             yticks,
              ticks_num,
              out):
     
@@ -48,10 +51,14 @@ def plotting(array,
     title : str 
             string containing the title
     
-    min_d:  float to define the lower limit density value
+    min_dens:  float to define the lower limit density value
 
-    max_d:  float to define the upper limit density value
+    max_dens:  float to define the upper limit density value
 
+    xticks: int to define the number of x-axis ticks to plot
+    
+    yticks: int to define the number of y-axis ticks to plot
+    
     tick_num: int to define the number of ticks for xy-axis         
     
     out : str 
@@ -60,29 +67,35 @@ def plotting(array,
 
 
     fig, ax = plt.subplots()
-    
-    # get the first column and row of the array
-    xticks = array[0,1:]
-    yticks = array[1:,0]
-    data = array[1:,1:]
-    
-    
-    if enrichment:
 
+    # get the min max density limits to plot 
+    if min_dens:
+        min_d = min_dens
+    else:
+        min_d = data.min()
+
+    if max_dens:
+        max_d = max_dens
+    else:
+        max_d = data.max() 
+
+    
+
+    if enrichment:
 
         plot = plt.imshow(data,
                           cmap=cmap,
-                          vmax=1,
-                          vmin=0,
                           origin='lower',
+                          vmin=min_d,
+                          vmax=max_d,
                           extent=[xticks[0],xticks[-1],yticks[0], yticks[-1]])
                              
     else:
 
         plot = plt.imshow(data,
                           cmap=cmap,
-                          vmax=max_d,
                           vmin=min_d,
+                          vmax=max_d,
                           origin='lower',
                           extent=[xticks[0],xticks[-1],yticks[0], yticks[-1]])
 
@@ -212,21 +225,14 @@ max_dens = args.maximum_density
 ticks_num = args.ticks_number
 cmap = args.cmap
 enr = args.enr
-array = np.loadtxt(dat)
+array = np.loadtxt(dat, dtype=float)
 
-# set min and max density range to plot
-if min_dens:
-    min_d = min_dens
-else:
-    min_d = array.min()
+# get the axis ticks and get the array with density values only 
+xticks = array[0,1:]
+yticks = array[1:,0]
+data = array[1:,1:]
 
-if max_dens:
-    max_d = max_dens
-else:
-    max_d = array.max() 
-
-
-plotting(array,enr,cmap,title,min_d,max_d,ticks_num,out)
+plotting(data,enr,cmap,title,min_dens,max_dens,xticks,yticks,ticks_num,out)
 
 
 
