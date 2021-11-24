@@ -1,32 +1,47 @@
 lipids:
     POPC:
         headgroup: PO4
+        bulk_ratio: 0.50
     DOPC:
         headgroup: PO4
+        bulk_ratio:
     PIPI:
         headgroup: PO4
+        bulk_ratio:
     DPSM:
         headgroup: PO4
+        bulk_ratio:
     DVPC:
         headgroup: PO4
+        bulk_ratio:
     DOPE:
         headgroup: PO4
+        bulk_ratio:
     POPI:
         headgroup: PO4
+        bulk_ratio:
     PIPE:
         headgroup: PO4
+        bulk_ratio:
     PAPI:
         headgroup: PO4
+        bulk_ratio:
     PAPE:
         headgroup: PO4
+        bulk_ratio:
     POPS:
         headgroup: PO4
+        bulk_ratio:
     DOPA:
         headgroup: PO4
+        bulk_ratio:
     PNSM:
         headgroup: PO4
+        bulk_ratio:
     POPG:
         headgroup: PO4
+        bulk_ratio:
     CHOL:
         headgroup: ROH
+        bulk_ratio: 0.30
 protein: "protein and not name H*"

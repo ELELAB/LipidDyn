@@ -197,8 +197,7 @@ def module_densmap(universe,
 
 def module_enrichment(universe,
                       leaflets,
-                      lipid_type,
-                      ratio,
+                      dict_selection,
                       ncore,
                       out_dir):
     """
@@ -209,10 +208,9 @@ def module_enrichment(universe,
     leaflets: dict
         MDAnalysis AtomGroup selection of all the
         lipid residue constituting each leaflet
-    lipid_type: str
-        Name of the lipid residues composing the system
-    ratio: float
-        Value of the concentration in bulk for each lipid type
+    dict_selection: dict
+        dictionary from config file to parse the ratio 
+        in bulk of each lipid if specified 
     ncore : int
         Number of cores for parallelization
     out_dir : str
@@ -231,8 +229,8 @@ def module_enrichment(universe,
     pbar = ProgressBar().start()
     total_step = 2
     step = 1
-    
-       
+
+   
     conc={}     # dictionary to store the concentration in bulk of each lipid
     for leaflet in leaflets:
         d = {} # dictionary to store all the arrays for the dmaps
@@ -257,17 +255,18 @@ def module_enrichment(universe,
                                             ncore)
             
             lipid_num = len(sel.residues)  # get the total number of each lipid type
-            # if lipid names and ratio are given
-            if lipid_type and ratio:
-                if lipid in lipid_type:   # if lipid is specified
-                    for element in range(len(lipid_type)):
-                        if lipid == lipid_type[element]:
-                            conc[lipid] = ratio[element]  # store ratio into dict    
-                else:
-                    conc[lipid] = lipid_num / tot_lipids  # compute ratio from selection
-            # if no lipid names and ratio are given
+
+            # get the ratio from the config file 
+            ratio=bool(dict_selection[lipid]['bulk_ratio'])
+            
+            # if ratio is specified in the config file
+            if ratio: 
+                conc[lipid]=dict_selection[lipid]['bulk_ratio']
+                
+            # if ratio is not specified         
             else:
-                conc[lipid] = lipid_num / tot_lipids  # compute ratio from selection and store into dict
+                conc[lipid]= lipid_num / tot_lipids
+                
               
         d1 = {}
         for key in d:
@@ -411,7 +410,7 @@ def module_order_parameter(trajectory_file,
         defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
         defi = list(filter(lambda x: x != '', defi)) # filter empty strings
         ordPars = parse_op_input(defi)
-
+        
         read_trajs_calc_OPs(ordPars,
                             topology_file,
                             [trajectory_file]
@@ -575,27 +574,6 @@ def main():
                         help='Execute only the enrichment analysis module \
                               of the pipeline'
                        )
-    
-    parser.add_argument('-l',
-                        '--lipidtype',
-                        dest='l_type',
-                        type=str,
-                        nargs='+',
-                        required=False,
-                        help='Specify the lipid types of the system to be coupled \
-                              with its ratio to compute the enrichment analysis '
-                       )
-    
-    parser.add_argument('-b',
-                        '--bulk-ratio',
-                        dest='b_ratio',
-                        type=float,
-                        required=False,
-                        nargs='+',
-                        help='Specify bulk concentration ratio of each lipid \
-                              to compute the enrichment analysis (if not specified default computation \
-                              from the selection made)'
-                       )        
 
     parser.add_argument('-prot',
                         '--protein',
@@ -640,8 +618,6 @@ def main():
     cleaning = args.clean
     apl_cutoff = float(args.apl_cutoff)
     tck_cutoff = float(args.tck_cutoff)
-    lipid_type = args.l_type
-    ratio = args.b_ratio
     raw = args.raw
     
     
@@ -688,7 +664,7 @@ def main():
         # define dictionary selections                
         dict_selection=parsed_yaml["lipids"]    
         dict_prot=(parsed_yaml["protein"])
-    
+        
     except KeyError:        
             logging.error("protein and lipids sections not found in configuration file")
             exit(1)
@@ -713,7 +689,7 @@ def main():
                                          mode='w') as ndx:
             ndx.write(g, name="headgroups", frame=0)
 
-
+        
     # Find leaflets and store them in a dictionary
     L =  LeafletFinder(u,g)
 
@@ -773,8 +749,7 @@ def main():
             logging.info("Analysis: Enrichment Analysis")
             module_enrichment(u,
                               leaflets,
-                              lipid_type,
-                              ratio,
+                              dict_selection,
                               ncore,
                               out_dir)
 
@@ -834,8 +809,7 @@ def main():
             logging.info("Analysis: Enrichment Analysis")
             module_enrichment(u,
                               leaflets,
-                              lipid_type,
-                              ratio,
+                              dict_selection,
                               ncore,
                               out_dir)
             logging.info("--------------------------------------")
