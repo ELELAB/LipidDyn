@@ -10,7 +10,7 @@ lipids:
         bulk_ratio:
     DPSM:
         headgroup: PO4
-        bulk_ratio:
+        bulk_ratio: 0.20
     DVPC:
         headgroup: PO4
         bulk_ratio:
