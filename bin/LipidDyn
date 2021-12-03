@@ -181,14 +181,11 @@ def module_densmap(universe,
     step = 1
     u = universe
     
-
     for leaflet in leaflets:
-        
         # compute density maps for each leaflet
         grid = dmap_multiprocessing(u,
                                     leaflets[leaflet].residues.atoms,
                                     ncore)
-        
         # output file
         np.savetxt(folder+"/"+leaflet+"_2dmap.dat",
                    grid,
@@ -199,7 +196,8 @@ def module_densmap(universe,
 
 
 def module_enrichment(universe,
-                      selection,
+                      leaflets,
+                      dict_selection,
                       ncore,
                       out_dir):
     """
@@ -207,12 +205,15 @@ def module_enrichment(universe,
     -------------
     universe : class
         MDAnalysis universe class
-    selection : dict
+    leaflets: dict
         MDAnalysis AtomGroup selection of all the
-        lipid residue constituting the lipid bilayer
+        lipid residue constituting each leaflet
+    dict_selection: dict
+        dictionary from config file to parse the ratio 
+        in bulk of each lipid if specified 
     ncore : int
         Number of cores for parallelization
-    directory_name : str
+    out_dir : str
         Name of the output folder
     """
 
@@ -226,64 +227,78 @@ def module_enrichment(universe,
                 raise
 
     pbar = ProgressBar().start()
-    total_step = 3
-    d = {} # dictionary to store all the arrays for the dmaps
-    # get composition of the membrane and density map of all membrane
-    d["membrane"] = dmap_multiprocessing(universe,
-                                         selection.residues.atoms,ncore)
-    membrane = np.unique(selection.residues.resnames)
+    total_step = 2
+    step = 1
 
-    # add protein to dictionary of arrays
-    protein = universe.select_atoms("protein")
-    d["protein"]= dmap_multiprocessing(universe,
-                                       protein,
-                                       ncore)
+   
+    conc={}     # dictionary to store the concentration in bulk of each lipid
+    for leaflet in leaflets:
+        d = {} # dictionary to store all the arrays for the dmaps
+        # get the density of each leaflet and add to dict
+        d[leaflet] = dmap_multiprocessing(universe,
+                                          leaflets[leaflet].residues.atoms,
+                                          ncore)
+        
+        # get the lipids type names in the leaflet 
+        membrane = np.unique(leaflets[leaflet].residues.resnames)
+        
+        # get the total number of lipids per leaflet 
+        tot_lipids = len(leaflets[leaflet].residues) 
 
+        # get and add densities of different lipid types on each leaflet
+        for lipid in membrane:
+            # select each type of lipid on the leaflet              
+            sel = leaflets[leaflet].select_atoms("resname " + lipid)
+            # get the densities of each type and add to dict
+            d[lipid] = dmap_multiprocessing(universe,
+                                            sel.residues.atoms,
+                                            ncore)
+            
+            lipid_num = len(sel.residues)  # get the total number of each lipid type
 
-    # add all the different lipid residues
-    for lipid in membrane:
-        # select all the lipid residues in that leaflet and add to dict
-        sel = universe.select_atoms("resname " + lipid)
-        d[lipid] = dmap_multiprocessing(universe,
-                                        sel,
-                                        ncore)
+            # get the ratio from the config file 
+            ratio=bool(dict_selection[lipid]['bulk_ratio'])
+            
+            # if ratio is specified in the config file
+            if ratio: 
+                conc[lipid]=dict_selection[lipid]['bulk_ratio']
+                
+            # if ratio is not specified         
+            else:
+                conc[lipid]= lipid_num / tot_lipids
+                
+              
+        d1 = {}
+        for key in d:
+            # ignore leaflets densities
+            if key == leaflet:
+                continue
+            # normalize dividing single lipids densities by the leaflet density
+            array = np.divide(d[key],
+                              d[leaflet],
+                              out=np.zeros_like(d[key]),
+                              where=d[leaflet]!=0)
+            d1[key] = array
 
-    pbar.update((1/3)*100)
+        # divide the previous lipid map by the concentration in bulk of the lipid 
+        for key in d1:
+            
+            array = np.divide(d1[key],
+                              conc[key], 
+                              out=np.zeros_like(d1[key]),
+                              where=conc[key]!=0) 
 
-    sum_densmap = []
-    d1 = {}
-    for key in d:
-        # ignore all the membrane and the protein
-        if key =="membrane" or key == "protein":
-            continue
-        # normalize dividing single lipids by the membrane
-        array = np.divide(d[key],
-                      d["membrane"],
-                      out=np.zeros_like(d[key]),
-                      where=d["membrane"]!=0)
-        d1[key] = array
-        sum_densmap.append(array) # store in densmap
+            # substitute the first column and rows with their original values
+            array[:,0] = d[key][:,0]
+            array[0,:] = d[key][0,:]
 
-    pbar.update((2/3)*100)
+            np.savetxt(folder+"/"+key+"_"+leaflet+"_enrich.dat",
+                        array,
+                        delimiter='\t',
+                        fmt='%1.4f')
+    
+        pbar.update((step/2)*100)
 
-    # sum all the normalized density maps to have sum_denmaps
-    # and substract the protein array to the sum_densmap
-    sum_densmap = np.sum(sum_densmap,axis=0) - d["protein"]
-
-    for key in d1:
-        array = np.divide(d1[key],
-                      sum_densmap,
-                      out=np.zeros_like(d1[key]),
-                      where=sum_densmap!=0) # normalize  ignoring 0s
-        #d1[key] = array
-        # substitute the first column and rows with their original values
-        array[:,0] = d[key][:,0]
-        array[0,:] = d[key][0,:]
-        np.savetxt(folder+"/"+key+"_enrich.dat",
-                   array,
-                   delimiter='\t',
-                   fmt='%1.4f')
-    pbar.update((3/3)*100)
     pbar.finish()
 
 
@@ -395,7 +410,7 @@ def module_order_parameter(trajectory_file,
         defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
         defi = list(filter(lambda x: x != '', defi)) # filter empty strings
         ordPars = parse_op_input(defi)
-
+        
         read_trajs_calc_OPs(ordPars,
                             topology_file,
                             [trajectory_file]
@@ -441,7 +456,7 @@ def main():
                  'of a lipid membrane Molecular Dynamics simulation'
 
     usage = 'LypidDyn -t ["".xtc/trr] -f ["".gro/tpr] -g ["".yml] -all [True/False] ' \
-            '-c -fatslim -2d -mov -ordpar -o [path/directory name] -raw[True/False]'
+            '-c -fatslim -2d -mov -ordpar -enr -o [path/directory name] -raw[True/False]'
 
 
     parser = argparse.ArgumentParser(description=description, usage=usage)
@@ -486,7 +501,7 @@ def main():
                         '--clean',
                         action='store_true',
                         dest='clean',
-                        required = False,
+                        required=False,
                         help='Clean all the temporary files '
                         )
 
@@ -502,7 +517,7 @@ def main():
                         '--fatslim',
                         action='store_true',
                         dest='mod_fat',
-                        required = False,
+                        required=False,
                         help='Execute only the fatslim module of the pipeline'
                         )
 
@@ -649,7 +664,7 @@ def main():
         # define dictionary selections                
         dict_selection=parsed_yaml["lipids"]    
         dict_prot=(parsed_yaml["protein"])
-    
+        
     except KeyError:        
             logging.error("protein and lipids sections not found in configuration file")
             exit(1)
@@ -674,13 +689,16 @@ def main():
                                          mode='w') as ndx:
             ndx.write(g, name="headgroups", frame=0)
 
+        
     # Find leaflets and store them in a dictionary
     L =  LeafletFinder(u,g)
+
     upper_leaflet = L.groups(0)
     lower_leaflet = L.groups(1)
+
     leaflets = {"upper_leaflet":upper_leaflet,
                 "lower_leaflet":lower_leaflet}
-
+            
     # index file of headgroups
     index_headgroups = os.path.join(out_dir,
                        'index_headgroups.ndx')
@@ -730,7 +748,8 @@ def main():
             # add enrichment analysis with a protein
             logging.info("Analysis: Enrichment Analysis")
             module_enrichment(u,
-                              g,
+                              leaflets,
+                              dict_selection,
                               ncore,
                               out_dir)
 
@@ -789,7 +808,8 @@ def main():
             # prot
             logging.info("Analysis: Enrichment Analysis")
             module_enrichment(u,
-                              g,
+                              leaflets,
+                              dict_selection,
                               ncore,
                               out_dir)
             logging.info("--------------------------------------")
