@@ -41,7 +41,8 @@ import pkg_resources
 import MDAnalysis as mda
 from MDAnalysis.analysis.leaflet import LeafletFinder
 
-
+#Import Lipyphilic 
+from lipyphilic.lib.order_parameter import SCC
 
 
 _start_time = time.time()
@@ -365,22 +366,37 @@ def module_movements(universe,
 
 
 
-def module_order_parameter(trajectory_file,
+def module_order_parameter(u,
+                           lipid_resnames,
+                           trajectory_file,
                            topology_file,
+                           parsed_yaml,
                            out_dir
                            ):
 
     """
     Parameters
     ----------
+    u : MDAnalysis Universe object
+    
+    lipid_resnames : list 
+            Contains the lipid residue names
+
     trajectory_file : str
             Name of the processed .xtc file.
+    
     topology_file : str
             Name of the last producte .gro file.
+    
+    parsed_yaml : dict
+            Contains the sn beads definition for
+            OP calculation
+
     directory_name : str
             Name of the output folder
     """
 
+  
 
     # Creates different folder in which the output is stored
 
@@ -392,60 +408,108 @@ def module_order_parameter(trajectory_file,
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
+    
+    
+
+    # check if the system is CG from the config file    # ADD PBAR()
+    if parsed_yaml['forcefield'] == 'CG':
+        pbar = ProgressBar().start()
+        total_step = len(lipid_resnames)
+        step = 1
+        # dict to store the op values for each lipid- for each sn
+        scc_dict={}
+        for lipid in lipid_resnames:
+            scc_dict[lipid]={}
+            for sn in ['sn1', 'sn2']:
+                if sn in parsed_yaml['lipids'][lipid].keys(): # exclude all the lipid with no acyl-chain 
+                    if parsed_yaml['lipids'][lipid][sn]: # exclude lipids in which sn is not specified
+                        
+                        # compute the OP for each lipid- for each sn and store into dict
+                        scc_dict[lipid][sn]=get_OP_cg(u,
+                                                      parsed_yaml['lipids'][lipid][sn],
+                                                      lipid,
+                                                      sn)
+
+        # parse the dict and write the output file
+        for key, values in scc_dict.items():
+            new_dict=scc_dict[key]
+            # exclude all the keys without OP value
+            if key and values:
+
+                try:
+                    with open('Order_Parameter_'+ key +'.csv',"w") as f:
+
+                        f.write("{},{},{},{},{},{},{}\n".format('OP_name','resname','atom1','atom2','OP_mean', 'OP_std', 'OP_stem'))
+                        # get the sn chain, the CC-atoms and the op value  
+                        for sn, at in new_dict.items():
+                            for k, v in at.items():
+                                f.write("{},{},{},{},{},{},{}\n".format(sn,key,k[4:6], k[7::], v[0], v[1], v[2]))
+                except:
+                    logging.warning("Problem writing the main outputfile")
 
 
-    # retrieve def file for the op in the package folder
-    dirs =  pkg_resources.resource_listdir('LipidDyn','/definitions_files/')
+                shutil.move('Order_Parameter_'+ key +'.csv',
+                            order_folder)
 
-    pbar = ProgressBar().start()
-    total_step = len(dirs)
-    step = 1
-    for def_file in dirs:
+            pbar.update((step/total_step)*100)
+            step+=1
+        pbar.finish()
 
-        # get the lipid name
-        lipid_name = def_file.split('.')[0]
-        # retrieve the def files from the package
-        defi = pkg_resources.resource_string('LipidDyn','/definitions_files/'+
-                                              def_file)
-        defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
-        defi = list(filter(lambda x: x != '', defi)) # filter empty strings
-        ordPars = parse_op_input(defi)
+    # check if the system is FA from the config file
+    elif parsed_yaml['forcefield'] == 'FA':
         
-        read_trajs_calc_OPs(ordPars,
-                            topology_file,
-                            [trajectory_file]
+        # retrieve def file for the op in the package folder
+        dirs =  pkg_resources.resource_listdir('LipidDyn','/definitions_files/')
+
+        pbar = ProgressBar().start()
+        total_step = len(dirs)
+        step = 1
+        for def_file in dirs:
+
+            # get the lipid name
+            lipid_name = def_file.split('.')[0]
+            # retrieve the def files from the package
+            defi = pkg_resources.resource_string('LipidDyn','/definitions_files/'+
+                                              def_file)
+            defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
+            defi = list(filter(lambda x: x != '', defi)) # filter empty strings
+            ordPars = parse_op_input(defi)
+        
+            read_trajs_calc_OPs(ordPars,
+                                topology_file,
+                                [trajectory_file]
+                                )
+
+            for op in ordPars.values():
+                (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
+
+
+            # writes the output file in  file
+            try:
+                with open('Order_Parameter_'+ lipid_name +'.csv',"w") as f:
+                    f.write("{},{},{},{},{},{},{}  \n".format(
+                    'OP_name','resname','atom1','atom2','OP_mean','OP_stddev','OP_stem'))
+                    for op in ordPars.values():
+                        # output in csv file format comma separated
+                        f.write(
+                            "{},{},{},{},{: 2.5f},{: 2.5f},{: 2.5f} \n".format(
+                                op.name, op.resname, op.atAname,
+                                op.atBname,op.avg, op.std, op.stem)
                             )
-
-        for op in ordPars.values():
-            (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
-
-
-        # writes the output file in  file
-        try:
-            with open('Order_Parameter_'+ lipid_name +'.csv',"w") as f:
-                f.write("{},{},{},{},{},{},{}  \n".format(
-                'OP_name','resname','atom1','atom2','OP_mean','OP_stddev','OP_stem'))
-                for op in ordPars.values():
-                    # output in csv file format comma separated
-                    f.write(
-                        "{},{},{},{},{: 2.5f},{: 2.5f},{: 2.5f} \n".format(
-                              op.name, op.resname, op.atAname,
-                              op.atBname,op.avg, op.std, op.stem)
-                           )
-        except:
-            logging.warning("Problem writing the main outputfile")
+            except:
+                logging.warning("Problem writing the main outputfile")
 
 
-        with open('Order_Parameter_'+ lipid_name +'.csv','r') as g :
-            if "nan" in g.read():
-                os.remove('Order_Parameter_'+ lipid_name +'.csv')
-            else:
-                shutil.move('Order_Parameter_'+ lipid_name +'.csv',
-                             order_folder)
+            with open('Order_Parameter_'+ lipid_name +'.csv','r') as g :
+                if "nan" in g.read():
+                    os.remove('Order_Parameter_'+ lipid_name +'.csv')
+                else:
+                    shutil.move('Order_Parameter_'+ lipid_name +'.csv',
+                                order_folder)
 
-        pbar.update((step/total_step)*100)
-        step += 1
-    pbar.finish()
+            pbar.update((step/total_step)*100)
+            step += 1
+        pbar.finish()
 
 
 
@@ -591,7 +655,7 @@ def main():
                         dest='mpi',
                         help='Specify on how many cores to use for \
                               parallelization'
-                       )
+                       )   
 
     parser.add_argument('-raw',
                         '--raw_data',
@@ -689,7 +753,7 @@ def main():
                                          mode='w') as ndx:
             ndx.write(g, name="headgroups", frame=0)
 
-        
+    lipid_resnames = np.unique(g.residues.resnames)   
     # Find leaflets and store them in a dictionary
     L =  LeafletFinder(u,g)
 
@@ -698,7 +762,8 @@ def main():
 
     leaflets = {"upper_leaflet":upper_leaflet,
                 "lower_leaflet":lower_leaflet}
-            
+    
+      
     # index file of headgroups
     index_headgroups = os.path.join(out_dir,
                        'index_headgroups.ndx')
@@ -767,8 +832,11 @@ def main():
 
 
         logging.info("Analysis: Order Parameter")
-        module_order_parameter(traj,
+        module_order_parameter(u,
+                               lipid_resnames,
+                               traj,
                                topol,
+                               parsed_yaml,
                                out_dir
                                )
 
@@ -826,8 +894,11 @@ def main():
         if args.mod_ord :
 
             logging.info("Analysis: Order Parameter")
-            module_order_parameter(traj,
+            module_order_parameter(u,
+                                   lipid_resnames,
+                                   traj,
                                    topol,
+                                   parsed_yaml,
                                    out_dir)
             logging.info("--------------------------------------")
 

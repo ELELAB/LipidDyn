@@ -31,7 +31,8 @@ import shutil
 import multiprocessing as mp
 import logging
 
-
+#Import Lipyphilic 
+from lipyphilic.lib.order_parameter import SCC
 #/******************************************************************
 #*    Title: calcOrderParameters.py
 #*    Author: J. Melcr with contribution of H.Antila
@@ -176,11 +177,59 @@ class OrderParameter:
         # Provides average, stddev and standard error of mean for 
         # all OPs in self.traj
         
-        self.means = np.mean(self.traj, axis=0)
+        self.means = np.mean(self.traj, axis=0) # mean over frames
+        #print(len(self.means))  #means contain the mean of each residue
         return( np.mean(self.traj), 
                  np.std(self.means), 
                  np.std(self.means)/np.sqrt(len(self.means)) )  
 
+
+def get_OP_cg(u,lipid_dict,lipid_name, sn):
+    
+    """
+    Compute the SCC Order Parameter 
+    for CG systems using the Lipyphilic module SCC()
+    ---------
+    u: MDAnalysis Universe object
+
+    lipid_dict: dict
+                parsed dict from yaml file with the sn 
+                and C-beads definition for each lipid type
+    lipid_name: str
+                name of the lipid residue
+    """
+    
+      
+    op_dict={} # dict to store the op values
+
+    # for each CC-atoms bond defined
+    for bead in lipid_dict.keys():
+
+        # compute the SCC op 
+        sn_cc = SCC(u,tail_sel = "resname"+ " "\
+                    + lipid_name + " "\
+                    + "and name" + " " \
+                    + lipid_dict[bead][0]+ " " \
+                    + lipid_dict[bead][1])
+        
+        sn_cc.run()
+
+        # define the array (n_res, n_time) storing the OP values
+        array = sn_cc.SCC
+        # compute the op_mean over n_res and n_time    
+        sn_OP_avg = np.mean(array)
+        # get means only over time frames
+        array_means = np.mean(array, axis = 1) 
+        # compute the std
+        sn_OP_std = np.std(array_means)  
+        # compute the stem where N = n_res
+        sn_OP_stem = sn_OP_std / math.sqrt(len(array_means))
+   
+        
+        # store mean,std,stem into dict
+        op_dict[sn + "_"+ bead] = sn_OP_avg, sn_OP_std, sn_OP_stem
+        
+    return op_dict
 
 def read_trajs_calc_OPs(ordPars, top, trajs):
     
