@@ -34,7 +34,10 @@ setup(
                        'progressbar',
                        'seaborn',
                        'pyyaml',
-                       'lipyphilic'],
+                       'lipyphilic',
+                       'numpy',
+                       'fatslim'
+                       ],
     include_package_data=True,
     zip_safe = False,
     author="Simone Scrima, Matteo Tiberti, Matteo Lambrughi,Elena Papaleo",
