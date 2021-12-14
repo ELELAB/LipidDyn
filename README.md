@@ -88,17 +88,6 @@ source LipidDyn_env/bin/activate
 To check if the virtual environment is activated see if 
 the name of the enviroment is visible on the terminal
 
-Install numpy library with :
-
-```
-pip install numpy
-```
-
-Install FatSlim software:
-
-```
-pip install fatslim
-```
 
 Install LipidDyn with:
 
