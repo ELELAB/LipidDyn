@@ -2,46 +2,454 @@ lipids:
     POPC:
         headgroup: PO4
         bulk_ratio: 0.50
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B' 
     DOPC:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'            
     PIPI:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B' 
     DPSM:
         headgroup: PO4
         bulk_ratio: 0.20
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B' 
     DVPC:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+              - '?1A'
+              - '?2A'
+            C2_C3:
+              - '?2A'
+              - '?3A'
+            C3_C4:
+              - '?3A'
+              - '?4A'            
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B' 
     DOPE:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B' 
+    DPCE:
+        headgroup: PO4 
+        bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B' 
+
+    DPG3:
+        headgroup: PO4
+        bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B' 
+    PNCE:
+        headgroup: PO4
+        bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
+            C4_C5:
+                - '?4B'
+                - '?5B'
+            C5_C6:
+                - '?5B'
+                - '?6B' 
+    PODG:
+        headgroup: PO4
+        bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
+    PVDG:
+        headgroup: PO4
+        bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
     POPI:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
     PIPE:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
     PAPI:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+            C4_C5:
+                - '?4A'
+                - '?5A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
     PAPE:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+            C4_C5:
+                - '?4A'
+                - '?5A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
     POPS:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
     DOPA:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
     PNSM:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'
+            C4_C5:
+                - '?4B'
+                - '?5B'
+            C5_C6:
+                - '?5B'
+                - '?6B' 
     POPG:
         headgroup: PO4
         bulk_ratio:
+        sn1:
+            C1_C2:
+                - '?1A'
+                - '?2A'
+            C2_C3:
+                - '?2A'
+                - '?3A'
+            C3_C4:
+                - '?3A'
+                - '?4A'
+        sn2:
+            C1_C2:
+                - '?1B'
+                - '?2B'
+            C2_C3:
+                - '?2B'
+                - '?3B'
+            C3_C4:
+                - '?3B'
+                - '?4B'        
     CHOL:
         headgroup: ROH
         bulk_ratio: 0.30
+    CDL0:
+        headgroup: PO41
+        bulk_ratio:
+
 protein: "protein and not name H*"
+forcefield: 'CG'
