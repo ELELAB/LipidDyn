@@ -29,13 +29,11 @@ setup(
              'bin/diffusion',
              'bin/dmaps'],
     install_requires=[ 'matplotlib',
-                       'numpy',
                        'MDAnalysis',
                        'progressbar',
                        'seaborn',
                        'pyyaml',
                        'lipyphilic',
-                       'numpy',
                        'fatslim'
                        ],
     include_package_data=True,
