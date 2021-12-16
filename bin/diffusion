@@ -82,7 +82,7 @@ def lipid_plot( d,res, input_name,colors):
     plt.savefig(input_name+'_'+res+'.pdf',bbox_inches="tight",dpi=300)
 
 
-def plotting_homogeneous(d,input_name,title):
+def plotting_homogeneous(d,input_name,title,out):
     
     """
     Parameters
@@ -119,7 +119,7 @@ def plotting_homogeneous(d,input_name,title):
                )
     plt.savefig(input_name+'.pdf',bbox_inches="tight",dpi = 300)
 
-def plotting_heterogeneous(d,input_name,title, merged):
+def plotting_heterogeneous(d,input_name,title, merged,out):
 
     """
     Parameters
@@ -241,6 +241,14 @@ parser.add_argument('-l',
                     help='Title to assign to the plot',
                     )
 
+parser.add_argument('-o',
+                    '--output',
+                    dest='output',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='output suffix for the output filename')
+
 parser.add_argument('-m',
                     '--merged_plot',
                     dest='merged_plot',
@@ -252,14 +260,14 @@ parser.add_argument('-m',
 args = parser.parse_args()
 dat = args.input
 title = args.title
-#out = args.output
+out = args.output
 merged = args.merged_plot
-input_name,ext = os.path.splitext(dat)
+input_name = out
 d = extract_data(dat)
 if args.typology == 'ho':
-    plotting_homogeneous(d,input_name, title)
+    plotting_homogeneous(d,input_name, title,out)
 if args.typology == 'he':
-    plotting_heterogeneous(d,input_name,title,merged)
+    plotting_heterogeneous(d,input_name,title,merged,out)
 
 
 
