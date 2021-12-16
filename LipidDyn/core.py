@@ -31,7 +31,7 @@ import shutil
 import logging
 from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
-mp..set_start_method("fork") # Allow multiprocessing to work with MacOS
+mp.set_start_method("fork") # Allow multiprocessing to work with MacOS
 
  
 
