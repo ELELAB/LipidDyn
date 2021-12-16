@@ -83,12 +83,12 @@ def plotting(data,
 
     if enrichment:
         # define center and min/max limits of the cmap
-        norm = colors.TwoSlopeNorm(vmin=min_d, vcenter=1, vmax=max_d)
-
+        
         plot = plt.imshow(data,
                           cmap=cmap,
                           origin='lower',
-                          norm=norm,
+                          vmin=min_d,
+                          vmax=max_d,
                           extent=[xticks[0],xticks[-1],yticks[0], yticks[-1]])
                              
     else:
