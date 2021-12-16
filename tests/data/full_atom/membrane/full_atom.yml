@@ -1,0 +1,29 @@
+lipids:
+    POPC:
+        headgroup: P
+        bulk_ratio: 0.80
+    DOPC:
+        headgroup: P
+        bulk_ratio:
+    PSM:
+        headgroup: P
+        bulk_ratio:
+    NSM:
+        headgroup: P
+        bulk_ratio:
+    LSM:
+        headgroup: P
+        bulk_ratio:
+    SSM:
+        headgroup: P
+        bulk_ratio: 0.20
+    ETH1:
+        headgroup: P
+        bulk_ratio:    
+    CHL1:
+        headgroup: O3
+        bulk_ratio:
+protein: ""
+forcefield: 'FA'
+
+    
