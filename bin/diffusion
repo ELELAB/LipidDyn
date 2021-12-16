@@ -54,10 +54,35 @@ def extract_data(data):
             d[resname] = np.array(l)
     return(d)
          
-                
+
+def lipid_plot( d,res, input_name,colors):
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for key in sorted(d):
+        lipid_name = key.split('_')[0]
+
+        if lipid_name == res:
+
+            ax.scatter(d[key][:,0],d[key][:,1], label = res, marker='.',
+                                            antialiased='True', alpha=0.8,
+                                            color=colors)
 
 
-def plotting_homogeneous(d,title,out):
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width , box.height])
+    plt.title(title)
+    # It anchor the legend on the right side of the coordinates ([from left-right],[up-down])
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.xlabel('$nm$')
+    plt.ylabel('$nm$')
+    plt.legend(by_label.values(), by_label.keys(),fontsize='xx-small', fancybox=True, loc='upper right')
+    plt.savefig(input_name+'_'+res+'_'+'diff_mov.pdf',bbox_inches="tight",dpi=300)
+
+
+def plotting_homogeneous(d,input_name,title):
     
     """
     Parameters
@@ -92,9 +117,9 @@ def plotting_homogeneous(d,title,out):
     plt.legend(fontsize='xx-small', ncol=6, shadow=True, fancybox=True, 
                loc='lower center',bbox_to_anchor=(0.50, 1.30)
                )
-    plt.savefig(out,bbox_inches="tight",dpi = 300)
+    plt.savefig(input_name+'_'+'diff_mov.pdf',bbox_inches="tight",dpi = 300)
 
-def plotting_heterogeneous(d,title,out):
+def plotting_heterogeneous(d,input_name,title, merged):
 
     """
     Parameters
@@ -103,53 +128,80 @@ def plotting_heterogeneous(d,title,out):
             dictionary of lipid residues and their coordinates
     title : str 
             string containing the title
-    out : str 
-            string containing the output filename
+    input_name: str
+            string containing the lower/upper name
+    merged: option to plot differenct lipid categories in the same plot
     """
+    
+    if not merged:
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w'] 
-    res= []
-    for key in d:
-        key = key.split('_')[0]
-        res.append(str(key))
+        res= []
+        for key in d:
+            key = key.split('_')[0]
+            res.append(str(key))
 
-    res = np.unique(res) # get unique names of lipid res
-    # to modify in base of the composition of the membrane 4 = 4 type of lipids
-   
-    col_list = []
-    col_index = -1
-    prev_name = None
-    colors = colors[0:len(res)]
-    for key in sorted(d):
-        name = key.split('_')[0]
-        if name != prev_name:
-            col_index += 1
-        col_list.append(colors[col_index])
-        prev_name = name
-        ax.scatter(d[key][:,0],d[key][:,1], label = name, marker='.',
+        res = np.unique(res) # get unique names of lipid res
+        colors = cm.rainbow(np.linspace(0, 1, len(res)))
+        col_list = []
+        col_index = -1
+        prev_name = None
+        colors = colors[0:len(res)][0:]
+        lipids=[]
+        for key in sorted(d):
+            name = key.split('_')[0]
+            lipids.append(name)
+        lipids_l=np.unique(lipids)
+
+        for i,res in enumerate(lipids_l):
+            
+            lipid_plot(d,res,input_name, colors[i])
+    
+    if merged:
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+        res= []
+        for key in d:
+            key = key.split('_')[0]
+            res.append(str(key))
+
+        res = np.unique(res) # get unique names of lipid res
+        colors = cm.rainbow(np.linspace(0, 1, len(res)))        
+        col_list = []
+        col_index = -1
+        prev_name = None
+        colors = colors[0:len(res)][0:]
+    
+        for key in sorted(d):
+            name = key.split('_')[0]
+            if name != prev_name:
+                col_index += 1
+            col_list.append(colors[col_index])
+            prev_name = name
+       
+            ax.scatter(d[key][:,0],d[key][:,1], label = name, marker='.',
                                             antialiased='True', alpha=0.8,
                                             color=colors[col_index]
                     )
-
+        
         # reduce the dimension of the plot of 50%
         # it goes in opposite direction : i.e =  0.8 is a reduction of about 20%
 
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width , box.height])
-    plt.title(title)
-    # It anchor the legend on the right side of the coordinates ([from left-right],[up-down])
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = OrderedDict(zip(labels, handles))
-    plt.xlabel('$nm$')
-    plt.ylabel('$nm$')
-    plt.legend(by_label.values(), by_label.keys(),fontsize='xx-small', fancybox=True, loc='upper right')
-    plt.savefig(out,bbox_inches="tight",dpi=300)
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width , box.height])
+        plt.title(title)
+        # It anchor the legend on the right side of the coordinates ([from left-right],[up-down])
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = OrderedDict(zip(labels, handles))
+        plt.xlabel('$nm$')
+        plt.ylabel('$nm$')
+        plt.legend(by_label.values(), by_label.keys(),fontsize='xx-small', fancybox=True, loc='upper right')
+        plt.savefig(input_name+'_'+'diff_mov.pdf',bbox_inches="tight",dpi=300)
 
     
                 
-usage = ('diffusion -i [.dat] -l [Title of the plot] -out ["".png/pdf]' \
+usage = ('diffusion -i [.dat] -l [Title of the plot] ' \
           ' -t [ho/he] ')
 
 description= 'Tool to plot the diffusion movements of ' \
@@ -189,26 +241,25 @@ parser.add_argument('-l',
                     help='Title to assign to the plot',
                     )
 
-parser.add_argument('-out',
-                    '--output',
-                    dest='output',
-                    type=str,
+parser.add_argument('-m',
+                    '--merged_plot',
+                    dest='merged_plot',
+                    action='store_true',
                     required=False,
-                    metavar='',
-                    default= 'diffusion_movements.pdf',
-                    help='output name of the file',
+                    help='To specify if the use want merged plots',
                     )
 
 args = parser.parse_args()
 dat = args.input
 title = args.title
-out = args.output
-
+#out = args.output
+merged = args.merged_plot
+input_name = dat[0:5]
 d = extract_data(dat)
 if args.typology == 'ho':
-    plotting_homogeneous(d,title,out)
+    plotting_homogeneous(d,input_name, title)
 if args.typology == 'he':
-    plotting_heterogeneous(d,title,out)
+    plotting_heterogeneous(d,input_name,title,merged)
 
 
 
