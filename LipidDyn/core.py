@@ -28,11 +28,13 @@ import errno
 import subprocess
 import argparse
 import shutil
-import multiprocessing as mp
 import logging
-
-#Import Lipyphilic 
 from lipyphilic.lib.order_parameter import SCC
+import multiprocessing as mp
+mp..set_start_method("fork") # Allow multiprocessing to work with MacOS
+
+ 
+
 #/******************************************************************
 #*    Title: calcOrderParameters.py
 #*    Author: J. Melcr with contribution of H.Antila
