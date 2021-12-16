@@ -79,7 +79,7 @@ def lipid_plot( d,res, input_name,colors):
     plt.xlabel('$nm$')
     plt.ylabel('$nm$')
     plt.legend(by_label.values(), by_label.keys(),fontsize='xx-small', fancybox=True, loc='upper right')
-    plt.savefig(input_name+'_'+res+'_'+'diff_mov.pdf',bbox_inches="tight",dpi=300)
+    plt.savefig(input_name+'_'+res+'.pdf',bbox_inches="tight",dpi=300)
 
 
 def plotting_homogeneous(d,input_name,title):
@@ -117,7 +117,7 @@ def plotting_homogeneous(d,input_name,title):
     plt.legend(fontsize='xx-small', ncol=6, shadow=True, fancybox=True, 
                loc='lower center',bbox_to_anchor=(0.50, 1.30)
                )
-    plt.savefig(input_name+'_'+'diff_mov.pdf',bbox_inches="tight",dpi = 300)
+    plt.savefig(input_name+'.pdf',bbox_inches="tight",dpi = 300)
 
 def plotting_heterogeneous(d,input_name,title, merged):
 
@@ -197,7 +197,7 @@ def plotting_heterogeneous(d,input_name,title, merged):
         plt.xlabel('$nm$')
         plt.ylabel('$nm$')
         plt.legend(by_label.values(), by_label.keys(),fontsize='xx-small', fancybox=True, loc='upper right')
-        plt.savefig(input_name+'_'+'diff_mov.pdf',bbox_inches="tight",dpi=300)
+        plt.savefig(input_name+'.pdf',bbox_inches="tight",dpi=300)
 
     
                 
@@ -254,7 +254,7 @@ dat = args.input
 title = args.title
 #out = args.output
 merged = args.merged_plot
-input_name = dat[0:5]
+input_name,ext = os.path.splitext(dat)
 d = extract_data(dat)
 if args.typology == 'ho':
     plotting_homogeneous(d,input_name, title)
