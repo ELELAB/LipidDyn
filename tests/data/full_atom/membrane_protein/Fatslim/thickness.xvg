@@ -1,0 +1,66 @@
+# This file was created on Thu Dec 16 14:52:38 2021
+# Created by: FATSLiM v.0.2.2
+# Command line: fatslim thickness -c /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane_protein/heterogeneous_membrane_protein.gro -n /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane_protein/index_headgroups.ndx -t /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane_protein/heterogeneous_membrane_protein.xtc --nthread 4 --plot-thickness /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane_protein/Fatslim/thickness.xvg --thickness-cutoff 6.0
+@TYPE xy
+@ title "Thickness"
+@ xaxis  label "Time (ps)"
+@ yaxis  label "Thickness (nm)"
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Membrane"
+@ s1 legend "Lower leaflet"
+@ s2 legend "Upper leaflet"
+   0.000    4.163    4.171    4.156 
+  20.000    4.160    4.167    4.154 
+  40.000    4.152    4.143    4.161 
+  60.000    4.146    4.130    4.163 
+  80.000    4.161    4.150    4.172 
+ 100.000    4.187    4.171    4.204 
+ 120.000    4.141    4.137    4.146 
+ 140.000    4.127    4.129    4.125 
+ 160.000    4.138    4.130    4.147 
+ 180.000    4.080    4.081    4.080 
+ 200.000    4.139    4.147    4.132 
+ 220.000    4.113    4.111    4.115 
+ 240.000    4.141    4.129    4.153 
+ 260.000    4.077    4.072    4.082 
+ 280.000    4.123    4.121    4.124 
+ 300.000    4.132    4.130    4.134 
+ 320.000    4.095    4.082    4.107 
+ 340.000    4.091    4.086    4.096 
+ 360.000    4.148    4.130    4.165 
+ 380.000    4.123    4.112    4.134 
+ 400.000    4.160    4.161    4.159 
+ 420.000    4.164    4.175    4.152 
+ 440.000    4.128    4.111    4.145 
+ 460.000    4.138    4.129    4.148 
+ 480.000    4.158    4.149    4.167 
+ 500.000    4.180    4.176    4.183 
+ 520.000    4.185    4.181    4.189 
+ 540.000    4.133    4.120    4.146 
+ 560.000    4.160    4.147    4.172 
+ 580.000    4.171    4.152    4.190 
+ 600.000    4.142    4.143    4.141 
+ 620.000    4.141    4.126    4.155 
+ 640.000    4.163    4.151    4.175 
+ 660.000    4.169    4.151    4.188 
+ 680.000    4.140    4.124    4.156 
+ 700.000    4.152    4.138    4.165 
+ 720.000    4.178    4.156    4.200 
+ 740.000    4.162    4.143    4.181 
+ 760.000    4.196    4.172    4.219 
+ 780.000    4.171    4.146    4.196 
+ 800.000    4.189    4.182    4.196 
+ 820.000    4.188    4.169    4.207 
+ 840.000    4.175    4.161    4.190 
+ 860.000    4.178    4.155    4.202 
+ 880.000    4.205    4.194    4.216 
+ 900.000    4.217    4.212    4.222 
+ 920.000    4.190    4.181    4.199 
+ 940.000    4.195    4.193    4.196 
+ 960.000    4.208    4.207    4.209 
+ 980.000    4.191    4.192    4.190 
+1000.000    4.220    4.214    4.226 
