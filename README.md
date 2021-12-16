@@ -189,6 +189,10 @@ On each of this folder you can also find:
 2) The outputs from each analysis
 3) The outputs from the visualization tools ready to be visualized
 
+**N.B.**<br/>
+The simulations here reported as example are 51 frames long.
+
+
 ### Basic Usage 
 
 ```
