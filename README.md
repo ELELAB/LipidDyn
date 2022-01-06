@@ -9,7 +9,7 @@ If you use the tool, please cite:<br/>
 Unravelling membrane properties at the organelle-level with LipidDyn
 
 Simone Scrima, Matteo Tiberti, Alessia Campo, Elisabeth Corcelle-Termeau, Delphine Judith, Mads Moller Foged, Knut Kristoffer Bungaard Clemmens,  Sharon Tooze, Marja Jaattela, Kenji Maeda, Matteo Lambrughi*, Elena Papaleo*
-biorxiv, doi XXX <br/>
+biorxiv, doi https://doi.org/10.1101/2022.01.04.474788 <br/>
 
 contacts: tiberti-at-cancer.dk, matl-at-cancer.dk, elenap-at-cancer.dk, elpap-at-dtu.dk
 
@@ -84,7 +84,7 @@ Once created activate the environment with:
 source LipidDyn_env/bin/activate
 ```
 
-**N.B** <br/>
+**N.B.** <br/>
 To check if the virtual environment is activated see if 
 the name of the enviroment is visible on the terminal
 
@@ -156,7 +156,7 @@ python setup.py install
 cd ../
 ```
 
-**N.B**<br/>
+**N.B.**<br/>
 In order to use LipidDyn and all its tools the user must activate the virtual environment each time.
 
 ## Configuration file
@@ -210,7 +210,7 @@ The output files will be organized in different folders each one representing a 
 <br/>
 
 
-**N.B**<br/>
+**N.B.**<br/>
 If you want to obtain raw data for apl and thickness for each frame use the ```-raw``` flag. Raw data will be produced in ```.csv``` format  and stored inside two subfolders under   the ```Fatslim/``` directory and called  ```fatslim_apl``` and  ```fatslim_thickness```.  <br/>
 
 
@@ -293,7 +293,7 @@ dmaps -i lipid_residue_lower_leaflet_enrich.dat -o custom_name.pdf -enr
 **N.B.** <br/>
 When running 2Dmaps and enrichment calculations on long simulation systems it is suggested to use a small subset of frames (i.e. last 1 us from the entire trajectory) according to the user requirments, so as to obtain a more clear output map.
 
-**N.B**<br/>
+**N.B.**<br/>
 If you want to gain a better visualization of the densities of the system for both 2Dmaps and Enrichment analysis, you can adjust the upper and lower limits of the densities specifying the flag ```-min``` and ```-max```
 
 #### 4) Diffusion Movements
