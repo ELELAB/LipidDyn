@@ -202,22 +202,22 @@ The simulations here reported as example are 51 frames long.
 ### Basic Usage 
 
 ```
-LipidDyn -t file.xtc/trr -f file.gro -g file.yml -all -ncore "n"  -c
+LipidDyn -f file.xtc/trr -s file.gro -g file.yml -a -n "n" -c
 ```
-This command will run the full set of analysis (-all) and store all the output files in the working directory, using "n" cores and clean (-c) all intermediate files. <br/>
-The suggested minimum number of cores to run the analysis is ``` -ncore 4```, but it could be increased for longer trajectories. <br/>
+This command will run the full set of analysis (-a) and store all the output files in the working directory, using "n" cores and clean (-c) all intermediate files. <br/>
+The suggested minimum number of cores to run the analysis is ``` -n 4```, but it could be increased for longer trajectories. <br/>
 The output files will be organized in different folders each one representing a set of analysis. 
 <br/>
 
 
 **N.B.**<br/>
-If you want to obtain raw data for apl and thickness for each frame use the ```-raw``` flag. Raw data will be produced in ```.csv``` format  and stored inside two subfolders under   the ```Fatslim/``` directory and called  ```fatslim_apl``` and  ```fatslim_thickness```.  <br/>
+If you want to obtain raw data for apl and thickness for each frame use the ```-r``` flag. Raw data will be produced in ```.csv``` format  and stored inside two subfolders under   the ```Fatslim/``` directory and called  ```fatslim_apl``` and  ```fatslim_thickness```.  <br/>
 
 
-In the case of a protein embedded in the lipid bilayer use the flag ```-prot```:
+In the case of a protein embedded in the lipid bilayer use the flag ```-p```:
 
 ```
-LipidDyn -t file.xtc/.trr -f file.gro -g file.yml -all  -ncore "n" -prot -c
+LipidDyn -f file.xtc/trr -s file.gro -g file.yml -a -n "n" -c -p
 ```
 
 ### Single analysis usage
@@ -226,23 +226,23 @@ This section lists the command-lines to run LipidDyn on each single analysis <br
 
 1) APL and Thickness calculation with fatslim:  
 ```
-LipidDyn -t file.xtc/.trr -f file.gro -g file.yml -fatslim -ncore "n"  -c
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -fatslim -n "n"  -c
 ```
 2) 2Density maps calculation for upper and lower leaflets:
 ```
-LipidDyn -t file.xtc/.trr -f file.gro -g file.yml -2d -ncore "n"  -c
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -2d -n "n"  -c
 ```
 3) Enrichment maps calculation for each lipid category in upper and lower leaflets:
 ```
-LipidDyn -t file.xtc/.trr -f file.gro -g file.yml -enr -ncore "n" -prot -c
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -enr -n "n" -p -c
 ```
 4) Diffusion movements calculation for upper and lower leaflets:
 ```
-LipidDyn -t file.xtc/.trr -f file.gro -g file.yml -mov -ncore "n" -c
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mov - "n" -c
 ```
 5) Order Parameter calculation for each lipid category:
 ```
-LipidDyn -t file.xtc/.trr -f file.gro -g file.yml -ordpar -ncore "n" -c
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -op -n "n" -c
 ```
 ### Visualization of data
 

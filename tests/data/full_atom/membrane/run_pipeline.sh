@@ -1,6 +1,6 @@
 # Import the environment prior to run this script
 
-LipidDyn -t heterogeneous_membrane.xtc -f heterogeneous_membrane.gro -g full_atom.yml -all -ncore 4 -c -raw
+LipidDyn -f heterogeneous_membrane.xtc -s heterogeneous_membrane.gro -g full_atom.yml -n 4 -c -r -fatslim -mov -op -2d 
 
 # Plotting 
 

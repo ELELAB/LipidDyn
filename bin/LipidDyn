@@ -517,31 +517,26 @@ def module_order_parameter(u,
 def main():
 
     description= 'LipidDyn pipeline for calculating different parameters' \
-                 'of a lipid membrane Molecular Dynamics simulation'
+                 'of a Molecular Dynamics simulation of lipid membrane'
 
-    usage = 'LypidDyn -t ["".xtc/trr] -f ["".gro/tpr] -g ["".yml] -all [True/False] ' \
-            '-c -fatslim -2d -mov -ordpar -enr -o [path/directory name] -raw[True/False]'
+    parser = argparse.ArgumentParser(description=description)
 
-
-    parser = argparse.ArgumentParser(description=description, usage=usage)
-
-    parser.add_argument('-t',
-                        '--trajectory',
-                        dest='trajectory',
-                        type=str,
-                        required=True,
-                        metavar='',
-                        help='Trajectory files [<.xtc/.trr/>] ',
-                        )
-
-    parser.add_argument('-f',
+    parser.add_argument('-s',
                         '--topology',
                         dest='topology',
                         type=str,
                         required=True,
-                        metavar='',
-                        help='Molecular topology file [.gro/.tpr]',
+                        help='Molecular topology file [.gro]',
                         )
+
+    parser.add_argument('-f',
+                        '--trajectory',
+                        dest='trajectory',
+                        type=str,
+                        required=True,
+                        help='Trajectory files [<.xtc/.trr/>] ',
+                        )
+
 
     parser.add_argument('-g',
                         '--config-file',
@@ -556,76 +551,43 @@ def main():
                         dest='output_dir',
                         type=str,
                         default='./',
-                        required=False,
-                        metavar='',
-                        help="Directory where the output of the analyses will be written")
+                        help="Directory where the output of the analyses \
+                              will be written")
 
-
-    parser.add_argument('-c',
-                        '--clean',
-                        action='store_true',
-                        dest='clean',
-                        required=False,
-                        help='Clean all the temporary files '
-                        )
-
-    parser.add_argument('-all',
+    parser.add_argument('-a',
                         '--all',
                         dest='all_modules',
                         action='store_true',
-                        required = False,
-                        help='Execute all module of the pipeline'
+                        help='Execute all the analysis of the pipeline'
                         )
 
     parser.add_argument('-fatslim',
                         '--fatslim',
                         action='store_true',
                         dest='mod_fat',
-                        required=False,
-                        help='Execute only the fatslim module of the pipeline'
-                        )
-
-    parser.add_argument('-apl_cutoff',
-                        '--apl-cutoff',
-                        default= 3.0,
-                        dest='apl_cutoff',
-                        required = False,
-                        help='Cutoff distance (in nm) used to approximate \
-                              planar region (default: 3.0)'
-                        )
-
-    parser.add_argument('-thickness_cutoff',
-                        '--thickness-cutoff',
-                        default= 6.0,
-                        dest='tck_cutoff',
-                        required = False,
-                        help='Cutoff distance (in nm) used to identify \
-                              inter-leaflet neighbors (default: 6.0)'
+                        help='Execute only the fatslim analysis of the pipeline'
                         )
 
     parser.add_argument('-2d',
                         '--2d_maps',
                         action='store_true',
                         dest='mod_maps',
-                        required = False,
                         help='Execute only the density maps module of the \
                               pipeline'
-                                                )
+                        )
 
     parser.add_argument('-mov',
                         '--movements',
                         action='store_true',
                         dest='mod_mov',
-                        required = False,
                         help='Execute only the movement module of the \
                               pipeline'
                        )
 
-    parser.add_argument('-ordpar',
+    parser.add_argument('-op',
                         '--order_parameter',
                         action='store_true',
                         dest='mod_ord',
-                        required = False,
                         help='Execute only the order parameter module of \
                               the pipeline'
                         )
@@ -634,40 +596,60 @@ def main():
                         '--enrichment',
                         action='store_true',
                         dest='enrichment',
-                        required = False,
                         help='Execute only the enrichment analysis module \
                               of the pipeline'
                        )
 
-    parser.add_argument('-prot',
+    parser.add_argument('-p',
                         '--protein',
                         action='store_true',
                         dest='prot',
-                        required = False,
                         help='Specify if a protein is embedded \
                               in the membrane'
                        )
 
-    parser.add_argument('-ncore',
-                        '--mpi',
+    parser.add_argument('-n',
+                        '--ncores',
                         nargs ='?',
                         default = 2,
-                        dest='mpi',
+                        type=int,
+                        dest='cores',
                         help='Specify on how many cores to use for \
                               parallelization'
                        )   
 
-    parser.add_argument('-raw',
-                        '--raw_data',
+    parser.add_argument('-a_cutoff',
+                        '--apl-cutoff',
+                        default= 3.0,
+                        type=float,
+                        dest='apl_cutoff',
+                        help='Cutoff distance (in nm) used to approximate \
+                              planar region (default: 3.0)'
+                        )
+
+    parser.add_argument('-t_cutoff',
+                        '--thickness-cutoff',
+                        default= 6.0,
+                        type=float,
+                        dest='tck_cutoff',
+                        help='Cutoff distance (in nm) used to identify \
+                              inter-leaflet neighbors (default: 6.0)'
+                        )
+
+    parser.add_argument('-r',
+                        '--raw',
                         action='store_true',
                         dest='raw',
-                        required = False,
                         help='Get the raw value of thickness and apl for \
                               each frame'
                        )
 
-
-
+    parser.add_argument('-c',
+                        '--clean',
+                        action='store_true',
+                        dest='clean',
+                        help='Clean all the temporary files '
+                        )
 
     args = parser.parse_args()
 
@@ -678,12 +660,12 @@ def main():
     topol = os.path.abspath(args.topology)
     hg_sel = os.path.abspath(args.configuration)
     out_dir = args.output_dir
-    ncore = int(args.mpi)
+    ncore = args.cores
     cleaning = args.clean
-    apl_cutoff = float(args.apl_cutoff)
-    tck_cutoff = float(args.tck_cutoff)
+    apl_cutoff = args.apl_cutoff
+    tck_cutoff = args.tck_cutoff
     raw = args.raw
-    
+    all_modules = args.all_modules
     
      # Setup log module
     logging.basicConfig(filename=os.path.join(out_dir, 'LipidDynRun.log'),
@@ -713,15 +695,18 @@ def main():
             parsed_yaml = yaml.load(config, Loader=yaml.FullLoader)
         
             if not isinstance(parsed_yaml, dict):  
-                logging.error("Couldn't parse the configuration file correctly; check its file format")
+                logging.error("Couldn't parse the configuration file \
+                               correctly; check its file format")
                 exit(1)
     
     except IOError:
-        logging.error("Configuration file doesn't exists or is not accessible")
+        logging.error("Configuration file doesn't exists \
+                       or is not accessible")
         exit(1)
     
     except:
-        logging.error("Loading the configuration file failed; please check its format")
+        logging.error("Loading the configuration file failed;\
+                       please check its format")
         exit(1)
     
     try:
@@ -730,7 +715,8 @@ def main():
         dict_prot=(parsed_yaml["protein"])
         
     except KeyError:        
-            logging.error("protein and lipids sections not found in configuration file")
+            logging.error("protein and lipids sections not found \
+                           in configuration file")
             exit(1)
     
     # Means a protein is embedded in the bilayer
@@ -779,14 +765,15 @@ def main():
             ndx.write(lower_leaflet, name="lower_leaflet")
 
     # The user selected the -all flag for all the analysis
-    if args.all_modules :
+    if all_modules :
 
 
         logging.info("Starting now with the calculation, please stand by...")
         logging.info(u"\u2622")
-
+        
 
         logging.info("Analysis: Area per lipid & Thickness calculation")
+        
         module_fatslim(traj,
                        topol,
                        index_headgroups,
@@ -796,6 +783,7 @@ def main():
                        raw,
                        ncore
                        )
+
 
 
         logging.info("--------------------------------------")

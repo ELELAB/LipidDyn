@@ -1,6 +1,6 @@
-# This file was created on Thu Dec 16 14:24:56 2021
+# This file was created on Wed Feb 23 16:58:33 2022
 # Created by: FATSLiM v.0.2.2
-# Command line: fatslim thickness -c /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.gro -n /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/index_headgroups.ndx -t /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.xtc --nthread 2 --plot-thickness /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/Fatslim/thickness.xvg --thickness-cutoff 6.0
+# Command line: fatslim thickness -c /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.gro -n /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/index_headgroups.ndx -t /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.xtc --nthread 4 --plot-thickness /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/Fatslim/thickness.xvg
 @TYPE xy
 @ title "Thickness"
 @ xaxis  label "Time (ps)"
