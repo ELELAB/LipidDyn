@@ -238,7 +238,7 @@ LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -enr -n "n" -p -c
 ```
 4) Diffusion movements calculation for upper and lower leaflets:
 ```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mov - "n" -c
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mov -n "n" -c
 ```
 5) Order Parameter calculation for each lipid category:
 ```

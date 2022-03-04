@@ -102,11 +102,10 @@ def module_fatslim(trajectory_file,
     if not os.path.exists(analysis_fatlism):
         try:
             os.mkdir((analysis_fatlism))
-            os.mkdir((analysis_fatlism +'/fatslim_apl'))
-            os.mkdir((analysis_fatlism + '/fatslim_thickness'))
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise
+
 
 
     # Begins of the fatslim analysis
@@ -122,6 +121,21 @@ def module_fatslim(trajectory_file,
     if raw : # if the user required the raw data
         step = 4
         pbar.update((1/step)*100) # current step/total steps * 100
+
+        fatslim_apl = os.path.abspath(os.path.join(analysis_fatlism,
+                                                   'fatslim_apl'))
+        fatslim_thickness = os.path.abspath(os.path.join(analysis_fatlism,
+                                                         'fatslim_thickness'))
+
+        if not os.path.exists(fatslim_apl) 
+        or not os.path.exists(fatslim_thickness):
+            try: 
+                os.mkdir((analysis_fatlism +'/fatslim_apl'))
+                os.mkdir((analysis_fatlism + '/fatslim_thickness'))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+
         fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
                                  '/fatslim_apl/raw_apl.csv')
 

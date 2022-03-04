@@ -4,6 +4,10 @@ __pycache__/
 *$py.class
 LipidDyn/__pycache__/
 
+# OS generated file
+.DS_Store
+.DS_Store?
+
 # Distribution / packaging
 .Python
 build/
