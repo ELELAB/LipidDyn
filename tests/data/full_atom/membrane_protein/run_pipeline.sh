@@ -1,6 +1,6 @@
 # Import the environment prior to run this script
 
-#LipidDyn -t heterogeneous_membrane_protein.xtc -f heterogeneous_membrane_protein.gro -g full_atom.yml -prot -all -ncore 4 -c -raw
+LipidDyn -f heterogeneous_membrane_protein.xtc -s heterogeneous_membrane_protein.gro -g full_atom.yml -p -a -n 4 -c -r
 
 # Plotting 
 

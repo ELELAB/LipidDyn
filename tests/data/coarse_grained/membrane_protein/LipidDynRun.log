@@ -1,45 +1,90 @@
-2021-12-16 15:19:23,867:INFO:Starting now with the calculation, please stand by...
-2021-12-16 15:19:23,867:INFO:☢
-2021-12-16 15:19:23,867:INFO:Analysis: Area per lipid & Thickness calculation
-2021-12-16 15:19:27,191:INFO:--------------------------------------
-2021-12-16 15:19:27,191:INFO:Analysis: Density maps
-2021-12-16 15:19:29,358:INFO:--------------------------------------
-2021-12-16 15:19:29,358:INFO:Analysis: Enrichment Analysis
-2021-12-16 15:19:33,818:INFO:--------------------------------------
-2021-12-16 15:19:33,819:INFO:Analysis: Diffusion movements
-2021-12-16 15:19:36,920:INFO:--------------------------------------
-2021-12-16 15:19:36,920:INFO:Analysis: Order Parameter
-2021-12-16 15:19:36,922:INFO:Choosing frames to analyze
-2021-12-16 15:19:36,922:INFO:Starting preparation
-2021-12-16 15:19:36,940:INFO:Finishing up
-2021-12-16 15:19:36,941:INFO:Choosing frames to analyze
-2021-12-16 15:19:36,941:INFO:Starting preparation
-2021-12-16 15:19:36,964:INFO:Finishing up
-2021-12-16 15:19:36,965:INFO:Choosing frames to analyze
-2021-12-16 15:19:36,965:INFO:Starting preparation
-2021-12-16 15:19:36,984:INFO:Finishing up
-2021-12-16 15:19:36,985:INFO:Choosing frames to analyze
-2021-12-16 15:19:36,985:INFO:Starting preparation
-2021-12-16 15:19:37,004:INFO:Finishing up
-2021-12-16 15:19:37,005:INFO:Choosing frames to analyze
-2021-12-16 15:19:37,005:INFO:Starting preparation
-2021-12-16 15:19:37,024:INFO:Finishing up
-2021-12-16 15:19:37,025:INFO:Choosing frames to analyze
-2021-12-16 15:19:37,025:INFO:Starting preparation
-2021-12-16 15:19:37,049:INFO:Finishing up
-2021-12-16 15:19:37,050:INFO:Choosing frames to analyze
-2021-12-16 15:19:37,050:INFO:Starting preparation
-2021-12-16 15:19:37,074:INFO:Finishing up
-2021-12-16 15:19:37,075:INFO:Choosing frames to analyze
-2021-12-16 15:19:37,075:INFO:Starting preparation
-2021-12-16 15:19:37,099:INFO:Finishing up
-2021-12-16 15:19:37,099:INFO:Choosing frames to analyze
-2021-12-16 15:19:37,100:INFO:Starting preparation
-2021-12-16 15:19:37,123:INFO:Finishing up
-2021-12-16 15:19:37,124:INFO:Choosing frames to analyze
-2021-12-16 15:19:37,124:INFO:Starting preparation
-2021-12-16 15:19:37,147:INFO:Finishing up
-2021-12-16 15:19:37,148:INFO:Choosing frames to analyze
-2021-12-16 15:19:37,148:INFO:Starting preparation
-2021-12-16 15:19:37,171:INFO:Finishing up
-2021-12-16 15:19:37,173:INFO:--------------------------------------
+2022-02-23 15:45:09,919:INFO:Starting now with the calculation, please stand by...
+2022-02-23 15:45:09,919:INFO:☢
+2022-02-23 15:45:09,919:INFO:Analysis: Area per lipid & Thickness calculation
+2022-02-23 15:45:14,975:INFO:--------------------------------------
+2022-02-23 15:45:14,975:INFO:Analysis: Density maps
+2022-02-23 15:45:16,988:INFO:--------------------------------------
+2022-02-23 15:45:16,988:INFO:Analysis: Enrichment Analysis
+2022-02-23 15:45:21,530:INFO:--------------------------------------
+2022-02-23 15:45:21,530:INFO:Analysis: Diffusion movements
+2022-02-23 15:45:23,951:INFO:--------------------------------------
+2022-02-23 15:45:23,951:INFO:Analysis: Order Parameter
+2022-02-23 15:45:23,953:INFO:Choosing frames to analyze
+2022-02-23 15:45:23,953:INFO:Starting preparation
+2022-02-23 15:45:23,971:INFO:Finishing up
+2022-02-23 15:45:23,972:INFO:Choosing frames to analyze
+2022-02-23 15:45:23,972:INFO:Starting preparation
+2022-02-23 15:45:23,987:INFO:Finishing up
+2022-02-23 15:45:23,988:INFO:Choosing frames to analyze
+2022-02-23 15:45:23,989:INFO:Starting preparation
+2022-02-23 15:45:24,004:INFO:Finishing up
+2022-02-23 15:45:24,004:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,005:INFO:Starting preparation
+2022-02-23 15:45:24,025:INFO:Finishing up
+2022-02-23 15:45:24,026:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,026:INFO:Starting preparation
+2022-02-23 15:45:24,055:INFO:Finishing up
+2022-02-23 15:45:24,057:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,057:INFO:Starting preparation
+2022-02-23 15:45:24,079:INFO:Finishing up
+2022-02-23 15:45:24,080:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,080:INFO:Starting preparation
+2022-02-23 15:45:24,100:INFO:Finishing up
+2022-02-23 15:45:24,102:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,102:INFO:Starting preparation
+2022-02-23 15:45:24,120:INFO:Finishing up
+2022-02-23 15:45:24,120:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,121:INFO:Starting preparation
+2022-02-23 15:45:24,138:INFO:Finishing up
+2022-02-23 15:45:24,139:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,139:INFO:Starting preparation
+2022-02-23 15:45:24,158:INFO:Finishing up
+2022-02-23 15:45:24,159:INFO:Choosing frames to analyze
+2022-02-23 15:45:24,159:INFO:Starting preparation
+2022-02-23 15:45:24,177:INFO:Finishing up
+2022-02-23 15:45:24,182:INFO:--------------------------------------
+2022-02-23 16:55:20,379:INFO:Starting now with the calculation, please stand by...
+2022-02-23 16:55:20,380:INFO:☢
+2022-02-23 16:55:20,380:INFO:Analysis: Area per lipid & Thickness calculation
+2022-02-23 16:55:25,674:INFO:--------------------------------------
+2022-02-23 16:55:25,674:INFO:Analysis: Density maps
+2022-02-23 16:55:27,431:INFO:--------------------------------------
+2022-02-23 16:55:27,431:INFO:Analysis: Enrichment Analysis
+2022-02-23 16:55:31,720:INFO:--------------------------------------
+2022-02-23 16:55:31,720:INFO:Analysis: Diffusion movements
+2022-02-23 16:55:34,115:INFO:--------------------------------------
+2022-02-23 16:55:34,115:INFO:Analysis: Order Parameter
+2022-02-23 16:55:34,117:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,117:INFO:Starting preparation
+2022-02-23 16:55:34,144:INFO:Finishing up
+2022-02-23 16:55:34,146:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,146:INFO:Starting preparation
+2022-02-23 16:55:34,165:INFO:Finishing up
+2022-02-23 16:55:34,166:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,166:INFO:Starting preparation
+2022-02-23 16:55:34,189:INFO:Finishing up
+2022-02-23 16:55:34,190:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,190:INFO:Starting preparation
+2022-02-23 16:55:34,208:INFO:Finishing up
+2022-02-23 16:55:34,210:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,210:INFO:Starting preparation
+2022-02-23 16:55:34,225:INFO:Finishing up
+2022-02-23 16:55:34,226:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,227:INFO:Starting preparation
+2022-02-23 16:55:34,247:INFO:Finishing up
+2022-02-23 16:55:34,248:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,248:INFO:Starting preparation
+2022-02-23 16:55:34,267:INFO:Finishing up
+2022-02-23 16:55:34,268:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,268:INFO:Starting preparation
+2022-02-23 16:55:34,285:INFO:Finishing up
+2022-02-23 16:55:34,286:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,286:INFO:Starting preparation
+2022-02-23 16:55:34,304:INFO:Finishing up
+2022-02-23 16:55:34,305:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,305:INFO:Starting preparation
+2022-02-23 16:55:34,323:INFO:Finishing up
+2022-02-23 16:55:34,324:INFO:Choosing frames to analyze
+2022-02-23 16:55:34,324:INFO:Starting preparation
+2022-02-23 16:55:34,343:INFO:Finishing up
+2022-02-23 16:55:34,348:INFO:--------------------------------------

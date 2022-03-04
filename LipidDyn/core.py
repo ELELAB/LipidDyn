@@ -492,8 +492,8 @@ class FatslimCommands:
         self.gro = os.path.abspath(gro)
         self.headgroups_ndx_file = os.path.abspath(headgroups_ndx_file)
         self.ncore = ncore
-        self.apl_cutoff = float(apl_cutoff)
-        self.thk_cutoff = float(thk_cutoff)
+        self.apl_cutoff = apl_cutoff
+        self.thk_cutoff = thk_cutoff
     
     def membranes(self,
                   out_file):
@@ -537,7 +537,7 @@ class FatslimCommands:
         
              
         # the user modified the cut-off
-        if self.thk_cutoff != 2.0:
+        if self.thk_cutoff != 6.0:
             a = subprocess.call(['fatslim', 'thickness',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,
@@ -575,7 +575,7 @@ class FatslimCommands:
                 Name of the output file.
         """
         
-        if self.thk_cutoff != 2.0: 
+        if self.thk_cutoff != 6.0: 
             a = subprocess.call(['fatslim', 'thickness',
                                  '-c',self.gro,
                                  '-n',self.headgroups_ndx_file,

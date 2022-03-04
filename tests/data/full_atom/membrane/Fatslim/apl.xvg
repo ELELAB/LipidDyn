@@ -1,6 +1,6 @@
-# This file was created on Thu Dec 16 14:24:57 2021
+# This file was created on Wed Feb 23 16:58:34 2022
 # Created by: FATSLiM v.0.2.2
-# Command line: fatslim apl -c /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.gro -n /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/index_headgroups.ndx -t /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.xtc --nthread 2 --plot-apl /data/user/simone/test/LipidDyn/tests/data/full_atom/membrane/Fatslim/apl.xvg
+# Command line: fatslim apl -c /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.gro -n /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/index_headgroups.ndx -t /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/heterogeneous_membrane.xtc --nthread 4 --plot-apl /Users/sims/Desktop/LipidDyn/tests/data/full_atom/membrane/Fatslim/apl.xvg
 @TYPE xy
 @ title "Area per lipid"
 @ xaxis  label "Time (ps)"
