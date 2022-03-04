@@ -127,7 +127,7 @@ def module_fatslim(trajectory_file,
         fatslim_thickness = os.path.abspath(os.path.join(analysis_fatlism,
                                                          'fatslim_thickness'))
 
-        if not os.path.exists(fatslim_apl) 
+        if not os.path.exists(fatslim_apl) \
         or not os.path.exists(fatslim_thickness):
             try: 
                 os.mkdir((analysis_fatlism +'/fatslim_apl'))
