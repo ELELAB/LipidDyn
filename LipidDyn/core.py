@@ -365,30 +365,30 @@ class Density:
         """
         
         grid = np.zeros((self.n1,self.n2)) # grid with shape of n1 and n2 
-        g = self.selection # AtomGroups 
+        n1n2 = self.n1 * self.n2 
         for ts in trajectory: # begin cycle through traj
-            # divide by ten the coordinates to convert in nm
-            invcellvol = self.n1*self.n2
-            invcellvol /= np.linalg.det(ts.triclinic_dimensions*0.1)
-            for atom in g: 
-                # x coordinate of the atom divided by the x dimension of box
-                # find the fraction of box the atom is in on X
-                # divide by ten the coordinates to convert in nm
-                m1 = (atom.position[0]*0.1)/(ts.dimensions[0]*0.1) 
-                if  m1 >= 1 : 
-                    m1 -= 1 # pbc maybe subtracting 1 
-                if m1 < 0 : 
-                    m1 +=1
-                m2 = (atom.position[1]*0.1)/(ts.dimensions[1]*0.1)
-                if  m2 >= 1 : 
-                    m2 -= 1 # pbc maybe subtracting 1 
-                if m2 < 0 :
-                    m2 +=1
-                
-                grid[int(m1*self.n1)][int(m2*self.n2)] +=  invcellvol  
+            
+            invcellvol = n1n2 / np.linalg.det(ts.triclinic_dimensions)
+
+            # x coordinate of the atom divided by the x dimension of box
+            # find the fraction of box the atom is in on X 
+            m1 = self.selection.positions[:,0]/ts.dimensions[0]
+            m1[m1 >= 1.0] -= 1.0
+            m1[m1 < 0.0 ] += 1.0
+            m1 *= self.n1
+
+            m2 = self.selection.positions[:,1]/ts.dimensions[1]
+            m2[m2 >= 1.0 ] -= 1.0
+            m2[m2 <  0.0 ] += 1.0
+            m2 *= self.n2
+
+            grid_coords = np.array([m1, m2], dtype=np.int)
+
+            np.add.at(grid, tuple(grid_coords), invcellvol)
         l_grids.append(grid)
         return(l_grids)  
              
+
 
     def normalization(self,
                       final_grid):
@@ -399,8 +399,8 @@ class Density:
         box1 = 0
         box2 = 0 
         for ts in self.universe.trajectory:
-            box1 += (ts.dimensions[0]*0.1) # X coordinate
-            box2 += (ts.dimensions[1]*0.1) # Y coordinate
+            box1 += (ts.dimensions[0]) # X coordinate
+            box2 += (ts.dimensions[1]) # Y coordinate
  
         # normalize grid point by the number of frames        
         grid = np.true_divide(final_grid, len(self.universe.trajectory))  
@@ -413,7 +413,7 @@ class Density:
         grid = np.insert(grid, 0, tick_x, 0)   # add a row
         tick_y = np.append(0, tick_y)  # add one 0 to make the shape the same
         grid = np.insert(grid, 0, tick_y, 1)# add a column
-        grid = np.around(grid,decimals=5)
+        grid = np.around(grid, decimals=8)
         return(grid)
 
 
@@ -455,9 +455,10 @@ def dmap_multiprocessing(universe,
     # sum all the grids generated in multiple processes   
     final_grid = sum(list(final_grid))
     grid = dmap.normalization(final_grid) # normalize
+    grid[:,0] /= 10.0
+    grid[0,:] /= 10.0
+    grid[1:,1:] *= 1000.0
     return(grid)
-
-
 
 
 

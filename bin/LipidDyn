@@ -204,7 +204,8 @@ def module_densmap(universe,
         # output file
         np.savetxt(folder+"/"+leaflet+"_2dmap.dat",
                    grid,
-                   delimiter='\t',fmt='%1.4f')
+                   delimiter='\t',
+                   fmt='%1.4f')
         pbar.update((step/total_step)*100) # update status
         step += 1
     pbar.finish()
