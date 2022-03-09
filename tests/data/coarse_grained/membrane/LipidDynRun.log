@@ -1633,3 +1633,271 @@
 2022-02-23 16:46:12,890:INFO:Starting preparation
 2022-02-23 16:46:12,902:INFO:Finishing up
 2022-02-23 16:46:12,932:INFO:--------------------------------------
+2022-03-09 12:00:05,920:INFO:Starting now with the calculation, please stand by
+2022-03-09 12:00:05,921:INFO:☢
+2022-03-09 12:00:05,922:INFO:Analysis: Area per lipid & Thickness calculation
+2022-03-09 12:00:26,819:INFO:--------------------------------------
+2022-03-09 12:00:26,820:INFO:Analysis: Density maps
+2022-03-09 12:00:32,452:INFO:--------------------------------------
+2022-03-09 12:00:32,453:INFO:Analysis: Diffusion movements
+2022-03-09 12:00:46,576:INFO:--------------------------------------
+2022-03-09 12:00:46,576:INFO:Analysis: Order Parameter
+2022-03-09 12:00:46,579:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,579:INFO:Starting preparation
+2022-03-09 12:00:46,595:INFO:Finishing up
+2022-03-09 12:00:46,596:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,596:INFO:Starting preparation
+2022-03-09 12:00:46,609:INFO:Finishing up
+2022-03-09 12:00:46,610:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,610:INFO:Starting preparation
+2022-03-09 12:00:46,628:INFO:Finishing up
+2022-03-09 12:00:46,630:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,630:INFO:Starting preparation
+2022-03-09 12:00:46,649:INFO:Finishing up
+2022-03-09 12:00:46,650:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,650:INFO:Starting preparation
+2022-03-09 12:00:46,666:INFO:Finishing up
+2022-03-09 12:00:46,667:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,667:INFO:Starting preparation
+2022-03-09 12:00:46,680:INFO:Finishing up
+2022-03-09 12:00:46,684:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,684:INFO:Starting preparation
+2022-03-09 12:00:46,710:INFO:Finishing up
+2022-03-09 12:00:46,712:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,712:INFO:Starting preparation
+2022-03-09 12:00:46,735:INFO:Finishing up
+2022-03-09 12:00:46,737:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,737:INFO:Starting preparation
+2022-03-09 12:00:46,763:INFO:Finishing up
+2022-03-09 12:00:46,766:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,766:INFO:Starting preparation
+2022-03-09 12:00:46,789:INFO:Finishing up
+2022-03-09 12:00:46,791:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,791:INFO:Starting preparation
+2022-03-09 12:00:46,815:INFO:Finishing up
+2022-03-09 12:00:46,816:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,817:INFO:Starting preparation
+2022-03-09 12:00:46,841:INFO:Finishing up
+2022-03-09 12:00:46,844:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,844:INFO:Starting preparation
+2022-03-09 12:00:46,859:INFO:Finishing up
+2022-03-09 12:00:46,862:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,862:INFO:Starting preparation
+2022-03-09 12:00:46,877:INFO:Finishing up
+2022-03-09 12:00:46,878:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,878:INFO:Starting preparation
+2022-03-09 12:00:46,893:INFO:Finishing up
+2022-03-09 12:00:46,894:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,894:INFO:Starting preparation
+2022-03-09 12:00:46,909:INFO:Finishing up
+2022-03-09 12:00:46,910:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,910:INFO:Starting preparation
+2022-03-09 12:00:46,925:INFO:Finishing up
+2022-03-09 12:00:46,926:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,926:INFO:Starting preparation
+2022-03-09 12:00:46,940:INFO:Finishing up
+2022-03-09 12:00:46,941:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,941:INFO:Starting preparation
+2022-03-09 12:00:46,955:INFO:Finishing up
+2022-03-09 12:00:46,956:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,956:INFO:Starting preparation
+2022-03-09 12:00:46,969:INFO:Finishing up
+2022-03-09 12:00:46,970:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,970:INFO:Starting preparation
+2022-03-09 12:00:46,983:INFO:Finishing up
+2022-03-09 12:00:46,984:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,985:INFO:Starting preparation
+2022-03-09 12:00:46,997:INFO:Finishing up
+2022-03-09 12:00:46,998:INFO:Choosing frames to analyze
+2022-03-09 12:00:46,999:INFO:Starting preparation
+2022-03-09 12:00:47,012:INFO:Finishing up
+2022-03-09 12:00:47,014:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,014:INFO:Starting preparation
+2022-03-09 12:00:47,039:INFO:Finishing up
+2022-03-09 12:00:47,041:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,041:INFO:Starting preparation
+2022-03-09 12:00:47,065:INFO:Finishing up
+2022-03-09 12:00:47,066:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,066:INFO:Starting preparation
+2022-03-09 12:00:47,090:INFO:Finishing up
+2022-03-09 12:00:47,092:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,092:INFO:Starting preparation
+2022-03-09 12:00:47,117:INFO:Finishing up
+2022-03-09 12:00:47,118:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,118:INFO:Starting preparation
+2022-03-09 12:00:47,142:INFO:Finishing up
+2022-03-09 12:00:47,144:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,144:INFO:Starting preparation
+2022-03-09 12:00:47,168:INFO:Finishing up
+2022-03-09 12:00:47,169:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,169:INFO:Starting preparation
+2022-03-09 12:00:47,183:INFO:Finishing up
+2022-03-09 12:00:47,184:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,184:INFO:Starting preparation
+2022-03-09 12:00:47,199:INFO:Finishing up
+2022-03-09 12:00:47,200:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,200:INFO:Starting preparation
+2022-03-09 12:00:47,215:INFO:Finishing up
+2022-03-09 12:00:47,217:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,217:INFO:Starting preparation
+2022-03-09 12:00:47,231:INFO:Finishing up
+2022-03-09 12:00:47,232:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,232:INFO:Starting preparation
+2022-03-09 12:00:47,246:INFO:Finishing up
+2022-03-09 12:00:47,247:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,248:INFO:Starting preparation
+2022-03-09 12:00:47,261:INFO:Finishing up
+2022-03-09 12:00:47,263:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,263:INFO:Starting preparation
+2022-03-09 12:00:47,277:INFO:Finishing up
+2022-03-09 12:00:47,278:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,278:INFO:Starting preparation
+2022-03-09 12:00:47,292:INFO:Finishing up
+2022-03-09 12:00:47,293:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,294:INFO:Starting preparation
+2022-03-09 12:00:47,307:INFO:Finishing up
+2022-03-09 12:00:47,309:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,309:INFO:Starting preparation
+2022-03-09 12:00:47,323:INFO:Finishing up
+2022-03-09 12:00:47,324:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,324:INFO:Starting preparation
+2022-03-09 12:00:47,339:INFO:Finishing up
+2022-03-09 12:00:47,342:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,342:INFO:Starting preparation
+2022-03-09 12:00:47,356:INFO:Finishing up
+2022-03-09 12:00:47,357:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,357:INFO:Starting preparation
+2022-03-09 12:00:47,371:INFO:Finishing up
+2022-03-09 12:00:47,372:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,373:INFO:Starting preparation
+2022-03-09 12:00:47,386:INFO:Finishing up
+2022-03-09 12:00:47,387:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,387:INFO:Starting preparation
+2022-03-09 12:00:47,403:INFO:Finishing up
+2022-03-09 12:00:47,404:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,404:INFO:Starting preparation
+2022-03-09 12:00:47,419:INFO:Finishing up
+2022-03-09 12:00:47,420:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,420:INFO:Starting preparation
+2022-03-09 12:00:47,435:INFO:Finishing up
+2022-03-09 12:00:47,436:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,436:INFO:Starting preparation
+2022-03-09 12:00:47,450:INFO:Finishing up
+2022-03-09 12:00:47,451:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,451:INFO:Starting preparation
+2022-03-09 12:00:47,466:INFO:Finishing up
+2022-03-09 12:00:47,468:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,468:INFO:Starting preparation
+2022-03-09 12:00:47,481:INFO:Finishing up
+2022-03-09 12:00:47,482:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,483:INFO:Starting preparation
+2022-03-09 12:00:47,497:INFO:Finishing up
+2022-03-09 12:00:47,498:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,498:INFO:Starting preparation
+2022-03-09 12:00:47,512:INFO:Finishing up
+2022-03-09 12:00:47,513:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,513:INFO:Starting preparation
+2022-03-09 12:00:47,527:INFO:Finishing up
+2022-03-09 12:00:47,528:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,528:INFO:Starting preparation
+2022-03-09 12:00:47,543:INFO:Finishing up
+2022-03-09 12:00:47,544:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,544:INFO:Starting preparation
+2022-03-09 12:00:47,558:INFO:Finishing up
+2022-03-09 12:00:47,559:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,559:INFO:Starting preparation
+2022-03-09 12:00:47,573:INFO:Finishing up
+2022-03-09 12:00:47,574:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,574:INFO:Starting preparation
+2022-03-09 12:00:47,587:INFO:Finishing up
+2022-03-09 12:00:47,588:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,588:INFO:Starting preparation
+2022-03-09 12:00:47,601:INFO:Finishing up
+2022-03-09 12:00:47,602:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,603:INFO:Starting preparation
+2022-03-09 12:00:47,617:INFO:Finishing up
+2022-03-09 12:00:47,618:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,618:INFO:Starting preparation
+2022-03-09 12:00:47,631:INFO:Finishing up
+2022-03-09 12:00:47,632:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,632:INFO:Starting preparation
+2022-03-09 12:00:47,646:INFO:Finishing up
+2022-03-09 12:00:47,647:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,647:INFO:Starting preparation
+2022-03-09 12:00:47,660:INFO:Finishing up
+2022-03-09 12:00:47,661:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,661:INFO:Starting preparation
+2022-03-09 12:00:47,674:INFO:Finishing up
+2022-03-09 12:00:47,676:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,676:INFO:Starting preparation
+2022-03-09 12:00:47,724:INFO:Finishing up
+2022-03-09 12:00:47,726:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,726:INFO:Starting preparation
+2022-03-09 12:00:47,774:INFO:Finishing up
+2022-03-09 12:00:47,776:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,776:INFO:Starting preparation
+2022-03-09 12:00:47,826:INFO:Finishing up
+2022-03-09 12:00:47,831:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,832:INFO:Starting preparation
+2022-03-09 12:00:47,884:INFO:Finishing up
+2022-03-09 12:00:47,887:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,887:INFO:Starting preparation
+2022-03-09 12:00:47,936:INFO:Finishing up
+2022-03-09 12:00:47,938:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,939:INFO:Starting preparation
+2022-03-09 12:00:47,985:INFO:Finishing up
+2022-03-09 12:00:47,987:INFO:Choosing frames to analyze
+2022-03-09 12:00:47,987:INFO:Starting preparation
+2022-03-09 12:00:47,999:INFO:Finishing up
+2022-03-09 12:00:48,001:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,001:INFO:Starting preparation
+2022-03-09 12:00:48,014:INFO:Finishing up
+2022-03-09 12:00:48,015:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,015:INFO:Starting preparation
+2022-03-09 12:00:48,028:INFO:Finishing up
+2022-03-09 12:00:48,030:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,030:INFO:Starting preparation
+2022-03-09 12:00:48,043:INFO:Finishing up
+2022-03-09 12:00:48,044:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,044:INFO:Starting preparation
+2022-03-09 12:00:48,057:INFO:Finishing up
+2022-03-09 12:00:48,059:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,059:INFO:Starting preparation
+2022-03-09 12:00:48,071:INFO:Finishing up
+2022-03-09 12:00:48,072:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,072:INFO:Starting preparation
+2022-03-09 12:00:48,088:INFO:Finishing up
+2022-03-09 12:00:48,089:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,089:INFO:Starting preparation
+2022-03-09 12:00:48,103:INFO:Finishing up
+2022-03-09 12:00:48,104:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,104:INFO:Starting preparation
+2022-03-09 12:00:48,120:INFO:Finishing up
+2022-03-09 12:00:48,121:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,121:INFO:Starting preparation
+2022-03-09 12:00:48,136:INFO:Finishing up
+2022-03-09 12:00:48,138:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,138:INFO:Starting preparation
+2022-03-09 12:00:48,151:INFO:Finishing up
+2022-03-09 12:00:48,152:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,152:INFO:Starting preparation
+2022-03-09 12:00:48,167:INFO:Finishing up
+2022-03-09 12:00:48,168:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,168:INFO:Starting preparation
+2022-03-09 12:00:48,181:INFO:Finishing up
+2022-03-09 12:00:48,182:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,182:INFO:Starting preparation
+2022-03-09 12:00:48,195:INFO:Finishing up
+2022-03-09 12:00:48,197:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,197:INFO:Starting preparation
+2022-03-09 12:00:48,210:INFO:Finishing up
+2022-03-09 12:00:48,211:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,211:INFO:Starting preparation
+2022-03-09 12:00:48,224:INFO:Finishing up
+2022-03-09 12:00:48,226:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,226:INFO:Starting preparation
+2022-03-09 12:00:48,239:INFO:Finishing up
+2022-03-09 12:00:48,240:INFO:Choosing frames to analyze
+2022-03-09 12:00:48,240:INFO:Starting preparation
+2022-03-09 12:00:48,253:INFO:Finishing up
+2022-03-09 12:00:48,288:INFO:--------------------------------------

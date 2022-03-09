@@ -1,4 +1,4 @@
-# This file was created on Wed Feb 23 16:55:25 2022
+# This file was created on Wed Mar  9 13:19:10 2022
 # Created by: FATSLiM v.0.2.2
 # Command line: fatslim apl -c /Users/sims/Desktop/LipidDyn/tests/data/coarse_grained/membrane_protein/heterogeneous_membrane_protein.gro -n /Users/sims/Desktop/LipidDyn/tests/data/coarse_grained/membrane_protein/index_headgroups.ndx -t /Users/sims/Desktop/LipidDyn/tests/data/coarse_grained/membrane_protein/heterogeneous_membrane_protein.xtc --nthread 4 --plot-apl /Users/sims/Desktop/LipidDyn/tests/data/coarse_grained/membrane_protein/Fatslim/apl.xvg
 @TYPE xy
