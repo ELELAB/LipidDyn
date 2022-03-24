@@ -54,8 +54,14 @@ def plotting(data,xlab,ylab,title,out,s):
 
     df = pd.read_csv(data)
     df.columns= df.columns.str.rstrip()
+    
+    
+    if s == 'scc' and df['atom2'].str.contains('H').any():  # if scc option is given check if H atoms are present
+           
+        parser.error('Wrong argument provided for all-atom -s option: choose sch') #raise error
 
-    if s == 'sch':
+    elif  s == 'sch' and df['atom2'].str.contains('H').any(): # if sch option is given check if H atoms are present
+
         if not ylab:
             ylab = '$S_{CH}$'
 
@@ -73,7 +79,12 @@ def plotting(data,xlab,ylab,title,out,s):
         plt.legend(('Sn1', 'Sn2'), loc='upper right', shadow=True)
         plt.savefig(out,dpi = 300)
 
-    if s == 'scc':
+    if s == 'sch' and not df['atom2'].str.contains('H').any(): # if sch option is given check if the file does not contain H atoms
+
+        parser.error('Wrong argument provided for coarse-grained -s option: choose scc') # raise error
+
+    elif s == 'scc' and not df['atom2'].str.contains('H').any(): # if scc option is given check if the file does not contain H atoms
+        
         if not ylab:
             ylab = '$S_{CC}$'
 
@@ -95,7 +106,7 @@ def plotting(data,xlab,ylab,title,out,s):
 
 
 usage = ('ordpar -i ["".csv] -xlab [xlabel] -ylab [xlabel]' \
-         '-t [Title of the plot] -o ["".png/pdf] -s [str]')
+         '-t [Title of the plot] -o ["".png/pdf] -s [scc/sch]')
 
 description='This script is to plot the average values of '\
              'order parameter per C atom in the lipid tail.'\
@@ -158,7 +169,7 @@ parser.add_argument('-s',
                     dest='op_metric',
                     type=str,
                     required=True,
-                    help='str to specify which OP to plot (scc/sch)')
+                    help='string to specify which OP metric to plot (sch/scc)')
 
 args = parser.parse_args()
 
