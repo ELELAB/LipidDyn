@@ -96,7 +96,9 @@ Install numpy with:
 ```
 pip install numpy
 ```
-
+```
+pip install packaging
+```
 Install LipidDyn with:
 
 ```
@@ -152,6 +154,7 @@ source LipidDyn_env/bin/activate
 Then proceed normally as explained above : 
 ```
 pip install numpy
+pip install packaging
 git clone https://github.com/ELELAB/LipidDyn.git
 cd LipidDyn/
 python setup.py install
