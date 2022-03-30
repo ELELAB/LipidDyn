@@ -69,20 +69,26 @@ def plotting(data,
     fig, ax = plt.subplots()
 
     # get the min max density limits to plot 
-    if min_dens:
+    if min_dens is not None:
+        
         min_d = min_dens
+    
     else:
+        
         min_d = data.min()
+        
 
-    if max_dens:
+    if max_dens is not None:
+       
         max_d = max_dens
+    
     else:
+        
         max_d = data.max() 
 
     
 
     if enrichment:
-        # define center and min/max limits of the cmap
         
         plot = plt.imshow(data,
                           cmap=cmap,
@@ -92,7 +98,7 @@ def plotting(data,
                           extent=[xticks[0],xticks[-1],yticks[0], yticks[-1]])
                              
     else:
-
+        
         plot = plt.imshow(data,
                           cmap=cmap,
                           vmin=min_d,
@@ -232,7 +238,6 @@ array = np.loadtxt(dat, dtype=float)
 xticks = array[0,1:]
 yticks = array[1:,0]
 data = array[1:,1:]
-
 plotting(data,enr,cmap,title,min_dens,max_dens,xticks,yticks,ticks_num,out)
 
 
