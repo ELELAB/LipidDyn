@@ -32,7 +32,7 @@ sns.set()
 
 
 
-def plotting(data,xlab,ylab,title,out,s):
+def plotting(data,xlab,ylab,title,out,min_op, max_op,s):
 
     """
     Parameters
@@ -47,6 +47,11 @@ def plotting(data,xlab,ylab,title,out,s):
             string containing the title
     out : str 
             string containing the output filename
+    
+    min_op: float to define the lower limit OP value
+
+    max_op: float to define the upper limit OP value
+    
     s : str 
             string containing the name of the op metric
 
@@ -54,6 +59,29 @@ def plotting(data,xlab,ylab,title,out,s):
 
     df = pd.read_csv(data)
     df.columns= df.columns.str.rstrip()
+
+    # set min OP value 
+    if min_op is not None: 
+        
+        min_scc = min_op   
+        min_sch = min_op
+    
+    else:
+        
+        min_scc = df['OP_mean'].min() - 0.05 
+        min_sch = (-df['OP_mean']).min() - 0.05
+    
+    # set max OP value
+    if max_op is not None:
+        
+        max_scc = max_op
+        max_sch = max_op
+    
+    else:
+        
+        max_scc = df['OP_mean'].max() + 0.05
+        max_sch = (-df['OP_mean']).max() + 0.05
+        
     
     
     if s == 'scc' and df['atom2'].str.contains('H').any():  # if scc option is given check if H atoms are present
@@ -66,11 +94,15 @@ def plotting(data,xlab,ylab,title,out,s):
             ylab = '$S_{CH}$'
 
         for sn in ['sn1','sn2']:
+            
             df1 = df[df['OP_name'].str.contains(sn)] # split in sn1 and sn2            
             sn_x = df1['atom2'].str[1:-1] # extract the x axis
             sn_y = df1['OP_mean'] # extract the y axis
-
+            
             plt.plot(sn_x,-sn_y,antialiased=True,marker='_')
+
+        
+        plt.ylim(min_sch, max_sch)
         plt.xticks(rotation=45, fontsize=6)
         plt.yticks(fontsize=6)
         plt.xlabel(xlab)
@@ -89,14 +121,16 @@ def plotting(data,xlab,ylab,title,out,s):
             ylab = '$S_{CC}$'
 
         for sn in ['sn1','sn2']:
+            
             df1 = df[df['OP_name'].str.contains(sn)]
             sn_x = df1['atom1'].str[0::]+"_"+df1['atom2'].str[0::]
             sn_y = df1['OP_mean']
             plt.plot(sn_x, sn_y, antialiased=True, marker='_')
+        
         plt.xticks(fontsize=8)
-        plt.yticks(fontsize=8)
         plt.xlabel(xlab, fontsize=8)  # rotate xlab
         plt.ylabel(ylab, fontsize=8)  
+        plt.ylim(min_scc, max_scc)
         plt.title(title)
         plt.legend(('Sn1', 'Sn2'), loc='upper right', shadow=True, prop={'size':7})
         plt.savefig(out,dpi = 300)           
@@ -106,7 +140,8 @@ def plotting(data,xlab,ylab,title,out,s):
 
 
 usage = ('ordpar -i ["".csv] -xlab [xlabel] -ylab [xlabel]' \
-         '-t [Title of the plot] -o ["".png/pdf] -s [scc/sch]')
+         '-t [Title of the plot] -o ["".png/pdf] -s [scc/sch]' \
+         '-min[float] -max[float]')
 
 description='This script is to plot the average values of '\
              'order parameter per C atom in the lipid tail.'\
@@ -164,6 +199,22 @@ parser.add_argument('-out',
                     help='output name of the file',
                     )
 
+parser.add_argument('-min',
+                    '--minimum_op',
+                    dest='minimum_op',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='Minimum order parameter value in the plotting') 
+
+parser.add_argument('-max',
+                    '--maximum_op',
+                    dest='maximum_op',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='Maximum order parameter value in the plotting') 
+
 parser.add_argument('-s',
                     '--op-metric',
                     dest='op_metric',
@@ -178,7 +229,9 @@ xlab = args.xlabel
 ylab = args.ylabel
 out = args.output
 title = args.title
+min_op = args.minimum_op
+max_op = args.maximum_op
 s = args.op_metric
 
 
-plotting(data,xlab,ylab,title,out,s)
+plotting(data,xlab,ylab,title,out,min_op,max_op,s)
