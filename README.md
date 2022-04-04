@@ -328,6 +328,9 @@ Access the folder with the terminal and run :
 ordpar -i Order_Parameter_lipid_residue.csv -o custom_name.pdf -s [scc/sch]
 ```
 
+**N.B.**<br/>
+If you want to customize the range of order parameter values to visualize in the ```ordpar``` output plot, you can adjust the upper and lower limits of the SCH/SCC values specifying the flag ```-min``` and ```-max```
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](LICENSE.md) file for details
