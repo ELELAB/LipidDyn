@@ -325,7 +325,8 @@ class Density:
 
     def __init__ (self,
                   universe,
-                  selection
+                  ncore,
+                  bin_size = 0.02
                   ):
 
         """Initialize the class 
@@ -338,22 +339,78 @@ class Density:
             MDAnalysis AtomGroups selections   
         """
         self.universe = universe
-        self.selection = selection
+        self.bin_size = bin_size
+        self.ncore = ncore 
 
-        bins = 0.02
         ts = self.universe.trajectory[0] 
         # divide by ten the coordinates to convert in nm 
-        self.n1 =  int(round((ts.dimensions[0]*0.1)/bins)) # X coordinate of box
-        self.n2 =  int(round((ts.dimensions[1]*0.1)/bins)) # Y coordinate of box
+        self.n1 =  int(round((ts.dimensions[0]*0.1)/self.bin_size)) # X coordinate of box
+        self.n2 =  int(round((ts.dimensions[1]*0.1)/self.bin_size)) # Y coordinate of box
        
 
-    def do2dgrid(self,
-                 trajectory,
-                 l_grids):
+    def multiprocessing(self,
+                        selection):
+        
+        """Function to parallelize and speed up the 
+           calculations of the 2D density maps.
 
-        """Execute the membranes command of fatslim,
-        which identifies the upper and lower leaflet of
-        a membrane simulation.
+
+            Parameters
+            -------------
+            universe : class 
+                MDAnalysis universe class
+            selection : MDAnalysis AtomGroup
+            ncore : int
+                Number of core to use for multiprocessing
+
+            Return:
+            ------------
+            grid: numpy.array
+                Numpy array containig the normalized density 
+                values
+        """
+
+        u = self.universe
+        ncore = self.ncore
+
+        # divide the frames in chunk      
+        chunk = [u.trajectory[x:x+int(len(u.trajectory)/ncore)] 
+                for x in np.linspace(0,
+                                     len(u.trajectory),
+                                     int(np.ceil(len(u.trajectory)/ncore)),
+                                     dtype=int)]
+        
+        # can be shared between processes         
+        final_grid = mp.Manager().list()  
+        processes = []
+        for slices in chunk:
+            # Passing the list
+            p = mp.Process(target=self.calculate_density,
+                           args=(selection,
+                                 slices,
+                                 final_grid))  
+            p.start()
+            processes.append(p)
+        for p in processes:
+            p.join()
+            
+        # sum all the grids generated in multiple processes   
+        final_grid = sum(list(final_grid))
+        grid = self.average(final_grid) # normalize
+        grid[:,0] /= 10.0
+        grid[0,:] /= 10.0
+        grid[1:,1:] *= 1000.0
+        return(grid)
+
+    def calculate_density(self,
+                          selection,
+                          trajectory,
+                          l_grids):
+
+        """Calculate the density following Gromacs algorithm.
+           The computed density is appended to a Manager() 
+           type list object from Multiprocessing library to
+           speed up the calculation.
 
         Parameters
         ----------
@@ -362,6 +419,11 @@ class Density:
         l_grids : Object/list
               Manager() type list object from Multiprocessing library.
               It is shared between processes
+        
+        Return:
+        ----------
+        l_grids : Object/list
+              Manager() type list object from Multiprocessing library.
         """
         
         grid = np.zeros((self.n1,self.n2)) # grid with shape of n1 and n2 
@@ -372,12 +434,12 @@ class Density:
 
             # x coordinate of the atom divided by the x dimension of box
             # find the fraction of box the atom is in on X 
-            m1 = self.selection.positions[:,0]/ts.dimensions[0]
+            m1 = selection.positions[:,0]/ts.dimensions[0]
             m1[m1 >= 1.0] -= 1.0
             m1[m1 < 0.0 ] += 1.0
             m1 *= self.n1
 
-            m2 = self.selection.positions[:,1]/ts.dimensions[1]
+            m2 = selection.positions[:,1]/ts.dimensions[1]
             m2[m2 >= 1.0 ] -= 1.0
             m2[m2 <  0.0 ] += 1.0
             m2 *= self.n2
@@ -385,15 +447,23 @@ class Density:
             grid_coords = np.array([m1, m2], dtype=np.int)
 
             np.add.at(grid, tuple(grid_coords), invcellvol)
-        l_grids.append(grid)
-        return(l_grids)  
+        l_grids.append(grid) 
+        return(l_grids)  # return list object for multiprocessing library
              
 
 
-    def normalization(self,
-                      final_grid):
-        """
+    def average(self,
+                final_grid):
+        
+        """Time averaging of the density maps array
+
+        Parameters
+        ----------
         final_grid : numpy array
+
+        Return:
+        ----------
+        grid : numpy array
         """
 
         box1 = 0
@@ -417,48 +487,6 @@ class Density:
         return(grid)
 
 
-
-def dmap_multiprocessing(universe,
-                         selection,
-                         ncore):
-    
-    """Function to compute 2D density maps 
-
-        Parameters
-        -------------
-        universe : class 
-            MDAnalysis universe class
-        selection : MDAnalysis AtomGroup
-        ncore : int
-            Number of core to use for multiprocessing
-    """
-
-
-    # initialize class with the the respective AtomGroup
-    u = universe
-    dmap = Density(u,selection)
-    # divide the frames in chunk 
-    chunk = [u.trajectory[x:x+int(len(u.trajectory)/ncore)] 
-             for x in range(0,len(u.trajectory),
-             int(len(u.trajectory)/ncore))]
-    # can be shared between processes         
-    final_grid = mp.Manager().list()  
-    processes = []
-    for slices in chunk:
-        # Passing the list
-        p = mp.Process(target=dmap.do2dgrid, args=(slices,final_grid))  
-        p.start()
-        processes.append(p)
-    for p in processes:
-        p.join()
-        
-    # sum all the grids generated in multiple processes   
-    final_grid = sum(list(final_grid))
-    grid = dmap.normalization(final_grid) # normalize
-    grid[:,0] /= 10.0
-    grid[0,:] /= 10.0
-    grid[1:,1:] *= 1000.0
-    return(grid)
 
 
 
