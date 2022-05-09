@@ -335,8 +335,8 @@ class Density:
         -------------
         universe : object 
             MDAnalysis universe object
-        selection : object
-            MDAnalysis AtomGroups selections   
+        ncore : int 
+            Number of cores employed for the calculation    
         """
         self.universe = universe
         self.bin_size = bin_size
@@ -357,11 +357,7 @@ class Density:
 
             Parameters
             -------------
-            universe : class 
-                MDAnalysis universe class
             selection : MDAnalysis AtomGroup
-            ncore : int
-                Number of core to use for multiprocessing
 
             Return:
             ------------
@@ -374,20 +370,24 @@ class Density:
         ncore = self.ncore
 
         # divide the frames in chunk      
-        chunk = [u.trajectory[x:x+int(len(u.trajectory)/ncore)] 
-                for x in np.linspace(0,
-                                     len(u.trajectory),
-                                     int(np.ceil(len(u.trajectory)/ncore)),
-                                     dtype=int)]
-        
+        chunks= np.linspace(0, 
+                            len(u.trajectory)-1, 
+                            ncore+1, 
+                            dtype=int)
+
+        traj_sliced=[]
+        for ix, i in enumerate(chunks[:-1]):
+            traj_sliced.append(u.trajectory[i:chunks[ix+1]])
+             
+ 
         # can be shared between processes         
         final_grid = mp.Manager().list()  
         processes = []
-        for slices in chunk:
+        for piece in traj_sliced:
             # Passing the list
             p = mp.Process(target=self.calculate_density,
                            args=(selection,
-                                 slices,
+                                 piece,
                                  final_grid))  
             p.start()
             processes.append(p)
@@ -414,6 +414,8 @@ class Density:
 
         Parameters
         ----------
+        selection : object
+            MDAnalysis AtomGroups selections
         trajectory : object
               MDAnalysis universe.trajectory object
         l_grids : Object/list
