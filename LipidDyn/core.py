@@ -333,8 +333,10 @@ class Density:
 
         Parameters
         -------------
-        universe : object 
+        universe : MDAnalysis.core.universe.Universe object 
             MDAnalysis universe object
+        bin_size : float
+            Bin size for the grid spacing
         ncore : int 
             Number of cores employed for the calculation    
         """
@@ -357,11 +359,12 @@ class Density:
 
             Parameters
             -------------
-            selection : MDAnalysis AtomGroup
+            selection : MDAnalysis.core.groups.AtomGroup object
+                selection of atoms on which density will be calculated
 
-            Return:
+            Returns:
             ------------
-            grid: numpy.array
+            grid: numpy.ndarray object
                 Numpy array containig the normalized density 
                 values
         """
@@ -371,7 +374,7 @@ class Density:
 
         # divide the frames in chunk      
         chunks= np.linspace(0, 
-                            len(u.trajectory)-1, 
+                            len(u.trajectory), 
                             ncore+1, 
                             dtype=int)
 
@@ -414,15 +417,14 @@ class Density:
 
         Parameters
         ----------
-        selection : object
-            MDAnalysis AtomGroups selections
-        trajectory : object
-              MDAnalysis universe.trajectory object
+        selection : MDAnalysis.core.groups.AtomGroup object
+                selection of atoms on which density will be calculated
+        trajectory : MDAnalysis.coordinates.XTC.XTCReader object
+              MDAnalysis trajectory 
         l_grids : Object/list
-              Manager() type list object from Multiprocessing library.
-              It is shared between processes
+              Manager() type list object from Multiprocessing library
         
-        Return:
+        Returns:
         ----------
         l_grids : Object/list
               Manager() type list object from Multiprocessing library.
@@ -461,11 +463,13 @@ class Density:
 
         Parameters
         ----------
-        final_grid : numpy array
+        final_grid : numpy.ndarray object
+            Numpy array containing the grid not averaged
 
-        Return:
+        Returns:
         ----------
-        grid : numpy array
+        grid : numpy.ndarray object 
+            Numpy array containing the final values of the 2D density maps
         """
 
         box1 = 0
