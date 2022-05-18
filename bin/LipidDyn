@@ -194,17 +194,17 @@ def module_densmap(universe,
     pbar = ProgressBar().start()
     total_step = 2
     step = 1
-    u = universe
+    dmap = Density(universe,ncore)
     
     for leaflet in leaflets:
+        leaflet_atoms = leaflets[leaflet].residues.atoms
         # compute density maps for each leaflet
-        grid = dmap_multiprocessing(u,
-                                    leaflets[leaflet].residues.atoms,
-                                    ncore)
+        grid = dmap.multiprocessing(leaflet_atoms)
         # output file
         np.savetxt(folder+"/"+leaflet+"_2dmap.dat",
                    grid,
-                   delimiter='\t',fmt='%1.4f')
+                   delimiter='\t',
+                   fmt='%1.4f')
         pbar.update((step/total_step)*100) # update status
         step += 1
     pbar.finish()

@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 LipidDyn/__pycache__/
+*.xtc_offsets.npz
 
 # OS generated file
 .DS_Store
