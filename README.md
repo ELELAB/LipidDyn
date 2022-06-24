@@ -335,6 +335,15 @@ If you want to customize the range of order parameter values to visualize in the
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](LICENSE.md) file for details
 
+## Citation
+
+If you use this software, please cite it as follows:
+
+```
+Unraveling membrane properties at the organelle-level with LipidDyn
+Simone Scrima, Matteo Tiberti, Alessia Campo, Elisabeth Corcelle-Termeau, Delphine Judith, Mads Møller Foged, Knut Kristoffer Bundgaard Clemmensen, Sharon Tooze, Marja Jäättelä, Kenji Maeda, Matteo Lambrughi, Elena Papaleo
+bioRxiv 2022.01.04.474788; doi: https://doi.org/10.1101/2022.01.04.474788
+```
 
 
 ## References
