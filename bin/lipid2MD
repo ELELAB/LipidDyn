@@ -1,0 +1,324 @@
+#!/usr/bin/env python
+
+# Copyright (C) 2019, Simone Scrima, Alessia Campo, Matteo Tiberti
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+import os
+import os.path as path
+import argparse
+import shutil
+from pathlib import Path
+import glob
+import numpy as np
+import logging
+import pandas as pd 
+import requests
+import tempfile
+import yaml
+import re
+# -*- coding: utf-8 -*-
+pd.set_option('display.max_rows', 1000)
+
+def retrieve_LMSD():
+    
+    # Url LMSD
+    url = 'https://www.lipidmaps.org/rest/compound/lm_id/LM/all/download' 
+    
+    # Retrieve the whole database of lipids and write a tmp file and
+    # retrieve only the name, synonim, ID, systematic name, ID chain
+    #           ,,,
+           
+           
+    col = ['lm_id',
+           'name', 
+           'sys_name',
+           'synonyms',
+           'abbrev',
+           'abbrev_chains']
+    
+    with tempfile.NamedTemporaryFile(mode = 'w+') as tmp:
+        response = requests.get(url)
+        tmp.write(response.text)
+        tmp.seek(0, 0)
+        df= pd.read_table(tmp,
+                          usecols=col,
+                          skiprows=1) # skip date of download i.e first line
+    
+    return(df)
+
+def find_match_LMSD(dataset,
+                    dataframe_LMSD):
+    
+    """Parameters
+        -------------
+        dataset : pandas.dataframe object 
+            Dataframe containing lipid species and 
+            their concentration 
+        dataframe_LMSD : pandas.dataframe object 
+            Dataframe containing the lipids downloaded
+            from Lipidmaps.org   
+    """
+    
+    # Open the lipidomics dataset and 
+    # search the LMSD dataframe for the matches
+    # Return a filtered dataframe
+
+    l = []
+    for lipid_id in dataset['Species']:   
+        for column_name in dataframe_LMSD:
+            l.append(dataframe_LMSD[
+                        dataframe_LMSD[
+                            column_name].str.fullmatch(lipid_id,
+                                                       na=False,
+                                                       )])
+
+    
+    final_df = pd.concat(l, ignore_index=True)
+    return(final_df)
+
+def find_match_ff(dataset,
+                  def_lipids,
+                  filtered_dataset):
+    
+    """Parameters
+        -------------
+        def_lipids : yaml.dictionary object 
+            yaml dictionary containing the
+            the definition of lipids from the 
+            force fied
+        filtered_dataset : pandas.dataframe object 
+            Dataframe containing the lipidmaps 
+            filtered dataset
+    """
+
+    match = []
+    #cycle through lipid classes
+
+    for lm_id,name, abbrev, abbrev_chains in zip(filtered_dataset.lm_id,
+                                                 filtered_dataset.name,
+                                                 filtered_dataset.abbrev,
+                                                 filtered_dataset.abbrev_chains):
+        try:
+            name = name.rstrip() # get name from lipidmaps
+            lipid_class = abbrev.split()[0] #get lipid class i.e PS, PA ...
+            # cycle through the definitions of lipids of ff in the config file
+            for lipid_species in def_lipids['charmm36'][lipid_class]:
+                ffs_name = lipid_species[0]  # get the ff name of the lipid
+                ffs_chain = lipid_species[1].rstrip() # original ffs chain def
+                # check if the ffs defition correspond to lipidmaps
+                if ffs_chain == name: 
+                    match.append([lm_id,
+                                  name,
+                                  abbrev,
+                                  abbrev_chains,
+                                  ffs_name,
+                                  lipid_species[1]])
+                else:
+                    continue
+ 
+        except:
+            continue
+          
+                
+
+
+    # generate a dataframe out of all matches
+    df = pd.DataFrame(match,
+                      columns=['ID',
+                               'name',
+                               'abbrev',
+                               'abbrev_chains',
+                               'Charmm36',
+                               'Charmm36 chain'])
+    
+
+    # Merge the df with the original dataset from lipidomics
+    dataset.columns=['abbrev','concentration']
+    dataset['Species'] = dataset['abbrev']
+    dataset = dataset[['Species',
+                       'abbrev',
+                       'concentration']]
+    df = df.merge(dataset,on='abbrev').drop('Charmm36 chain',axis=1)
+    df =  df[['Species',
+              'ID',
+              'name',
+              'abbrev',
+              'abbrev_chains',
+              'Charmm36',
+              'concentration']]
+    return(df)
+    
+
+
+def output(df,
+           out_name):
+    """Parameters
+        -------------
+        df : pd.DataFrame object 
+             dataset of the lipids with correspoding 
+             elements in aa force field
+        out_name : string 
+            Output name of the file
+    """
+
+
+    df.to_csv(out_name+".csv", index=False)
+
+def output_grouped(df,
+                   out_name_grouped):
+
+    """Parameters
+    -------------
+    df : pd.DataFrame object 
+         dataset of the lipids with correspoding 
+         elements in aa force field
+    out_name_grouped : string 
+        Output name of the file
+    """
+
+    d={}
+    lm_id=[]
+    abbrev=[]
+    charmm36 = []
+    conc=[]
+    lm_id2=[]
+    charmm36_2=[]
+    df.loc[len(df)] = 0 #fake last row
+
+    for index in range(len(df)-1):
+        if df.iloc[index]['Species'] == df.iloc[index+1]['Species'] and \
+        df.iloc[index]['concentration'] == df.iloc[index+1]['concentration']:
+            lm_id2.append(df.iloc[index]['ID'])
+            charmm36_2.append(df.iloc[index]['Charmm36'])
+        else:
+            abbrev.append(df.iloc[index]['abbrev'])
+            conc.append(df.iloc[index]['concentration'])
+            lm_id2.append(df.iloc[index]['ID'])
+            charmm36_2.append(df.iloc[index]['Charmm36'])
+            lm_id.append(list((set(lm_id2))))
+            charmm36.append(list((set(charmm36_2))))
+            lm_id2=[]
+            charmm36_2=[]
+
+    d['Species'] = abbrev
+    d['ID'] = lm_id
+    d['charmm36'] = charmm36
+    d['concentration'] = conc
+    df = pd.DataFrame.from_dict(d)
+    df = df.sort_values(by=['concentration'],
+                                ascending=False)
+    df.to_csv(out_name_grouped +"_grouped.csv", index=False)
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-i',
+                        '--lipidomics_db',
+                        dest='lipidb',
+                        type=str,
+                        required=True,
+                        metavar='',
+                        help='User lipidomics database'
+                        )
+
+    parser.add_argument('-c',
+                        '--config',
+                        dest='cfg',
+                        type=str,
+                        required=True,
+                        metavar='',
+                        help='Yaml file with definition of lipids \
+                              from all-atom and coarse-grained ffs',
+                        )
+
+    parser.add_argument('-fa',
+                        '--full_atom',
+                        dest='fa',
+                        action='store_true',
+                        help='Select to use full atom ffs',
+                        )
+
+    parser.add_argument('-o',
+                        '--output',
+                        dest='out',
+                        type=str,
+                        required=False,
+                        metavar='',
+                        help='Output name',
+                    )
+
+    parser.add_argument('-og',
+                        '--outputgrouped',
+                        dest='out_group',
+                        type=str,
+                        required=False,
+                        metavar='',
+                        help='Grouped output name',
+                    )
+
+    args = parser.parse_args()
+
+    # Define Flags
+    lipidomics_db = os.path.abspath(args.lipidb)
+    def_lipids = os.path.abspath(args.cfg)
+    full_atom = args.fa
+    out_name = args.out
+    out_name_grouped = args.out_group
+
+    logging.basicConfig(filename='lipid2MD.log',
+                        level=logging.INFO,
+                        format='%(asctime)s:%(levelname)s:%(message)s')
+
+    with open(def_lipids) as config:
+            parsed_yaml = yaml.load(config, 
+                                    Loader=yaml.FullLoader)
+
+    
+    original_data = pd.read_csv(lipidomics_db,
+                                names=['Species','Conc'],
+                                header=0)
+    
+    df1 = original_data.replace({"Species": parsed_yaml['exceptions']})
+    
+    df_lmsd = retrieve_LMSD()
+    filtered_dataset = find_match_LMSD(df1,
+                                       df_lmsd)
+    
+    if full_atom:
+        df = find_match_ff(original_data,
+                           parsed_yaml,
+                           filtered_dataset)
+        if out_name:
+            output(df,
+                   out_name)
+
+        if out_name_grouped:
+            output_grouped(df,
+                           out_name_grouped)
+
+        else:
+            logging.warning("Output name not selected. Please select.")
+
+
+
+
+
+
+
+
+
