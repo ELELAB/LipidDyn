@@ -44,8 +44,6 @@ def retrieve_LMSD():
            
     col = ['lm_id',
            'name', 
-           'sys_name',
-           'synonyms',
            'abbrev',
            'abbrev_chains']
     
@@ -86,7 +84,9 @@ def find_match_LMSD(dataset,
                                                        )])
 
     
-    final_df = pd.concat(l, ignore_index=True)
+    final_df = pd.concat(l, 
+                         ignore_index=True)
+    print(final_df)
     return(final_df)
 
 def find_match_ff(dataset,
