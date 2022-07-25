@@ -36,7 +36,8 @@ setup(
                        'pyyaml',
                        'lipyphilic',
                        'fatslim',
-                       'pyyaml'
+                       'pyyaml',
+                       'requests'
                        ],
     include_package_data=True,
     zip_safe = False,

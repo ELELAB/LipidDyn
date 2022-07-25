@@ -323,12 +323,66 @@ exceptions: {'Chol' : 'ST 27:1;O',
               'TAG 66:6' : 'TG 66:6', 
               'TAG 66:7' : 'TG 66:7', 
               'TAG 66:8' : 'TG 66:8', 
-              'TAG 66:9' : 'TG 66:9',
-             'PEO- 36:1' : 'PE O-36:2', #match with PE(P-36:1) no ff for alkyl ether  
-             'PEO- 38:4' : 'PE O-38:5', #match with PE(P-38:4) no ff for alkyl ether
-             'PCO- 36:1' : 'PC O-36:2', #match with PC(P-36:1) no ff for alkyl ether
-             'PCO- 38:4' : 'PC O-38:5', #match with PC(P-38:4) no ff for alkyl ether
-             'PCO- 40:6' : 'PC O-40:7'} #match with PC(P-40:6) no ff for alkyl ether     
+              'TAG 66:9' : 'TG 66:9',             
+             'GM2 34:1;2' : 'Hex(2)-HexNAc-NeuAc-Cer 34:1;O2',
+             'GM3 34:1;2' : 'NeuAcHex2Cer 34:1;O2',
+             'GM3 42:2;2' : 'NeuAcHex2Cer 42:2;O2',
+             'HexCer 32:0;2' : 'HexCer 32:0;O2',
+             'HexCer 34:0;2' : 'HexCer 34:0;O2',
+             'HexCer 34:1;2' : 'HexCer 34:1;O2',
+             'HexCer 34:2;2' : 'HexCer 34:2;O2',
+             'HexCer 34:3;2' : 'HexCer 34:3;O3',
+             'HexCer 36:0;2' : 'HexCer 36:0;O2',
+             'HexCer 36:1;2' : 'HexCer 36:1;O2',
+             'HexCer 38:2;2' : 'HexCer 38:2;O2',
+             'HexCer 40:1;2' : 'HexCer 40:1;O2',
+             'HexCer 42:1;2' : 'HexCer 42:1;O2',
+             'HexCer 42:2;2' : 'HexCer 42:2;O2',
+             'PEO- 36:2' : 'PE O-36:2',
+             'PEO- 36:3' : 'PE O-36:3',
+             'PEO- 36:4' : 'PE O-36:4',
+             'PEO- 38:3' : 'PE O-38:3',
+             'PEO- 38:4' : 'PE O-38:4',
+             'PEO- 38:5' : 'PE O-38:5',
+             'PEO- 40:4' : 'PE O-40:4',
+             'PEO- 40:5' : 'PE O-40:5',
+             'PEO- 42:6' : 'PE O-42:6',
+             #'PEO- 36:1' : 'PE O-36:2', #match with PE(P-36:1) no ff for alkyl ether  
+             #'PEO- 38:4' : 'PE O-38:5', #match with PE(P-38:4) no ff for alkyl ether
+             'PCO- 32:0' : 'PC O-32:0',
+             'PCO- 34:0' : 'PC O-34:0',
+             'PCO- 34:1' : 'PC O-34:1',
+             'PCO- 34:2' : 'PC O-34:2', 
+             'PCO- 34:3' : 'PC O-34:3',
+             'PCO- 36:0' : 'PC O-36:0',
+             #'PCO- 36:1' : 'PC O-36:2', #match with PC(P-36:1) no ff for alkyl ether
+             'PCO- 38:1' : 'PC O-38:1',
+             'PCO- 38:4' : 'PC O-38:4',
+             'PCO- 38:5' : 'PC O-38:5',
+             'PCO- 40:5' : 'PC O-40:5',
+             'PCO- 40:6' : 'PC O-40:6',
+             #'PCO- 38:4' : 'PC O-38:5', #match with PC(P-38:4) no ff for alkyl ether
+             'PCO- 40:6' : 'PC O-40:7',
+             'LPCO- 16:0' : 'LPC O-16:0',
+             'LPCO- 16:1' : 'LPC O-16:1',
+             'LPCO- 18:1' : 'LPC O-18:1',
+             'LPCO- 20:0' : 'LPC O-20:0',
+             'LPEO- 16:0' : 'LPE O-16:0',
+             'LPEO- 18:0' : 'LPE O-18:0',
+             'LPEO- 18:1' : 'LPE O-18:1',
+             'LPEO- 20:0' : 'LPE O-20:0',
+             'PAO- 32:0' : 'PA O-32:0',
+             'diHexCer 34:1;2' : 'Hex2Cer 34:1;O2',
+             'diHexCer 40:1;2' : 'Hex2Cer 40:1;O2',
+             'diHexCer 42:1;2' : 'Hex2Cer 42:1;O2'
+             'diHexCer 42:2;2' : 'Hex2Cer 42:2;O2'
+             'triHexCer 34:1;2' : 'Hex3Cer 34:1;O2',
+             'triHexCer 42:1;2' : 'Hex3Cer 42:1;O2', 
+             'triHexCer 42:2;2' : 'Hex3Cer 42:2;O2',
+             'triHexCer 44:2;2' : ''Hex3Cer 44:2;O2'',            
+             'CL 64:4' : "CL(1'-[16:1(9Z)/16:1(9Z)],3'-[16:1(9Z)/16:1(9Z)])" # in the ff but not lipidmaps
+             } #match with PC(P-40:6) no ff for alkyl ether  
+
                        
 # Martini CG lipid definition
 martini :
