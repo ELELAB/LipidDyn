@@ -374,13 +374,13 @@ exceptions: {'Chol' : 'ST 27:1;O',
              'PAO- 32:0' : 'PA O-32:0',
              'diHexCer 34:1;2' : 'Hex2Cer 34:1;O2',
              'diHexCer 40:1;2' : 'Hex2Cer 40:1;O2',
-             'diHexCer 42:1;2' : 'Hex2Cer 42:1;O2'
-             'diHexCer 42:2;2' : 'Hex2Cer 42:2;O2'
+             'diHexCer 42:1;2' : 'Hex2Cer 42:1;O2',
+             'diHexCer 42:2;2' : 'Hex2Cer 42:2;O2',
              'triHexCer 34:1;2' : 'Hex3Cer 34:1;O2',
              'triHexCer 42:1;2' : 'Hex3Cer 42:1;O2', 
              'triHexCer 42:2;2' : 'Hex3Cer 42:2;O2',
-             'triHexCer 44:2;2' : ''Hex3Cer 44:2;O2'',            
-             'CL 64:4' : "CL(1'-[16:1(9Z)/16:1(9Z)],3'-[16:1(9Z)/16:1(9Z)])" # in the ff but not lipidmaps
+             'triHexCer 44:2;2' : 'Hex3Cer 44:2;O2',            
+             'CL 64:4' : "CL(1'-[16:1(9Z)/16:1(9Z)],3'-[16:1(9Z)/16:1(9Z)])", # in the ff but not lipidmaps
              } #match with PC(P-40:6) no ff for alkyl ether  
 
                        
