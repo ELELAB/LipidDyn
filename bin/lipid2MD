@@ -200,6 +200,7 @@ def find_match_ff(dataset,
                           'concentration']
     df_merged = df_merged.append(df_matched)
     df_merged = df_merged.sort_values(by=['Charmm36']).reset_index(drop=True)
+    df_merged['Exceptions'] = df_merged.abbrev.isin(list(def_lipids['exceptions'].values())).astype(bool)
     return(df_merged)
     
 
@@ -235,7 +236,9 @@ def output_grouped(df,
 
     d={}
     lm_id,abbrev,charmm36,conc,lm_id2,charmm36_2 = [],[],[],[],[],[]
+    df.drop(['Exceptions'], axis=1, inplace = True) # drop exception column
     df.loc[len(df)] = 0 #fake last row
+
 
     for index in range(len(df)-1):
         # if the species are identical group them together while cycling
