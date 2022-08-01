@@ -10,8 +10,9 @@ If you use the tool, please cite:<br/>
 
 Unravelling membrane properties at the organelle-level with LipidDyn
 
-Simone Scrima, Matteo Tiberti, Alessia Campo, Elisabeth Corcelle-Termeau, Delphine Judith, Mads Moller Foged, Knut Kristoffer Bungaard Clemmens,  Sharon Tooze, Marja Jaattela, Kenji Maeda, Matteo Lambrughi*, Elena Papaleo*
-biorxiv, doi https://doi.org/10.1101/2022.01.04.474788 <br/>
+Simone Scrima, Matteo Tiberti, Alessia Campo, Elisabeth Corcelle-Termeau, Delphine Judith, Mads Moller Foged, Knut Kristoffer Bungaard Clemmens,  Sharon A Tooze, Marja Jaattela, Kenji Maeda, Matteo Lambrughi*, Elena Papaleo*
+
+Comput. Struct. Biotechnol. J. 2022 Jun 30;20:3604-3614. doi: 10.1016/j.csbj.2022.06.054 PMID: 35860415 PMCID: PMC9283888 <br/>
 
 contacts: tiberti-at-cancer.dk, matl-at-cancer.dk, elenap-at-cancer.dk, elpap-at-dtu.dk
 
