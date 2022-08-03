@@ -30,7 +30,7 @@ import tempfile
 import yaml
 import re
 # -*- coding: utf-8 -*-
-pd.set_option('display.max_rows', 2000)
+pd.set_option('display.max_rows', 5000)
 
 def retrieve_LMSD():
     
@@ -74,18 +74,24 @@ def find_match_LMSD(dataset,
     # Return a filtered dataframe
 
     l = []
+    p = []
     for lipid_id in dataset['Species']:   
-        for column_name in dataframe_LMSD:
-            l.append(dataframe_LMSD[
-                        dataframe_LMSD[
-                            column_name].str.fullmatch(lipid_id,
-                                                       na=False,
-                                                       )])
+        # match names in Lipidmaps and append them
+        if dataframe_LMSD['abbrev'].str.fullmatch(lipid_id).any:
+            l.append(dataframe_LMSD.loc[(dataframe_LMSD['abbrev']==lipid_id)])
 
-    
+
     final_df = pd.concat(l, 
                          ignore_index=True)
-    return(final_df) 
+    dataset.columns = ['abbrev','conc']
+    
+    dataset = dataset['abbrev'].to_frame()
+    df_merged = dataset.merge(final_df,
+                              on='abbrev',
+                              how='outer')
+    
+
+    return(df_merged) 
 
 def find_match_ff(dataset,
                   def_lipids,
@@ -101,45 +107,55 @@ def find_match_ff(dataset,
             Dataframe containing the lipidmaps 
             filtered dataset
     """
-
+    #print(filtered_dataset)
     match = []
     # Cycle through the ID, name, abbreviations
-
-    for lm_id,name, abbrev, in zip(filtered_dataset.lm_id,
-                                   filtered_dataset.name,
-                                   filtered_dataset.abbrev):
+    #print(cl,type(cl))
+    for abbrev,lm_id, name, in zip(filtered_dataset.abbrev,
+                                   filtered_dataset.lm_id,
+                                   filtered_dataset.name):
+        name = str(name).rstrip() # get name from lipidmaps
+        abbrev = str(abbrev).rstrip()
         try:
-            name = name.rstrip() # get name from lipidmaps
-            lipid_class = abbrev.split()[0] #get lipid class i.e PS, PA ...
-            # cycle through the definitions of lipids of ff in the config file
-            for lipid_species in def_lipids['charmm36'][lipid_class]:
-                ffs_name = lipid_species[0]  # get the ff name of the lipid
-                ffs_chain = lipid_species[1].rstrip() # original ffs chain def
-                # check if the ffs defition correspond to lipidmaps
-                if ffs_chain == name: 
-                    match.append([lm_id,
-                                  name,
-                                  abbrev,
-                                  ffs_name,
-                                  lipid_species[1]])
-                else:
-                    continue
+            # lipid_class = abbrev.split()[0] #get lipid class i.e PS, PA ...
+            # cycle through the definitions of lipids of ff in the config fil
+            for lipid_class in def_lipids['charmm36']:
+                for lipid_species in def_lipids['charmm36'][lipid_class]:
+                    ffs_name = lipid_species[0].rstrip()
+                    ffs_chain = lipid_species[1].rstrip()
+                    # check if the ffs defition correspond to lipidmaps
+                    if ffs_chain == name: 
+                        match.append([lm_id,
+                                      name,
+                                      abbrev,
+                                      ffs_name,
+                                      ffs_chain])
+                    elif ffs_chain == abbrev: 
+                        match.append([lm_id,
+                                      name,
+                                      abbrev,
+                                      ffs_name,
+                                      ffs_chain])
+                    else:
+                        continue
         except:
+            #print(type(abbrev),abbrev)
             continue
+            
           
-                
+       
     # generate a dataframe out of all matches
     df = pd.DataFrame(match,
                       columns=['lm_id',
                                'name',
                                'abbrev',
                                'Charmm36',
-                               'Charmm36 chain'])
+                               'Charmm36 chain']).sort_values(by='abbrev')
     # Drop useless columns
     df.drop('Charmm36 chain',
-             axis=1,
-             inplace=True)
-    
+            axis=1,
+            inplace=True)
+
 
     # Merge the df with the original dataset from lipidomics:
     # 1. set columns name in the original dataset to match column
@@ -199,8 +215,11 @@ def find_match_ff(dataset,
                           'Charmm36',
                           'concentration']
     df_merged = df_merged.append(df_matched)
-    df_merged = df_merged.sort_values(by=['Charmm36']).reset_index(drop=True)
-    df_merged['Exceptions'] = df_merged.abbrev.isin(list(def_lipids['exceptions'].values())).astype(bool)
+    df_merged = df_merged.reset_index(drop=True)
+    df_merged['Exceptions'] = df_merged.abbrev.isin(
+                              list(def_lipids['exceptions'].values()
+                              )).astype(bool)    
+    df_merged.fillna('NA',inplace=True)
     return(df_merged)
     
 
@@ -263,8 +282,8 @@ def output_grouped(df,
     d['charmm36'] = charmm36
     d['concentration'] = conc
     df = pd.DataFrame.from_dict(d) # create df
-    df = df.sort_values(by=['concentration'],
-                                ascending=False)
+    df = df.sort_values(by=['Species'],
+                                ascending=True)
     df.to_csv(out_name_grouped +"_grouped.csv", index=False)
 
 
@@ -348,8 +367,15 @@ if __name__ == '__main__':
     # correct lipidomics database with the corrections coming from the 
     # config file
     df1 = original_data.replace({"Species": parsed_yaml['exceptions']})
-    
+    df1.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"],
+                value=["",""], 
+                regex=True, 
+                inplace=True) # remove potential newlines etc
     df_lmsd = retrieve_LMSD()
+    df_lmsd.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], 
+                    value=["",""], 
+                    regex=True, 
+                    inplace=True) # remove potential newlines etc
     filtered_dataset = find_match_LMSD(df1,
                                        df_lmsd)
     
