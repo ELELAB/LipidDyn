@@ -30,7 +30,7 @@ import tempfile
 import yaml
 import re
 # -*- coding: utf-8 -*-
-pd.set_option('display.max_rows', 5000)
+
 
 def retrieve_LMSD():
     
@@ -39,7 +39,7 @@ def retrieve_LMSD():
     
     # Retrieve the whole database of lipids and write a tmp file and
     # retrieve only the name, synonim, ID, systematic name, ID chain
-    #           ,,,
+    #      
            
            
     col = ['lm_id',
@@ -107,10 +107,9 @@ def find_match_ff(dataset,
             Dataframe containing the lipidmaps 
             filtered dataset
     """
-    #print(filtered_dataset)
+    
     match = []
     # Cycle through the ID, name, abbreviations
-    #print(cl,type(cl))
     for abbrev,lm_id, name, in zip(filtered_dataset.abbrev,
                                    filtered_dataset.lm_id,
                                    filtered_dataset.name):
@@ -139,7 +138,6 @@ def find_match_ff(dataset,
                     else:
                         continue
         except:
-            #print(type(abbrev),abbrev)
             continue
             
           
@@ -367,11 +365,13 @@ if __name__ == '__main__':
     # correct lipidomics database with the corrections coming from the 
     # config file
     df1 = original_data.replace({"Species": parsed_yaml['exceptions']})
+    # Remove hidden characters if present
     df1.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"],
                 value=["",""], 
                 regex=True, 
                 inplace=True) # remove potential newlines etc
     df_lmsd = retrieve_LMSD()
+    # Remove hidden characters if present
     df_lmsd.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], 
                     value=["",""], 
                     regex=True, 
