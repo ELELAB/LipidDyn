@@ -30,7 +30,7 @@ import tempfile
 import yaml
 import re
 # -*- coding: utf-8 -*-
-
+pd.set_option('display.max_rows', None)
 
 def retrieve_LMSD():
     
@@ -79,7 +79,7 @@ def find_match_LMSD(dataset,
         # match names in Lipidmaps and append them
         if dataframe_LMSD['abbrev'].str.fullmatch(lipid_id).any:
             l.append(dataframe_LMSD.loc[(dataframe_LMSD['abbrev']==lipid_id)])
-
+    
 
     final_df = pd.concat(l, 
                          ignore_index=True)
@@ -89,8 +89,13 @@ def find_match_LMSD(dataset,
     df_merged = dataset.merge(final_df,
                               on='abbrev',
                               how='outer')
-    
 
+    # 1. find eventual duplicates in lm_id column
+    # 2. Ignore the nan values and build a boolen map of duplicates
+    # 3. Clean dataset based on the previous map
+    dupes = df_merged.duplicated(subset=['lm_id'])  
+    dupes[df_merged['lm_id'].isnull()] = False 
+    df_merged = df_merged[~dupes]
     return(df_merged) 
 
 def find_match_ff(dataset,
@@ -123,7 +128,7 @@ def find_match_ff(dataset,
                     ffs_name = lipid_species[0].rstrip()
                     ffs_chain = lipid_species[1].rstrip()
                     # check if the ffs defition correspond to lipidmaps
-                    if ffs_chain == name: 
+                    if ffs_chain == name:
                         match.append([lm_id,
                                       name,
                                       abbrev,
@@ -134,7 +139,7 @@ def find_match_ff(dataset,
                                       name,
                                       abbrev,
                                       ffs_name,
-                                      ffs_chain])
+                                      ffs_chain])                        
                     else:
                         continue
         except:
@@ -153,7 +158,6 @@ def find_match_ff(dataset,
     df.drop('Charmm36 chain',
             axis=1,
             inplace=True)
-
 
     # Merge the df with the original dataset from lipidomics:
     # 1. set columns name in the original dataset to match column
@@ -218,6 +222,14 @@ def find_match_ff(dataset,
                               list(def_lipids['exceptions'].values()
                               )).astype(bool)    
     df_merged.fillna('NA',inplace=True)
+    columns_titles = ["Species", 
+                      "abbrev",
+                      "lm_id",
+                      "name",
+                      "Charmm36",
+                      "concentration",
+                      "Exceptions"]
+    df_merged=df_merged.reindex(columns=columns_titles) # Reorder columns
     return(df_merged)
     
 
@@ -250,12 +262,12 @@ def output_grouped(df,
 
     # Reorder the output in order to group different lipids  
     # under the same category 
-
+    
     d={}
-    lm_id,abbrev,charmm36,conc,lm_id2,charmm36_2 = [],[],[],[],[],[]
+    species,lm_id,abbrev,charmm36,conc,lm_id2,charmm36_2 = [],[],[],[],[],[],[]
     df.drop(['Exceptions'], axis=1, inplace = True) # drop exception column
     df.loc[len(df)] = 0 #fake last row
-
+    #print(df)
 
     for index in range(len(df)-1):
         # if the species are identical group them together while cycling
@@ -265,6 +277,7 @@ def output_grouped(df,
             charmm36_2.append(df.iloc[index]['Charmm36'])
         else:
             # stop grouping and reset
+            species.append(df.iloc[index]['Species'])
             abbrev.append(df.iloc[index]['abbrev'])
             conc.append(df.iloc[index]['concentration'])
             lm_id2.append(df.iloc[index]['lm_id'])
@@ -275,13 +288,15 @@ def output_grouped(df,
             charmm36_2=[]
     
     # Add to the dictionary the different columns
-    d['Species'] = abbrev
+    d['Species'] = species
+    d['abbrev'] = abbrev
     d['lm_id'] = lm_id
     d['charmm36'] = charmm36
     d['concentration'] = conc
     df = pd.DataFrame.from_dict(d) # create df
     df = df.sort_values(by=['Species'],
                                 ascending=True)
+    
     df.to_csv(out_name_grouped +"_grouped.csv", index=False)
 
 
@@ -365,6 +380,7 @@ if __name__ == '__main__':
     # correct lipidomics database with the corrections coming from the 
     # config file
     df1 = original_data.replace({"Species": parsed_yaml['exceptions']})
+    
     # Remove hidden characters if present
     df1.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"],
                 value=["",""], 
