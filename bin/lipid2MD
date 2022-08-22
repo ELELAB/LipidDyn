@@ -175,7 +175,7 @@ def find_match_ff(dataset,
                        'concentration']]
     dataset.replace({'abbrev': def_lipids['exceptions']},
                     inplace=True)
-
+    
 
     df_merged = df.merge(dataset,
                          on='abbrev',
@@ -187,6 +187,7 @@ def find_match_ff(dataset,
                             'Charmm36',
                             'concentration']]
     
+
     # Extract from the merged dataset the lipids that are in the original
     # dataset, but do not have a LIPIDMAPS ID, name etc.. associated
     # 1. Save in another dataframe the missing values
@@ -226,10 +227,21 @@ def find_match_ff(dataset,
                       "abbrev",
                       "lm_id",
                       "name",
+                      "Exceptions",
                       "Charmm36",
                       "concentration",
-                      "Exceptions"]
+                      ]
     df_merged=df_merged.reindex(columns=columns_titles) # Reorder columns
+    
+    # If an abbrev is not found in Lipidmaps, has not an lm_id or is not an exception
+    # add it as Nan
+    for index, row in df_merged.iterrows():
+        if row['abbrev'] == row['Species'] and row['lm_id'] == 'NA' \
+        and row['Exceptions'] == False:
+            df_merged.at[index, 'abbrev'] = 'NA'
+        else:
+            continue
+   
     return(df_merged)
     
 
@@ -267,7 +279,6 @@ def output_grouped(df,
     species,lm_id,abbrev,charmm36,conc,lm_id2,charmm36_2 = [],[],[],[],[],[],[]
     df.drop(['Exceptions'], axis=1, inplace = True) # drop exception column
     df.loc[len(df)] = 0 #fake last row
-    #print(df)
 
     for index in range(len(df)-1):
         # if the species are identical group them together while cycling
