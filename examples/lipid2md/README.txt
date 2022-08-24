@@ -25,19 +25,18 @@ flag can be selected.
 The "-o" flag specify an output in the following format :
 
 ---------------------------------------
-Species,ID,name,abbrev,abbrev_chains,Charmm36,concentration
-CL 68:2,LMGP12010006,"CL(1'-[16:0/18:1(11Z)],3'-[16:0/18:1(11Z)])",CL 68:2,CL 16:0_16:0_18:1_18:1,PVCL2,0.0
-CL 68:2,LMGP12010081,"CL(1'-[16:0/18:1(9Z)],3'-[16:0/18:1(9Z)])",CL 68:2,CL 16:0_16:0_18:1_18:1,POCL1,0.0
-CL 68:2,LMGP12010081,"CL(1'-[16:0/18:1(9Z)],3'-[16:0/18:1(9Z)])",CL 68:2,CL 16:0_16:0_18:1_18:1,POCL2,0.0
-CL 72:8,LMGP12010001,"CL(1'-[18:2(9Z,12Z)/18:2(9Z,12Z)],3'-[18:2(9Z,12Z)/18:2(9Z,12Z)])",CL 72:8,CL 18:2_18:2_18:2_18:2,TLCL1,0.0
-CL 72:8,LMGP12010001,"CL(1'-[18:2(9Z,12Z)/18:2(9Z,12Z)],3'-[18:2(9Z,12Z)/18:2(9Z,12Z)])",CL 72:8,CL 18:2_18:2_18:2_18:2,TLCL2,0.0
-PA 32:0,LMGP10010027,PA(16:0/16:0),PA 32:0,PA 16:0_16:0,DPPA,0.0
-PA 34:1,LMGP10010032,PA(16:0/18:1(9Z)),PA 34:1,PA 16:0_18:1,POPA,0.0256606363735779
+Species,abbrev,lm_id,name,Exceptions,Charmm36,concentration
+CL 68:2,CL 68:2,LMGP12010081,"CL(1'-[16:0/18:1(9Z)],3'-[16:0/18:1(9Z)])",False,POCL2,0.0
+CL 68:2,CL 68:2,LMGP12010081,"CL(1'-[16:0/18:1(9Z)],3'-[16:0/18:1(9Z)])",False,POCL1,0.0
+Cer 42:1;2,Cer 42:1;O2,LMSP02010012,Cer(d18:1/24:0),True,CER240,0.0675962090464608
+Cer 42:2;2,Cer 42:2;O2,LMSP02010009,Cer(d18:1/24:1(15Z)),True,CER241,0.134158391912655
+PA 32:2,PA 32:2,LMGP10010969,PA(16:1(9Z)/16:1(9Z)),False,DYPA,0.0283727439444567
+PA 34:1,PA 34:1,LMGP10010032,PA(16:0/18:1(9Z)),False,POPA,0.0526526227726728
 ....
+CL 68:5,NA,NA,NA,False,NA,0.0
 ---------------------------------------
 
-Here are stored the information coming from the original lipidomics dataset i.e column "Species", the lipidmaps ID of the lipid,
-the name, the category of the lipid, the abbreviations of the chains, the force field name and ultimately the concentration from
+Here are stored the information coming from the original lipidomics dataset i.e column "Species",the abbreviations of the chains, the lipidmaps ID of the lipid,the name, the category of the lipid, the force field name and ultimately the concentration from
 the original dataset.
 
 The "-og" group all the results from above and organized them in the following manner:
@@ -45,12 +44,14 @@ The "-og" group all the results from above and organized them in the following m
 
 ---------------------------------------
 Species,ID,charmm36,concentration
-PC 34:1,['LMGP01010005'],['POPC'],6.73572203030144
-PC 32:1,['LMGP01010566'],['PYPC'],4.38083838085729
-PC 36:4,['LMGP01010937'],"['DUPC', 'DLiPC']",0.595177427560921
+CL 64:3,NA,['NA'],['NA'],0.0
+CL 64:4,"CL(1'-[16:1(9Z)/16:1(9Z)],3'-[16:1(9Z)/16:1(9Z)])",['NA'],"['TYCL2', 'TYCL1']",0.0
+CL 66:2,CL 66:2,"['LMGP12010655', 'LMGP12010025', 'LMGP12010115', 'LMGP12010010']",['NA'],0.0
 .....
 ---------------------------------------
 
 Here there are stored the information from the original dataset i.e column "Species", the lipid ID of the lipids, the force field
 name of the lipid and the concentration.
-In case of more than one species more name will be stored in the list i.e è ['DUPC', 'DLiPC]
+In case of more than one species more name will be stored in the list i.e è ['DUPC', 'DLiPC].
+
+In the case of not matching species values are replaced with NA both in the non-grouped and grouped output.
