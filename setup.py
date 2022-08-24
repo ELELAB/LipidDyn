@@ -27,20 +27,30 @@ setup(
              'bin/profiler',
              'bin/ordpar',
              'bin/diffusion',
-             'bin/dmaps'],
+             'bin/dmaps',
+             'bin/lipid2MD'],
     install_requires=[ 'matplotlib',
                        'MDAnalysis',
                        'progressbar',
                        'seaborn',
                        'pyyaml',
                        'lipyphilic',
-                       'fatslim'
+                       'fatslim',
+                       'pyyaml',
+                       'requests'
                        ],
     include_package_data=True,
     zip_safe = False,
-    author="Simone Scrima, Matteo Tiberti, Matteo Lambrughi,Elena Papaleo",
-    author_email="simonescrima@gmail.com",
-    description="Scripts to automate pipeline of analysis for Lipid Simulations",
+    author= "Simone Scrima, Matteo Tiberti" \
+            "Alessia Campo, Matteo Lambrughi" \
+            "Elena Papaleo",
+    author_email= "sims@cancer.dk"\
+                  "siscr@dtu.dk"\
+                  "tiberti@cancer.dk"
+                  "matl@cancer.dk"\
+                  "elenap@cancer.dk",
+    description="In silico pipeline to streamline the analyses of MD \
+                 simulations of membranes of different compositions",
     keywords="Lipid pipeline analysis",
     url="https://github.com/ELELAB/LipidDyn",
 )
