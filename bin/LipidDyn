@@ -649,6 +649,15 @@ def main():
                         help='Cutoff distance (in nm) used to identify \
                               inter-leaflet neighbors (default: 6.0)'
                         )
+    
+    parser.add_argument('-l_cutoff',
+                        '--leaflet-cutoff',
+                        default= 15.0,
+                        type=float,
+                        dest='leaf_cutoff',
+                        help='Cutoff distance (in nm) used to identify \
+                              leaflets in function LeafletFinder (default: 15.0)'
+                        )
 
     parser.add_argument('-r',
                         '--raw',
@@ -755,7 +764,7 @@ def main():
 
     lipid_resnames = np.unique(g.residues.resnames)   
     # Find leaflets and store them in a dictionary
-    L =  LeafletFinder(u,g)
+    L =  LeafletFinder(u,g, cutoff=leaf_cutoff)
 
     upper_leaflet = L.groups(0)
     lower_leaflet = L.groups(1)
