@@ -103,7 +103,7 @@ pip install packaging
 Install LipidDyn with:
 
 ```
-git clone https://github.com/ELELAB/LipidDyn.git
+git clone https://github.com/JFadanni/LipidDyn.git
 cd LipidDyn/
 python setup.py install
 cd ../
