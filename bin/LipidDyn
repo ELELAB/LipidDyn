@@ -250,7 +250,7 @@ def module_enrichment(universe,
     for leaflet in leaflets:
         d = {} # dictionary to store all the arrays for the dmaps
         # get the density of each leaflet and add to dict
-        d[leaflet] = dmap_multiprocessing(leaflets[leaflet].residues.atoms)
+        d[leaflet] = dmap.multiprocessing(leaflets[leaflet].residues.atoms)
         
         # get the lipids type names in the leaflet 
         membrane = np.unique(leaflets[leaflet].residues.resnames)
@@ -683,6 +683,7 @@ def main():
     cleaning = args.clean
     apl_cutoff = args.apl_cutoff
     tck_cutoff = args.tck_cutoff
+    leaf_cutoff = args.leaf_cutoff
     raw = args.raw
     all_modules = args.all_modules
     
