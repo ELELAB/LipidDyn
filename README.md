@@ -28,6 +28,8 @@ At the present state is designed to work with GROMACS files.
 In order to be installed and work, LipidDyn requires Python version >= 3.8. 
 The workflow was successfully installed and tested using Ubuntu v18.04 Bionic Beaver -XXX and MacOs 10.15 MacOs 12.1 Monterey.
 
+In this fork I have introduced few improvement
+
 ## Set of Analysis 
 
 ### Thickness and Area per Lipid
@@ -107,6 +109,10 @@ git clone https://github.com/JFadanni/LipidDyn.git
 cd LipidDyn/
 python setup.py install
 cd ../
+```
+The original LipidDyn can be installed using:
+```
+git clone https://github.com/ELELAB/LipidDyn.git
 ```
 **N.B.**<br/>
 All the softwares and libraries required to work are automatically installed when running ```python setup.install``` and they are listed below:
