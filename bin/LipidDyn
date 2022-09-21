@@ -265,7 +265,7 @@ def module_enrichment(universe,
             # select each type of lipid on the leaflet              
             sel = leaflets[leaflet].select_atoms("resname " + lipid)
             # get the densities of each type and add to dict
-            d[lipid] = dmap.multiprocessing(leaflets[leaflet].residues.atoms)
+            d[lipid] = dmap.multiprocessing(sel.residues.atoms)
             
             lipid_num = len(sel.residues)  # get the total number of each lipid type
 
