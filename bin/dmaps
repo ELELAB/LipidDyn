@@ -121,7 +121,7 @@ def plotting(data,
     # set the color bar 
     cbar = plt.colorbar()
     # set color bar label
-    cbar.set_label('$nm^-3$')
+    cbar.set_label('$nm^{-3}$')
     # set axis labels and title
     ax.set(xlabel='x(nm)', ylabel='y(nm)')   
     plt.title(title)
