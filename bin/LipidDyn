@@ -194,7 +194,8 @@ def module_densmap(universe,
     pbar = ProgressBar().start()
     total_step = 2
     step = 1
-    dmap = Density(universe,ncore)
+    dmap = Density(universe,
+                   ncore)
     
     for leaflet in leaflets:
         leaflet_atoms = leaflets[leaflet].residues.atoms
@@ -244,15 +245,14 @@ def module_enrichment(universe,
     pbar = ProgressBar().start()
     total_step = 2
     step = 1
-
+    dmap = Density(universe,
+                   ncore)
    
     conc={}     # dictionary to store the concentration in bulk of each lipid
     for leaflet in leaflets:
         d = {} # dictionary to store all the arrays for the dmaps
         # get the density of each leaflet and add to dict
-        d[leaflet] = dmap_multiprocessing(universe,
-                                          leaflets[leaflet].residues.atoms,
-                                          ncore)
+        d[leaflet] = dmap.multiprocessing(leaflets[leaflet].residues.atoms)
         
         # get the lipids type names in the leaflet 
         membrane = np.unique(leaflets[leaflet].residues.resnames)
@@ -265,9 +265,7 @@ def module_enrichment(universe,
             # select each type of lipid on the leaflet              
             sel = leaflets[leaflet].select_atoms("resname " + lipid)
             # get the densities of each type and add to dict
-            d[lipid] = dmap_multiprocessing(universe,
-                                            sel.residues.atoms,
-                                            ncore)
+            d[lipid] = dmap.multiprocessing(leaflets[leaflet].residues.atoms)
             
             lipid_num = len(sel.residues)  # get the total number of each lipid type
 
