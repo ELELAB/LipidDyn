@@ -599,6 +599,50 @@ martini :
                    ['PCA','16:0-18:0']]
 
 
+# Martini 3 CG lipid definition (only specific, excl. ranges)
+martini3 :
+    PA (phosphatidic acid) : [["LPPA","PA(12:0/16:0)"],
+                              ["PAPA","PA(16:0/20:4)"],
+                              ["PGPA","PA(16:0/20:1)"],
+                              ["PIPA","PA(16:0/18:2)"],
+                              ["POPA","PA(16:0/18:1)"],
+                              ["PRPA","PA(16:0/24:6)"],
+                              ["PUPA","PA(16:0/22:6)"]]
+    PC (phosphatidylcholine) : [["LPPC","PC(12:0/16:0)"],
+                                ["PAPC","PC(16:0/20:4)"],
+                                ["PEPC","PC(16:0/20:2)"],
+                                ["PGPC","PC(16:0/20:1)"],
+                                ["PIPC","PC(16:0/18:2)"],
+                                ["POPC","PC(16:0/18:1)"],
+                                ["PRPC","PC(16:0/24:6)"],
+                                ["PUPC","PC(16:0/22:6)"]]
+    PE (phosphatidylethanolamine) :  [["LPPE","PE(12:0/16:0)"],
+                                      ["PAPE","PE(16:0/20:4)"],
+                                      ["PGPE","PE(16:0/20:1)"],
+                                      ["PIPE","PE(16:0/18:2)"],
+                                      ["POPE","PE(16:0/18:1)"],
+                                      ["PQPE","PE(16:0/20:3(5Z,8Z,11Z))"],
+                                      ["PRPE","PE(16:0/24:6)"],
+                                      ["PUPE","PE(16:0/22:6)"]]
+    PG (phosphatidylglycerol) :  [["JFPG","PG(16:1(3t)/18:3(9Z,12Z,15Z))"],
+                                  ["JPPG","PG(16:1(3t)/16:0)"],
+                                  ["LPPG","PG(12:0/16:0)"],
+                                  ["OPPG","PG(18:1(9Z)/16:0)"],
+                                  ["PAPG","PG(16:0/20:4)"],
+                                  ["PGPG","PG(16:0/20:1)"],
+                                  ["PIPG","PG(16:0/18:2)"],
+                                  ["POPG","PG(16:0/18:1)"],
+                                  ["PRPG","PG(16:0/24:6)"]]
+    PS (phosphatidylserine) :  [["LPPS","PS(12:0/16:0)"],
+                                ["PAPS","PS(16:0/20:4)"],
+                                ["PGPS","PS(16:0/20:1)"],
+                                ["PIPS","PS(16:0/18:2)"],
+                                ["POPS","PS(16:0/18:1)"],
+                                ["PQPS","PS(16:0/20:3(5Z,8Z,11Z))"],
+                                ["PRPS","PS(16:0/24:6)"],
+                                ["PUPS","PS(16:0/22:6)"]]        
+
+
 charmm36 : 
 
     ST : 
