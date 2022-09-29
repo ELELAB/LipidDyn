@@ -347,6 +347,13 @@ if __name__ == '__main__':
                         help='Select to use full atom ffs',
                         )
 
+    parser.add_argument('-cg',
+                        '--coarse_grained',
+                        dest='cg',
+                        action='store_true',
+                        help='Select to use coarse grained ffs',
+                        )
+                        
     parser.add_argument('-o',
                         '--output',
                         dest='out',
@@ -421,6 +428,21 @@ if __name__ == '__main__':
         else:
             logging.warning("Output name not selected. Please select.")
 
+
+    if coarse_grained:
+        df = find_match_ffc(original_data,
+                            parsed_yaml,
+                            filtered_dataset)
+        if out_name:
+            output(df,
+                   out_name)
+
+        if out_name_grouped:
+            output_grouped(df,
+                           out_name_grouped)
+
+        else:
+            logging.warning("Output name not selected. Please select.")
 
 
 
