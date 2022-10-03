@@ -100,7 +100,8 @@ def find_match_LMSD(dataset,
 
 def find_match_ff(dataset,
                   def_lipids,
-                  filtered_dataset):
+                  filtered_dataset,
+                  force_field):
     
     """Parameters
         -------------
@@ -113,6 +114,38 @@ def find_match_ff(dataset,
             filtered dataset
     """
     
+    # in martini 3, some chain deffinitions are annotated as ranges
+    # the ones that are, are transformed to 4 combinations
+    if force_field == 'martini3':
+        for lipid_class in def_lipids[force_field]:
+            TempList = []
+            for lipid_species in def_lipids['martini3'][lipid_class]:
+                ffs_name = lipid_species[0]
+                ffs_chain = lipid_species[1]
+                
+                #If chains are ranges
+                if '-' in ffs_chain:
+                    #The annotation for the first tail
+                    lipid1 = re.sub('-(.*?)/','/',ffs_chain)
+                    lipid2 = re.sub('\((.*?)-','(',ffs_chain,1)
+                    
+                    #The annotation for the second tail
+                    lipid11 = re.sub('-[^-]*$',')',lipid1)
+                    lipid21 = re.sub('-[^-]*$',')',lipid2)
+                    lipid12 = re.sub('/(.*?)-','/',lipid1)
+                    lipid22 = re.sub('/(.*?)-','/',lipid2)
+                    
+                    #Saves 4 combinations in list:
+                    TempList.append([ffs_name,lipid11])
+                    TempList.append([ffs_name,lipid21])
+                    TempList.append([ffs_name,lipid12])
+                    TempList.append([ffs_name,lipid22])
+                    
+                else:
+                    TempList.append([ffs_name,ffs_chain])
+            #Update values
+            def_lipids[force_field][lipid_class] = TempList  
+    
     match = []
     # Cycle through the ID, name, abbreviations
     for abbrev,lm_id, name, in zip(filtered_dataset.abbrev,
@@ -123,8 +156,8 @@ def find_match_ff(dataset,
         try:
             # lipid_class = abbrev.split()[0] #get lipid class i.e PS, PA ...
             # cycle through the definitions of lipids of ff in the config fil
-            for lipid_class in def_lipids['charmm36']:
-                for lipid_species in def_lipids['charmm36'][lipid_class]:
+            for lipid_class in def_lipids[force_field]:
+                for lipid_species in def_lipids[force_field][lipid_class]:
                     ffs_name = lipid_species[0].rstrip()
                     ffs_chain = lipid_species[1].rstrip()
                     # check if the ffs defition correspond to lipidmaps
@@ -145,17 +178,16 @@ def find_match_ff(dataset,
         except:
             continue
             
-          
-       
+
     # generate a dataframe out of all matches
     df = pd.DataFrame(match,
                       columns=['lm_id',
                                'name',
                                'abbrev',
-                               'Charmm36',
-                               'Charmm36 chain']).sort_values(by='abbrev')
+                               force_field,
+                               force_field +' chain']).sort_values(by='abbrev')
     # Drop useless columns
-    df.drop('Charmm36 chain',
+    df.drop(force_field +' chain',
             axis=1,
             inplace=True)
 
@@ -184,7 +216,7 @@ def find_match_ff(dataset,
                             'lm_id',
                             'name',
                             'abbrev',
-                            'Charmm36',
+                            force_field,
                             'concentration']]
     
 
@@ -209,13 +241,13 @@ def find_match_ff(dataset,
                              'lm_id_y',
                              'name_y',
                              'abbrev',
-                             'Charmm36',
+                             force_field,
                              'concentration']]
     df_matched.columns = ['Species',
                           'lm_id',
                           'name',
                           'abbrev',
-                          'Charmm36',
+                          force_field,
                           'concentration']
     df_merged = df_merged.append(df_matched)
     df_merged = df_merged.reset_index(drop=True)
@@ -228,7 +260,7 @@ def find_match_ff(dataset,
                       "lm_id",
                       "name",
                       "Exceptions",
-                      "Charmm36",
+                      force_field,
                       "concentration",
                       ]
     df_merged=df_merged.reindex(columns=columns_titles) # Reorder columns
@@ -247,7 +279,8 @@ def find_match_ff(dataset,
 
 
 def output(df,
-           out_name):
+           out_name,
+           force_field):
     """Parameters
         -------------
         df : pd.DataFrame object 
@@ -276,44 +309,39 @@ def output_grouped(df,
     # under the same category 
     
     d={}
-    species,lm_id,abbrev,charmm36,conc,lm_id2,charmm36_2 = [],[],[],[],[],[],[]
+    species,lm_id,abbrev,ff_name,conc,lm_id2,ff_name_2 = [],[],[],[],[],[],[]
     df.drop(['Exceptions'], axis=1, inplace = True) # drop exception column
     df.loc[len(df)] = 0 #fake last row
-
+    
     for index in range(len(df)-1):
         # if the species are identical group them together while cycling
         if df.iloc[index]['Species'] == df.iloc[index+1]['Species'] and \
         df.iloc[index]['concentration'] == df.iloc[index+1]['concentration']:
             lm_id2.append(df.iloc[index]['lm_id'])
-            charmm36_2.append(df.iloc[index]['Charmm36'])
+            ff_name_2.append(df.iloc[index][force_field])
         else:
             # stop grouping and reset
             species.append(df.iloc[index]['Species'])
             abbrev.append(df.iloc[index]['abbrev'])
             conc.append(df.iloc[index]['concentration'])
             lm_id2.append(df.iloc[index]['lm_id'])
-            charmm36_2.append(df.iloc[index]['Charmm36'])
+            ff_name_2.append(df.iloc[index][force_field])
             lm_id.append(list((set(lm_id2))))
-            charmm36.append(list((set(charmm36_2))))
+            ff_name.append(list((set(ff_name_2))))
             lm_id2=[]
-            charmm36_2=[]
+            ff_name_2=[]
     
     # Add to the dictionary the different columns
     d['Species'] = species
     d['abbrev'] = abbrev
     d['lm_id'] = lm_id
-    d['charmm36'] = charmm36
+    d[force_field] = ff_name
     d['concentration'] = conc
     df = pd.DataFrame.from_dict(d) # create df
     df = df.sort_values(by=['Species'],
                                 ascending=True)
     
     df.to_csv(out_name_grouped +"_grouped.csv", index=False)
-
-
-
-
-
 
 
 
@@ -414,16 +442,18 @@ if __name__ == '__main__':
                                        df_lmsd)
     
     if full_atom:
-        df = find_match_ff(original_data,
+        df = find_match_ff_fa(original_data,
                            parsed_yaml,
-                           filtered_dataset)
+                           filtered_dataset,
+                           'charmm36')
         if out_name:
             output(df,
                    out_name)
 
         if out_name_grouped:
             output_grouped(df,
-                           out_name_grouped)
+                           out_name_grouped,
+                           'charmm36')
 
         else:
             logging.warning("Output name not selected. Please select.")
@@ -432,14 +462,16 @@ if __name__ == '__main__':
     if coarse_grained:
         df = find_match_ffc(original_data,
                             parsed_yaml,
-                            filtered_dataset)
+                            filtered_dataset,
+                            'martini3')
         if out_name:
             output(df,
                    out_name)
 
         if out_name_grouped:
             output_grouped(df,
-                           out_name_grouped)
+                           out_name_grouped
+                           'martini3')
 
         else:
             logging.warning("Output name not selected. Please select.")
