@@ -194,7 +194,8 @@ def module_densmap(universe,
     pbar = ProgressBar().start()
     total_step = 2
     step = 1
-    dmap = Density(universe,ncore)
+    dmap = Density(universe,
+                   ncore)
     
     for leaflet in leaflets:
         leaflet_atoms = leaflets[leaflet].residues.atoms
@@ -244,8 +245,9 @@ def module_enrichment(universe,
     pbar = ProgressBar().start()
     total_step = 2
     step = 1
-    dmap = Density(universe,ncore)
 
+    dmap = Density(universe,
+                   ncore)
    
     conc={}     # dictionary to store the concentration in bulk of each lipid
     for leaflet in leaflets:

@@ -791,81 +791,82 @@ charmm36 :
                         ['DOPP1','PPA(18:1(9Z)/18:1(9Z))'], 
                         ['DOPP2','PPA(18:1(9Z)/18:1(9Z))'], 
                         ['DOPP3','PPA(18:1(9Z)/18:1(9Z))']]
-
-    PI : 
+    
+    PI :
                             [
                             ['DMPI','PI(14:0/14:0)' ],
-                            ['DMPI13','PI(14:0/14:0)' ], #phospho
-                            ['DMPI14','PI(14:0/14:0)' ], #phospho
-                            ['DMPI15','PI(14:0/14:0)' ], #phospho
-                            ['DMPI24','PI(14:0/14:0)' ], #phospho
-                            ['DMPI25','PI(14:0/14:0)' ], #phospho
-                            ['DMPI2A','PI(14:0/14:0)' ], #phospho
-                            ['DMPI2B','PI(14:0/14:0)' ], #phospho
-                            ['DMPI2C','PI(14:0/14:0)' ], #phospho
-                            ['DMPI2D','PI(14:0/14:0)' ], #phospho
-                            ['DMPI33','PI(14:0/14:0)' ], #phospho
-                            ['DMPI34','PI(14:0/14:0)' ], #phospho
-                            ['DMPI35','PI(14:0/14:0)' ], #phospho
+                            ['DMPI13',"PIP[3'](14:0/14:0)" ], #phosphate protonated in 3
+                            ['DMPI14',"PIP[4'](14:0/14:0)" ], #phosphate protonated in 4
+                            ['DMPI15',"PIP[5'](14:0/14:0)" ], #phosphate protonated in 5
+                            ['DMPI24',"PIP2[4',5'](14:0/14:0)" ], #phophate protonated in 4
+                            ['DMPI25',"PIP2[4',5'](14:0/14:0)" ], #phosphate protonated in 5
+                            ['DMPI2A',"PIP2[3',5'](14:0/14:0)" ], #phosphate protonated in 3
+                            ['DMPI2B',"PIP2[3',5'](14:0/14:0)" ], #phosphate protonated in 5
+                            ['DMPI2C',"PIP2[3',4'](14:0/14:0)" ], #phosphate protonated in 3
+                            ['DMPI2D',"PIP2[3',4'](14:0/14:0)" ], #phosphate protonated in 4
+                            ['DMPI33',"PIP3[3',4',5'](14:0/14:0)" ], #phosphate protonated in 3
+                            ['DMPI34',"PIP3[3',4',5'](14:0/14:0)" ], #phosphate protonated in 4
+                            ['DMPI35',"PIP3[3',4',5'](14:0/14:0)" ], #phosphate protonated in 5
                             ['DPPI','PI(16:0/16:0)' ],
                             ['PYPI','PI(16:0/16:1(9Z))' ],
                             ['PSPI','PI(16:0/18:0)' ],
                             ['POPI','PI(16:0/18:1(9Z))' ],
-                            ['POPI13','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI14','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI15','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI24','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI25','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI2A','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI2B','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI2C','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI2D','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI33','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI34','PI(16:0/18:1(9Z))' ], #phospho
-                            ['POPI35','PI(16:0/18:1(9Z))' ], #phospho
+                            ['POPI13',"PIP[3'](16:0/18:1(9Z))" ], #phosphate protonated in 3
+                            ['POPI14',"PIP[4'](16:0/18:1(9Z))" ], #phosphate protonated in 4
+                            ['POPI15',"PIP[5'](16:0/18:1(9Z))" ], #phosphate protonated in 5
+                            ['POPI24',"PIP2[4',5'](16:0/18:1(9Z))" ], #phosphate protonated in 4
+                            ['POPI25',"PIP2[4',5'](16:0/18:1(9Z))" ], #phosphate protonated in 5
+                            ['POPI2A',"PIP2[3',5'](16:0/18:1(9Z))" ], #phosphate protonated in 3
+                            ['POPI2B',"PIP2[3',5'](16:0/18:1(9Z))" ], #phosphate protonated in 5
+                            ['POPI2C',"PIP2[3',4'](16:0/18:1(9Z))" ], #phosphate protonated in 3
+                            ['POPI2D',"PIP2[3',4'](16:0/18:1(9Z))" ], #phosphate protonated in 4
+                            ['POPI33',"PIP3[3',4',5'](16:0/18:1(9Z))" ], #phosphate protonated in 3
+                            ['POPI34',"PIP3[3',4',5'](16:0/18:1(9Z))" ], #phosphate protonated in 4
+                            ['POPI35',"PIP3[3',4',5'](16:0/18:1(9Z))" ], #phosphate protonated in 5
                             ['PLPI','PI(16:0/18:2(9Z,12Z))' ],
-                            ['PLPI13','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI14','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI15','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI24','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI25','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI2A','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI2B','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI2C','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI2D','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI33','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI34','PI(16:0/18:2(9Z,12Z))' ], #phospho
-                            ['PLPI35','PI(16:0/18:2(9Z,12Z))' ], #phospho
+                            ['PLPI13',"PIP[3'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 3
+                            ['PLPI14',"PIP[4'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 4
+                            ['PLPI15',"PIP[5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 5
+                            ['PLPI24',"PIP2[4',5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 4
+                            ['PLPI25',"PIP2[4',5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 5
+                            ['PLPI2A',"PIP2[3',5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 3
+                            ['PLPI2B',"PIP2[3',5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 5
+                            ['PLPI2C',"PIP2[3',4'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 3
+                            ['PLPI2D',"PIP2[3',4'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 4
+                            ['PLPI33',"PIP3[3',4',5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 3
+                            ['PLPI34',"PIP3[3',4',5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 4
+                            ['PLPI35',"PIP3[3',4',5'](16:0/18:2(9Z,12Z))" ], #phosphate protonated in 5
                             ['PNPI','PI(16:0/18:3(9Z,12Z,15Z))' ],
-                            ['PNPI13','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI14','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI15','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI24','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI25','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI2A','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI2B','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI2C','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI2D','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI33','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
-                            ['PNPI34','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho 
-                            ['PNPI35','PI(16:0/18:3(9Z,12Z,15Z))' ], #phospho
+                            ['PNPI13',"PIP[3'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 3
+                            ['PNPI14',"PIP[4'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 4
+                            ['PNPI15',"PIP[5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 5
+                            ['PNPI24',"PIP2[4',5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 4
+                            ['PNPI25',"PIP2[4',5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 5
+                            ['PNPI2A',"PIP2[3',5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 3
+                            ['PNPI2B',"PIP2[3',5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 5
+                            ['PNPI2C',"PIP2[3',4'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 3
+                            ['PNPI2D',"PIP2[3',4'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 4
+                            ['PNPI33',"PIP3[3',4',5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 3
+                            ['PNPI34',"PIP3[3',4',5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 4
+                            ['PNPI35',"PIP3[3',4',5'](16:0/18:3(9Z,12Z,15Z))" ], #phosphate protonated in 5
                             ['SLPI','PI(18:0/18:2(9Z,12Z))' ],
                             ['SAPI','PI(18:0/20:4(5Z,8Z,11Z,14Z))'],
-                            ['SAPI13','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI14','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI15','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI24','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI25','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI2A','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI2B','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI2C','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI2D','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI33','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho 
-                            ['SAPI34','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
-                            ['SAPI35','PI(18:0/20:4(5Z,8Z,11Z,14Z))' ], #phospho
+                            ['SAPI13',"PIP[3'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 3
+                            ['SAPI14',"PIP[4'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 4
+                            ['SAPI15',"PIP[5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 5
+                            ['SAPI24',"PIP2[4',5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 4
+                            ['SAPI25',"PIP2[4',5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 5
+                            ['SAPI2A',"PIP2[3',5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 3
+                            ['SAPI2B',"PIP2[3',5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 5
+                            ['SAPI2C',"PIP2[3',4'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 3
+                            ['SAPI2D',"PIP2[3',4'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 4
+                            ['SAPI33',"PIP3[3',4',5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 3
+                            ['SAPI34',"PIP3[3',4',5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 4
+                            ['SAPI35',"PIP3[3',4',5'](18:0/20:4(5Z,8Z,11Z,14Z))" ], #phosphate protonated in 5
                             ['SDPI','PI(18:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))' ],
                             ['DLiPI','PI(18:2(9Z,12Z)/18:2(9Z,12Z))'],
                             ['LiNPI','PI(18:2(9Z,12Z)/18:3(9Z,12Z,15Z))' ]]
+                              
     CL : 
                     [
                     ['TMCL1',"CL(1'-[14:0/14:0],3'-[14:0/14:0])"], #not in lipidmaps
