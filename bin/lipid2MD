@@ -30,7 +30,6 @@ import requests
 import tempfile
 import yaml
 import re
-# -*- coding: utf-8 -*-
 pd.set_option('display.max_rows', None)
 
 def retrieve_LMSD():
@@ -115,7 +114,7 @@ def find_match_ff(dataset,
             filtered dataset
     """
     
-    # in martini 3, some chain deffinitions are annotated as ranges
+    # in martini 3, some chain definitions are annotated as ranges
     # the ones that are, are transformed to 4 combinations
     if force_field == 'martini3':
         for lipid_class in def_lipids[force_field]:
