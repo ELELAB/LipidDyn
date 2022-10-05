@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Copyright (C) 2019, Simone Scrima, Alessia Campo, Matteo Tiberti
 
@@ -279,8 +280,7 @@ def find_match_ff(dataset,
 
 
 def output(df,
-           out_name,
-           force_field):
+           out_name):
     """Parameters
         -------------
         df : pd.DataFrame object 
@@ -293,7 +293,8 @@ def output(df,
     df.to_csv(out_name+".csv", index=False)
 
 def output_grouped(df,
-                   out_name_grouped):
+                   out_name_grouped,
+                   force_field):
 
     """Parameters
     -------------
@@ -397,7 +398,7 @@ if __name__ == '__main__':
                         type=str,
                         required=False,
                         metavar='',
-                        help='Grouped output name',
+                        help='Grouped output name'
                     )
 
     args = parser.parse_args()
@@ -406,6 +407,7 @@ if __name__ == '__main__':
     lipidomics_db = os.path.abspath(args.lipidb)
     def_lipids = os.path.abspath(args.cfg)
     full_atom = args.fa
+    coarse_grained = args.cg
     out_name = args.out
     out_name_grouped = args.out_group
 
@@ -442,39 +444,23 @@ if __name__ == '__main__':
                                        df_lmsd)
     
     if full_atom:
-        df = find_match_ff_fa(original_data,
-                           parsed_yaml,
-                           filtered_dataset,
-                           'charmm36')
-        if out_name:
-            output(df,
-                   out_name)
-
-        if out_name_grouped:
-            output_grouped(df,
-                           out_name_grouped,
-                           'charmm36')
-
-        else:
-            logging.warning("Output name not selected. Please select.")
-
-
-    if coarse_grained:
-        df = find_match_ffc(original_data,
-                            parsed_yaml,
-                            filtered_dataset,
-                            'martini3')
-        if out_name:
-            output(df,
-                   out_name)
-
-        if out_name_grouped:
-            output_grouped(df,
-                           out_name_grouped
-                           'martini3')
-
-        else:
-            logging.warning("Output name not selected. Please select.")
+        force_field = 'charmm36'
+    if coarse_grained:    
+        force_field = 'martini3'
+    
+    df = find_match_ff(original_data,
+                       parsed_yaml,
+                       filtered_dataset,
+                       force_field)
+    if out_name:
+        output(df,
+               out_name)
+    elif out_name_grouped:
+        output_grouped(df,
+                       out_name_grouped,
+                       force_field)
+    else:
+        logging.warning("Output name not selected. Please select.")
 
 
 
