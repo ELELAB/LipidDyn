@@ -33,4 +33,13 @@ ordpar -i Order_Parameter/Order_Parameter_PIPE.csv -o Order_Parameter/Order_Para
 ordpar -i Order_Parameter/Order_Parameter_PNSM.csv -o Order_Parameter/Order_Parameter_PNSM.pdf -s scc
 ordpar -i Order_Parameter/Order_Parameter_POPG.csv -o Order_Parameter/Order_Parameter_POPG.pdf -s scc
 ordpar -i Order_Parameter/Order_Parameter_POPS.csv -o Order_Parameter/Order_Parameter_POPS.pdf -s scc
-   
+
+# Membrane Curvature
+curvature -u curv/up_Avg_surface.dat -l curv/low_Avg_surface.dat -o curv/Avg_basic_surface.pdf -plot basic
+curvature -u curv/up_Avg_surface.dat -l curv/low_Avg_surface.dat -o curv/Avg_smooth_surface.pdf -plot smooth 
+curvature -u curv/up_Avg_mean_curvature.dat -l curv/low_Avg_mean_curvature.dat -o curv/Avg_mean_curvature.pdf -plot mean 
+curvature -u curv/up_Avg_gaussian_curvature.dat -l curv/low_Avg_gaussian_curvature.dat -o curv/Avg_gaussian_curvature.pdf -plot gaussian 
+
+#curvature -u curv/up_AF_surface.dat -l curv/low_AF_surface.dat -o curv/AF_surface.pdf
+#curvature -u curv/up_AF_gaussian_curvature.dat -l curv/low_AF_gaussian_curvature.dat -o curv/AF_gaussian_curvature.pdf
+#curvature -u curv/up_AF_mean_curvature.dat -l curv/low_AF_mean_curvature.dat -o curv/AF_mean_curvature.pdf

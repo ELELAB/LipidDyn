@@ -1,0 +1,244 @@
+#!/usr/bin/env python 
+
+# ----- Plotting Membrane Curvature Data ------
+import MDAnalysis as mda
+import numpy as np
+from scipy import ndimage
+import matplotlib.pyplot as plt
+import argparse
+import seaborn as sns
+import matplotlib.colors
+
+#attempted to make own color palette ... did not work...
+#myspectral = ["maroon", "crimson", "orangered", "coral", "orange", "peachpuff","lemonchiffon", "white","#d1ffbd","palegreen","limegreen","mediumseagreen","darkcyan","#4e518b","indigo"]
+#sns.set_palette(myspectral)
+
+leaflets = ["Lower", "Upper"]
+
+
+#------ Plotting Average Mean or Gaussian Curvature with Contours ------
+# define function 
+def plot_contours(lower_leaf,
+                  upper_leaf,
+                  label, 
+                  level,
+                  limit,
+                  cmap,
+                  title,
+                  out):
+    
+    """
+    Function used to plot contours of MembraneCurvature results.
+    User can determine number of contour lines / regions (levels),
+    label of the colorbar (label), upper and lower limit for the 
+    colorbar (limit) and colormap (cmap).
+
+    Parameters
+    ----------
+    lower_leaf : list 
+        List with data for lower leaflet
+    upper_leaf : list
+        List with data for upper leaflet
+    label : str
+        Label to add to colorbar
+    levels : int
+        Determines number of contour lines
+    limit : float
+        Color spectrum limit to use in plot
+    cmap : str
+        Colormap to use in plot
+    title : str
+        String containing the title 
+    out : str
+        String containing the output filename
+
+    """ 
+
+    data = [lower_leaf, upper_leaf]
+    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(4,3.5), dpi=200)
+    max_ = limit
+    
+    for ax, rs, lf in zip((ax1, ax2), data, leaflets):
+        rs = ndimage.zoom(rs, 3, mode='wrap', order=2)
+        if np.min(rs) < 0 < np.max(rs):
+            levs = np.linspace(-max_, max_, level)
+            im = ax.contourf(rs, cmap=cmap, origin='lower', levels=levs, alpha=0.95, vmin=-max_, vmax=max_)
+            tcs = [-max_, 0, max_]
+        else:
+            levs = np.linspace(int(np.min(rs)), round(np.max(rs)), level)
+            im = ax.contourf(rs, cmap=cmap, origin='lower', levels=levs, alpha=0.95,  vmin=int(np.min(rs)), vmax=round(np.max(rs)))
+            tcs = [int(np.min(rs)), round(np.max(rs))]
+
+        ax.set_aspect('equal')
+        ax.set_title('{} Leaflet'.format(lf), fontsize=6)
+        ax.axis('off')
+        cbar = plt.colorbar(im, ticks=tcs, orientation='horizontal', ax=ax, shrink=0.7, aspect=10, pad=0.05)
+        cbar.ax.tick_params(labelsize=4, width=0.5)
+        cbar.set_label(label, fontsize=6, labelpad=2)
+    
+    fig.suptitle(title)
+    plt.tight_layout()
+    plt.savefig(out, dpi= 300)
+        
+#   return
+
+
+usage = ('curvature -u [.dat] -l [.dat] -c [colormap] -t [Title of the plot]' \
+          '-plot[mean/gaussian/basic/smooth] -level [int] -lim [float] -o ["".png/pdf]')
+
+description= 'This script is to plot the membrane curvature and surface' \
+              'maps of the lipids composing the leaflets in the box.'\
+              'The input file is an .dat file coming from the analysis'
+                                    
+
+parser = argparse.ArgumentParser(usage = usage,description= description)
+
+
+parser.add_argument('-u',
+                    '--upper',
+                    dest='upper',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='upper leaflet input file'
+                    )
+
+parser.add_argument('-l',
+                    '--lower',
+                    dest='lower',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='lower leaflet input file'
+                    )
+
+parser.add_argument('-plot',
+                    choices=['mean','gaussian','basic','smooth'],
+                    required=True,
+                    dest='plot',
+                    help='Specify the type of plot')
+
+parser.add_argument('-level',
+                    nargs ='?',
+                    default = 50,
+                    type=int,
+                    dest='level',
+                    help='Specify on how many contour lines to use for \
+                          plotting (50 for mean 30 for gaussian f.x.)  '
+                   )
+
+parser.add_argument('-lim',
+                    '--spectrum-limit',
+                    dest='speclim',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='Specify spectrum limit to assign to the plot',
+                    )
+
+
+parser.add_argument('-c', 
+                    '--colormap',
+                     dest='cmap',
+                     default="Spectral",
+                     type=str,
+                     metavar='',
+                     help='Range of colors used in the plot.'
+                     )
+
+parser.add_argument('-t',
+                    '--title',
+                    dest='title',
+                    type=str,
+                    required=False,
+                    default='2D Membrane Curvature Map',
+                    metavar='',
+                    help='Title to assign to the plot',
+                    )
+
+parser.add_argument('-o',
+                    '--output',
+                    dest='output',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    default= 'curvature.pdf',
+                    help='output name of the file',
+                    )
+
+
+args = parser.parse_args()
+lower_leaflet = args.lower
+upper_leaflet = args.upper
+out = args.output
+level = args.level
+lim = args.speclim
+title = args.title
+plot = args.plot
+cmap = args.cmap
+
+# assign mean label
+if args.plot == 'mean':    
+    label = '$H$ ($\AA^{-1}$)'
+
+# assign gaussian label
+if args.plot == 'gaussian':    
+    label = '$K$ ($\AA^{-2}$)'
+    
+lower_leaf = np.loadtxt(lower_leaflet)
+upper_leaf = np.loadtxt(upper_leaflet)
+
+# set limit
+if lim:
+    limit = lim
+else:
+    limit = np.max(abs(lower_leaf))    
+
+
+#------ in case of plotting surface --------- 
+surfaces = [lower_leaf,  # avg surface in lower leaflet
+            upper_leaf]  # avg surface in upper leaflet
+surfmax = np.nanmax(surfaces)
+surfmin = np.nanmin(surfaces)
+
+# basic plot
+if args.plot == 'basic':
+    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(4,2), dpi=200)
+    for ax, surfs, lf in zip((ax1, ax2), surfaces, leaflets):
+        im = ax.imshow(surfs, cmap='Spectral', origin='lower',vmin = surfmin, vmax = surfmax)
+        ax.set_aspect('equal')
+        ax.set_title('{} Leaflet'.format(lf), fontsize=6)
+        ax.axis('off')
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
+    cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.ax.tick_params(labelsize=5, width=0.5)
+    cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize=6, labelpad=5)
+
+    fig.suptitle("Basic plots of Surface",size='small')
+    fig.savefig(out, dpi= 300)
+
+    exit()
+
+# smooth plot
+if args.plot == 'smooth':
+    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(4,2), dpi=200)
+    for ax, surfs, lf in zip((ax1, ax2), surfaces, leaflets):
+        im = ax.imshow(surfs, interpolation='gaussian', cmap='Spectral', origin='lower',vmin = surfmin, vmax = surfmax)
+        ax.set_aspect('equal')
+        ax.set_title('{} Leaflet'.format(lf), fontsize=6)
+        ax.axis('off')
+    fig.subplots_adjust(right=0.8)
+    cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
+    cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.ax.tick_params(labelsize=5, width=0.5)
+    cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize=6, labelpad=5)
+
+    fig.suptitle("Smooth plots of Surface",size='small')
+   # fig.suptitle(title,size='small') #if the user wants to specify a title, this works...
+    fig.savefig(out, dpi= 300)
+
+    exit()
+
+#----- in case of plotting membrance curvature -------
+plot_contours(lower_leaf,upper_leaf,label,level,limit,cmap,title,out)
