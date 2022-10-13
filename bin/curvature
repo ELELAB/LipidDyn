@@ -120,11 +120,11 @@ parser.add_argument('-plot',
 
 parser.add_argument('-level',
                     nargs ='?',
-                    default = 50,
+                    default = 70,
                     type=int,
                     dest='level',
                     help='Specify on how many contour lines to use for \
-                          plotting (50 for mean 30 for gaussian f.x.)  '
+                          plotting'
                    )
 
 parser.add_argument('-lim',
@@ -180,11 +180,13 @@ cmap = args.cmap
 # assign mean label
 if args.plot == 'mean':    
     label = '$H$ ($\AA^{-1}$)'
+    title = 'Mean Curvature Plots'
 
 # assign gaussian label
 if args.plot == 'gaussian':    
     label = '$K$ ($\AA^{-2}$)'
-    
+    title = 'Gaussian Curvature Plots'
+
 lower_leaf = np.loadtxt(lower_leaflet)
 upper_leaf = np.loadtxt(upper_leaflet)
 
@@ -192,7 +194,7 @@ upper_leaf = np.loadtxt(upper_leaflet)
 if lim:
     limit = lim
 else:
-    limit = np.max(abs(lower_leaf))    
+    limit = np.max(abs(upper_leaf))    
 
 
 #------ in case of plotting surface --------- 
