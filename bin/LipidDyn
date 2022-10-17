@@ -935,7 +935,6 @@ def main():
     if args.clean :
         os.remove(os.path.join(out_dir, 'index_headgroups.ndx'))
         os.remove(os.path.join(out_dir, 'true_bilayer.ndx'))
-        os.remove(os.path.join(out_dir, 'index_species.ndx'))
 
 if __name__ == "__main__":
     main()

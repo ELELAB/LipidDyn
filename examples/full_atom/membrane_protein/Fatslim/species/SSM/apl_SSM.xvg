@@ -1,0 +1,66 @@
+# This file was created on Mon Oct 17 17:05:36 2022
+# Created by: FATSLiM v.0.2.2
+# Command line: fatslim apl -c /data/user/annerossen/LipidDyn/examples/full_atom/membrane_protein/heterogeneous_membrane_protein.gro -n /data/user/annerossen/LipidDyn/examples/full_atom/membrane_protein/index_headgroups.ndx -t /data/user/annerossen/LipidDyn/examples/full_atom/membrane_protein/heterogeneous_membrane_protein.xtc --nthread 4 --plot-apl /data/user/annerossen/LipidDyn/examples/full_atom/membrane_protein/Fatslim/average/apl.xvg
+@TYPE xy
+@ title "Area per lipid"
+@ xaxis  label "Time (ps)"
+@ yaxis  label "Area per lipid (nm^2)"
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Membrane"
+@ s1 legend "Lower leaflet"
+@ s2 legend "Upper leaflet"
+   0.000    0.596    0.580    0.613 
+  20.000    0.592    0.573    0.611 
+  40.000    0.588    0.570    0.605 
+  60.000    0.580    0.560    0.599 
+  80.000    0.587    0.564    0.609 
+ 100.000    0.588    0.566    0.609 
+ 120.000    0.582    0.555    0.608 
+ 140.000    0.577    0.565    0.588 
+ 160.000    0.592    0.583    0.600 
+ 180.000    0.592    0.585    0.600 
+ 200.000    0.587    0.582    0.592 
+ 220.000    0.594    0.585    0.602 
+ 240.000    0.588    0.590    0.587 
+ 260.000    0.595    0.580    0.611 
+ 280.000    0.589    0.584    0.594 
+ 300.000    0.585    0.589    0.581 
+ 320.000    0.590    0.588    0.592 
+ 340.000    0.595    0.602    0.589 
+ 360.000    0.590    0.603    0.576 
+ 380.000    0.585    0.601    0.569 
+ 400.000    0.591    0.608    0.574 
+ 420.000    0.590    0.601    0.580 
+ 440.000    0.604    0.612    0.596 
+ 460.000    0.591    0.597    0.585 
+ 480.000    0.589    0.603    0.575 
+ 500.000    0.595    0.604    0.586 
+ 520.000    0.593    0.596    0.590 
+ 540.000    0.587    0.582    0.592 
+ 560.000    0.581    0.582    0.580 
+ 580.000    0.591    0.597    0.584 
+ 600.000    0.580    0.590    0.570 
+ 620.000    0.586    0.601    0.571 
+ 640.000    0.585    0.592    0.578 
+ 660.000    0.587    0.595    0.579 
+ 680.000    0.582    0.583    0.581 
+ 700.000    0.575    0.575    0.574 
+ 720.000    0.580    0.586    0.574 
+ 740.000    0.581    0.577    0.585 
+ 760.000    0.578    0.582    0.574 
+ 780.000    0.581    0.570    0.592 
+ 800.000    0.577    0.585    0.568 
+ 820.000    0.570    0.570    0.569 
+ 840.000    0.574    0.587    0.560 
+ 860.000    0.581    0.584    0.578 
+ 880.000    0.573    0.582    0.565 
+ 900.000    0.575    0.576    0.575 
+ 920.000    0.559    0.558    0.561 
+ 940.000    0.568    0.573    0.564 
+ 960.000    0.557    0.551    0.563 
+ 980.000    0.561    0.557    0.564 
+1000.000    0.571    0.562    0.579 

@@ -1,0 +1,66 @@
+# This file was created on Mon Oct 17 17:10:59 2022
+# Created by: FATSLiM v.0.2.2
+# Command line: fatslim thickness -c /data/user/annerossen/LipidDyn/examples/coarse_grained/membrane/heterogeneous_membrane.gro -n /data/user/annerossen/LipidDyn/examples/coarse_grained/membrane/index_headgroups.ndx -t /data/user/annerossen/LipidDyn/examples/coarse_grained/membrane/heterogeneous_membrane.xtc --nthread 4 --plot-thickness /data/user/annerossen/LipidDyn/examples/coarse_grained/membrane/Fatslim/average/thickness.xvg
+@TYPE xy
+@ title "Thickness"
+@ xaxis  label "Time (ps)"
+@ yaxis  label "Thickness (nm)"
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Membrane"
+@ s1 legend "Lower leaflet"
+@ s2 legend "Upper leaflet"
+   0.000    3.831    3.819    3.843 
+  20.000    3.886    3.918    3.854 
+  40.000    3.882    3.868    3.896 
+  60.000    3.836    3.810    3.861 
+  80.000    3.921    3.942    3.900 
+ 100.000    3.925    3.973    3.877 
+ 120.000    3.911    3.925    3.897 
+ 140.000    3.928    3.928    3.928 
+ 160.000    3.929    3.874    3.984 
+ 180.000    3.898    3.862    3.933 
+ 200.000    3.959    3.962    3.956 
+ 220.000    3.898    3.903    3.892 
+ 240.000    3.876    3.835    3.917 
+ 260.000    3.917    3.893    3.940 
+ 280.000    3.878    3.898    3.857 
+ 300.000    3.927    3.936    3.918 
+ 320.000    3.851    3.841    3.861 
+ 340.000    3.895    3.868    3.922 
+ 360.000    3.901    3.871    3.932 
+ 380.000    3.941    3.906    3.976 
+ 400.000    3.930    3.926    3.933 
+ 420.000    3.864    3.840    3.887 
+ 440.000    3.877    3.892    3.861 
+ 460.000    3.877    3.874    3.881 
+ 480.000    3.837    3.819    3.856 
+ 500.000    3.895    3.947    3.842 
+ 520.000    3.867    3.864    3.869 
+ 540.000    3.951    3.911    3.991 
+ 560.000    3.942    3.907    3.976 
+ 580.000    3.893    3.884    3.903 
+ 600.000    3.860    3.882    3.838 
+ 620.000    3.885    3.879    3.890 
+ 640.000    3.883    3.905    3.860 
+ 660.000    3.815    3.854    3.776 
+ 680.000    3.946    4.024    3.869 
+ 700.000    3.859    3.882    3.836 
+ 720.000    3.869    3.858    3.880 
+ 740.000    3.877    3.817    3.938 
+ 760.000    3.882    3.931    3.832 
+ 780.000    3.879    3.850    3.907 
+ 800.000    3.920    3.954    3.886 
+ 820.000    3.875    3.860    3.890 
+ 840.000    3.901    3.891    3.910 
+ 860.000    3.926    3.893    3.959 
+ 880.000    3.895    3.878    3.911 
+ 900.000    3.908    3.881    3.935 
+ 920.000    3.837    3.866    3.809 
+ 940.000    3.913    3.938    3.889 
+ 960.000    3.874    3.871    3.878 
+ 980.000    3.810    3.825    3.795 
+1000.000    3.885    3.801    3.968 

@@ -15,8 +15,9 @@ dmaps -i Enrichment/SSM_lower_leaflet_enrich.dat -o Enrichment/SSM_lower_leaflet
 dmaps -i Enrichment/SSM_upper_leaflet_enrich.dat -o Enrichment/SSM_upper_leaflet_enrich.pdf -enr
 
 # Plot APL and Thicknes
-profiler -i Fatslim/thickness.xvg -out Fatslim/thickness.pdf -d Fatslim/distribution_thickness.pdf -plot thick
-profiler -i Fatslim/apl.xvg -out Fatslim/apl.pdf -d Fatslim/distribution_apl.pdf -plot apl
+profiler -p Fatslim -out thickness.pdf -d thickness_distribution.pdf -plot thickness -s
+profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -s
+
 
 # Diffusion
 diffusion -i Diffusion_movements/Lower_leaflet_coordinates.dat -o Diffusion_movements/Lower_leaflet_coordinates -t he
