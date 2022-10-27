@@ -1,6 +1,6 @@
 # Import the environment prior to run this script
 
-LipidDyn -f heterogeneous_membrane_protein.xtc -s heterogeneous_membrane_protein.gro -g full_atom.yml -p -a -n 4 -c -r
+LipidDyn -f heterogeneous_membrane_protein.xtc -s heterogeneous_membrane_protein.gro -g full_atom.yml -p -a -mc -n 4 -c -r
 
 # Plotting 
 
@@ -27,3 +27,9 @@ diffusion -i Diffusion_movements/Upper_leaflet_coordinates.dat -o Diffusion_move
 # Order Parameter
 ordpar -i Order_Parameter/Order_Parameter_SSM.csv -o Order_Parameter/Order_Parameter_SSM.pdf -s sch
 ordpar -i Order_Parameter/Order_Parameter_POPC.csv -o Order_Parameter/Order_Parameter_POPC.pdf -s sch
+
+# Membrane Curvature
+curvature -u curv/up_Avg_surface.dat -l curv/low_Avg_surface.dat -o curv/Avg_basic_surface.pdf -plot basic
+curvature -u curv/up_Avg_surface.dat -l curv/low_Avg_surface.dat -o curv/Avg_smooth_surface.pdf -plot smooth
+curvature -u curv/up_Avg_mean_curvature.dat -l curv/low_Avg_mean_curvature.dat -o curv/Avg_mean_curvature.pdf -plot mean
+curvature -u curv/up_Avg_gaussian_curvature.dat -l curv/low_Avg_gaussian_curvature.dat -o curv/Avg_gaussian_curvature.pdf -plot gaussian
