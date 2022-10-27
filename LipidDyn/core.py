@@ -33,6 +33,7 @@ from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
 mp.set_start_method("fork") # Allow multiprocessing to work with MacOS
 import warnings
+from MDAnalysis.analysis.base import AnalysisBase
 
  
 
@@ -320,7 +321,6 @@ def parse_op_input(def_file):
     return ordPars
 
 #*******************************************************************
-
 
 class Density:
 
@@ -712,6 +712,7 @@ class FatslimCommands:
                                 )
 
 
+
 #--------------- DRAFT MEMBRANE CURVATURE ---------------
 # the first few functions are taken straight from the MembraneCurvature Github
 
@@ -737,7 +738,7 @@ def gaussian_curvature(Z):
 
     K = (Zxx * Zyy - (Zxy ** 2)) / (1 + (Zx ** 2) + (Zy ** 2)) ** 2
 
-    return K
+    return(K)
 
 
 def mean_curvature(Z):
@@ -764,11 +765,17 @@ def mean_curvature(Z):
     H = (1 + Zx**2) * Zyy + (1 + Zy**2) * Zxx - 2 * Zx * Zy * Zxy
     H = H / (2 * (1 + Zx**2 + Zy**2)**(1.5))
 
-    return H
+    return(H)
 
 #-------------
    
-def derive_surface(atoms, n_cells_x, n_cells_y, max_width_x, max_width_y): 
+def derive_surface(atoms, 
+                   n_cells_x, 
+                   n_cells_y, 
+                   max_width_x, 
+                   max_width_y
+                   ): 
+    
     """
     Derive surface from `atom` positions in `AtomGroup`.
     
@@ -793,13 +800,23 @@ def derive_surface(atoms, n_cells_x, n_cells_y, max_width_x, max_width_y):
     """
         
     coordinates = atoms.positions
-    return get_z_surface(coordinates, n_x_bins=n_cells_x, n_y_bins=n_cells_y,
-            x_range=(0, max_width_x), y_range=(0, max_width_y))
+
+    return(get_z_surface(coordinates, 
+                         n_x_bins = n_cells_x, 
+                         n_y_bins = n_cells_y,
+                         x_range = (0, max_width_x),
+                         y_range = (0, max_width_y)))
 
 mda.start_logging()
 logger = logging.getLogger("MDAnalysis.MDAKit.membrane_curvature")
 
-def get_z_surface(coordinates, n_x_bins=10, n_y_bins=10, x_range=(0, 100), y_range=(0, 100)):
+def get_z_surface(coordinates, 
+                  n_x_bins = 10, 
+                  n_y_bins = 10, 
+                  x_range = (0, 100),
+                  y_range = (0, 100)
+                  ):
+
     """
     Derive surface from distribution of z coordinates in grid.
     
@@ -863,6 +880,7 @@ def get_z_surface(coordinates, n_x_bins=10, n_y_bins=10, x_range=(0, 100), y_ran
 
 
 def normalized_grid(grid_z_coordinates, grid_norm_unit):
+    
     """
     Calculates average `z` coordinates in unit cell.
 
@@ -885,7 +903,7 @@ def normalized_grid(grid_z_coordinates, grid_norm_unit):
     grid_norm_unit = np.where(grid_norm_unit > 0, grid_norm_unit, np.nan)
     z_normalized = grid_z_coordinates / grid_norm_unit
     
-    return z_normalized
+    return(z_normalized)
 
 
 #------- My own function --------
@@ -900,9 +918,15 @@ def curvature_data_extraction(mc):
     Avg_mean_curvature = mc.results.average_mean
     Avg_gaussian_curvature = mc.results.average_gaussian
 
-    return [AF_surface, AF_mean_curvature, AF_gaussian_curvature, Avg_surface, Avg_mean_curvature, Avg_gaussian_curvature]
+    return([AF_surface, 
+            AF_mean_curvature, 
+            AF_gaussian_curvature, 
+            Avg_surface, 
+            Avg_mean_curvature, 
+            Avg_gaussian_curvature])
 
 #------- More from MembraneCurvature Github --------
+
 """
 MembraneCurvature
 =======================================
@@ -918,14 +942,11 @@ Mean curvature is calculated in units of Å :sup:`-1` and Gaussian curvature
 in units of Å :sup:`-2`.
 """
 
-from MDAnalysis.analysis.base import AnalysisBase
-
-import logging # necessary ?
 mda.start_logging()
-
 logger = logging.getLogger("MDAnalysis.MDAKit.membrane_curvature")
 
 class MembraneCurvature(AnalysisBase):
+
     """
     MembraneCurvature is a tool to calculate membrane curvature.
 
@@ -968,7 +989,16 @@ class MembraneCurvature(AnalysisBase):
     Each array has shape (`n_x_bins`, `n_y_bins`)
     """
 
-    def __init__(self,universe,select='all',n_x_bins=100,n_y_bins=100,x_range=None,y_range=None,wrap=True,**kwargs):
+    def __init__(self,
+                 universe,
+                 select = 'all',
+                 n_x_bins = 100,
+                 n_y_bins = 100,
+                 x_range = None,
+                 y_range = None,
+                 wrap = True, 
+                 **kwargs
+                 ):
 
         super().__init__(universe.universe.trajectory, **kwargs)
         self.ag = universe.select_atoms(select)
@@ -984,7 +1014,8 @@ class MembraneCurvature(AnalysisBase):
 
         # Only checks the first frame. NPT simulations not properly covered here.
         # Warning message if range doesn't cover entire dimensions of simulation box
-        for dim_string, dim_range, num in [('x', self.x_range, 0), ('y', self.y_range, 1)]:
+        for dim_string, dim_range, num in [('x', self.x_range, 0), 
+                                           ('y', self.y_range, 1)]:
             if (dim_range[1] < universe.dimensions[num]):
                 msg = (f"Grid range in {dim_string} does not cover entire "
                        "dimensions of simulation box.\n Minimum dimensions "
@@ -1021,10 +1052,10 @@ class MembraneCurvature(AnalysisBase):
             self.ag.wrap()
         # Populate a slice with np.arrays of surface, mean, and gaussian per frame
         self.results.z_surface[self._frame_index] = get_z_surface(self.ag.positions,
-                                                                  n_x_bins=self.n_x_bins,
-                                                                  n_y_bins=self.n_y_bins,
-                                                                  x_range=self.x_range,
-                                                                  y_range=self.y_range)
+                                                                  n_x_bins = self.n_x_bins,
+                                                                  n_y_bins = self.n_y_bins,
+                                                                  x_range = self.x_range,
+                                                                  y_range = self.y_range)
         self.results.mean[self._frame_index] = mean_curvature(self.results.z_surface[self._frame_index])
         self.results.gaussian[self._frame_index] = gaussian_curvature(self.results.z_surface[self._frame_index])
 

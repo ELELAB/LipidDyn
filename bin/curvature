@@ -1,6 +1,7 @@
 #!/usr/bin/env python 
 
 # ----- Plotting Membrane Curvature Data ------
+
 import MDAnalysis as mda
 import numpy as np
 from scipy import ndimage
@@ -9,14 +10,9 @@ import argparse
 import seaborn as sns
 import matplotlib.colors
 
-#attempted to make own color palette ... did not work...
-#myspectral = ["maroon", "crimson", "orangered", "coral", "orange", "peachpuff","lemonchiffon", "white","#d1ffbd","palegreen","limegreen","mediumseagreen","darkcyan","#4e518b","indigo"]
-#sns.set_palette(myspectral)
-
-leaflets = ["Lower", "Upper"]
-
 
 #------ Plotting Average Mean or Gaussian Curvature with Contours ------
+
 # define function 
 def plot_contours(lower_leaf,
                   upper_leaf,
@@ -55,32 +51,70 @@ def plot_contours(lower_leaf,
     """ 
 
     data = [lower_leaf, upper_leaf]
-    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(4,3.5), dpi=200)
-    max_ = limit
     
+    fig, [ax1, ax2] = plt.subplots(ncols = 2, 
+                                   figsize = (4, 3.5), 
+                                   dpi = 200)
+    
+    max_ = np.nanmax(np.concatenate(data)) #overall max for both leaflets
+    max_ = limit #otherwise specified max via argument 
+    min_ = np.nanmin(np.concatenate(data)) #overall min for both leaflets
+    
+    low_max = np.nanmax(data[0]) #max for lower leaflet 
+    up_min = np.nanmin(data[1]) #min for upper leaflet 
+
+    half = (min_ + ((max_ - min_) / 2)) #halfway point between overall max and min
+
     for ax, rs, lf in zip((ax1, ax2), data, leaflets):
-        rs = ndimage.zoom(rs, 3, mode='wrap', order=2)
+        rs = ndimage.zoom(rs, 
+                          3, 
+                          mode = 'wrap', 
+                          order = 2)
+        
         if np.min(rs) < 0 < np.max(rs):
             levs = np.linspace(-max_, max_, level)
-            im = ax.contourf(rs, cmap=cmap, origin='lower', levels=levs, alpha=0.95, vmin=-max_, vmax=max_)
+            im = ax.contourf(rs, 
+                             cmap = cmap, 
+                             origin = 'lower', 
+                             levels = levs, 
+                             alpha = 0.95, 
+                             vmin = -max_, 
+                             vmax = max_)
+        
             tcs = [-max_, 0, max_]
+        
         else:
-            levs = np.linspace(int(np.min(rs)), round(np.max(rs)), level)
-            im = ax.contourf(rs, cmap=cmap, origin='lower', levels=levs, alpha=0.95,  vmin=int(np.min(rs)), vmax=round(np.max(rs)))
-            tcs = [int(np.min(rs)), round(np.max(rs))]
+            levs = np.linspace(min_, max_, level)
+            im = ax.contourf(rs, 
+                             cmap = cmap, 
+                             origin = 'lower', 
+                             levels = levs, 
+                             alpha = 0.95, 
+                             vmin = min_, 
+                             vmax = max_)
+            
+            tcs = [min_, low_max, half, up_min, max_]
 
         ax.set_aspect('equal')
-        ax.set_title('{} Leaflet'.format(lf), fontsize=6)
+        ax.set_title('{} Leaflet'.format(lf), fontsize = 6)
         ax.axis('off')
-        cbar = plt.colorbar(im, ticks=tcs, orientation='horizontal', ax=ax, shrink=0.7, aspect=10, pad=0.05)
-        cbar.ax.tick_params(labelsize=4, width=0.5)
-        cbar.set_label(label, fontsize=6, labelpad=2)
+
+        fig.subplots_adjust(right = 0.8)
+        cbar_ax = fig.add_axes([0.83, 0.32, 0.02, 0.35])
+        cbar = fig.colorbar(im, cax = cbar_ax, ticks = tcs) 
+        #cbar = plt.colorbar(im, 
+        #                    ticks = tcs, 
+        #                    orientation ='horizontal', 
+        #                    ax = ax, 
+        #                    shrink = 0.7, 
+        #                    aspect = 10, 
+        #                    pad = 0.05)
+        cbar.ax.tick_params(labelsize = 5, width = 0.5)
+        cbar.set_label(label, fontsize = 5, labelpad = 5)
     
-    fig.suptitle(title)
-    plt.tight_layout()
-    plt.savefig(out, dpi= 300)
-        
-#   return
+    fig.suptitle(title, y = 0.85)
+    #plt.tight_layout()
+    plt.savefig(out, dpi = 300)
 
 
 usage = ('curvature -u [.dat] -l [.dat] -c [colormap] -t [Title of the plot]' \
@@ -91,7 +125,7 @@ description= 'This script is to plot the membrane curvature and surface' \
               'The input file is an .dat file coming from the analysis'
                                     
 
-parser = argparse.ArgumentParser(usage = usage,description= description)
+parser = argparse.ArgumentParser(usage = usage, description= description)
 
 
 parser.add_argument('-u',
@@ -113,14 +147,14 @@ parser.add_argument('-l',
                     )
 
 parser.add_argument('-plot',
-                    choices=['mean','gaussian','basic','smooth'],
+                    choices=['mean','gaussian','basic','smooth','smoot'],
                     required=True,
                     dest='plot',
                     help='Specify the type of plot')
 
 parser.add_argument('-level',
-                    nargs ='?',
-                    default = 70,
+                    nargs='?',
+                    default=50,
                     type=int,
                     dest='level',
                     help='Specify on how many contour lines to use for \
@@ -140,7 +174,7 @@ parser.add_argument('-lim',
 parser.add_argument('-c', 
                     '--colormap',
                      dest='cmap',
-                     default="Spectral",
+                     default='Spectral_r',
                      type=str,
                      metavar='',
                      help='Range of colors used in the plot.'
@@ -177,6 +211,14 @@ title = args.title
 plot = args.plot
 cmap = args.cmap
 
+leaflets = ["Lower", "Upper"]
+
+lower_leaf = np.loadtxt(lower_leaflet)
+upper_leaf = np.loadtxt(upper_leaflet)
+leafs = [lower_leaf,  
+         upper_leaf] 
+concat_leafs = np.concatenate(leafs) #new  
+
 # assign mean label
 if args.plot == 'mean':    
     label = '$H$ ($\AA^{-1}$)'
@@ -187,60 +229,90 @@ if args.plot == 'gaussian':
     label = '$K$ ($\AA^{-2}$)'
     title = 'Gaussian Curvature Plots'
 
-lower_leaf = np.loadtxt(lower_leaflet)
-upper_leaf = np.loadtxt(upper_leaflet)
+if args.plot == 'smoot': #temporary
+    label = 'Height lipid headgroups (${\AA}$)'
+    title = 'Smooth Plots of Surface' 
 
 # set limit
 if lim:
     limit = lim
 else:
-    limit = np.max(abs(upper_leaf))    
+    limit = np.nanmax(abs(concat_leafs)) #changed from np.max(abs(upper_leaf))     
 
 
-#------ in case of plotting surface --------- 
-surfaces = [lower_leaf,  # avg surface in lower leaflet
-            upper_leaf]  # avg surface in upper leaflet
-surfmax = np.nanmax(surfaces)
-surfmin = np.nanmin(surfaces)
+#------ in case of plotting surface ---------
+leafs_max = np.nanmax(concat_leafs) #overall max for both leaflets  
+leafs_min = np.nanmin(concat_leafs) #overall min for both leaflets
+
+low_max = np.nanmax(leafs[0]) #max for lower leaflet
+up_min = np.nanmin(leafs[1]) #min for upper leaflet
+
+half = (leafs_min + ((leafs_max - leafs_min) / 2)) #halfway point between overall max and min
 
 # basic plot
 if args.plot == 'basic':
-    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(4,2), dpi=200)
-    for ax, surfs, lf in zip((ax1, ax2), surfaces, leaflets):
-        im = ax.imshow(surfs, cmap='Spectral', origin='lower',vmin = surfmin, vmax = surfmax)
+    fig, [ax1, ax2] = plt.subplots(ncols = 2, 
+                                   figsize = (4,2), 
+                                   dpi = 200)
+    
+    for ax, surfs, lf in zip((ax1, ax2), leafs, leaflets):
+        im = ax.imshow(surfs, 
+                       cmap = 'Spectral_r', 
+                       origin = 'lower', 
+                       vmin = leafs_min, 
+                       vmax = leafs_max)
+        tcs = [leafs_min, low_max, half, up_min, leafs_max] 
         ax.set_aspect('equal')
-        ax.set_title('{} Leaflet'.format(lf), fontsize=6)
+        ax.set_title('{} Leaflet'.format(lf), fontsize = 6)
         ax.axis('off')
-    fig.subplots_adjust(right=0.8)
-    cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.tick_params(labelsize=5, width=0.5)
-    cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize=6, labelpad=5)
 
-    fig.suptitle("Basic plots of Surface",size='small')
-    fig.savefig(out, dpi= 300)
+    fig.subplots_adjust(right = 0.8)
+    cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
+    cbar = fig.colorbar(im, cax = cbar_ax, ticks = tcs)
+    cbar.ax.tick_params(labelsize = 5, width = 0.5)
+    cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
+
+    fig.suptitle("Basic Surface Plots", size = 'small')
+    fig.savefig(out, dpi = 300)
 
     exit()
 
 # smooth plot
 if args.plot == 'smooth':
-    fig, [ax1, ax2] = plt.subplots(ncols=2, figsize=(4,2), dpi=200)
-    for ax, surfs, lf in zip((ax1, ax2), surfaces, leaflets):
-        im = ax.imshow(surfs, interpolation='gaussian', cmap='Spectral', origin='lower',vmin = surfmin, vmax = surfmax)
+    fig, [ax1, ax2] = plt.subplots(ncols = 2, 
+                                   figsize = (4,2), 
+                                   dpi = 200)
+    
+    for ax, surfs, lf in zip((ax1, ax2), leafs, leaflets):
+        im = ax.imshow(surfs, 
+                       interpolation = 'gaussian', 
+                       cmap = 'Spectral_r', 
+                       origin = 'lower', 
+                       vmin = leafs_min, 
+                       vmax = leafs_max)
+        tcs = [leafs_min, low_max, half, up_min, leafs_max]
         ax.set_aspect('equal')
-        ax.set_title('{} Leaflet'.format(lf), fontsize=6)
+        ax.set_title('{} Leaflet'.format(lf), fontsize = 6)
         ax.axis('off')
-    fig.subplots_adjust(right=0.8)
+    
+    fig.subplots_adjust(right = 0.8)
     cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.ax.tick_params(labelsize=5, width=0.5)
-    cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize=6, labelpad=5)
+    cbar = fig.colorbar(im, cax = cbar_ax, ticks = tcs)
+    cbar.ax.tick_params(labelsize = 5, width = 0.5)
+    cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
 
-    fig.suptitle("Smooth plots of Surface",size='small')
-   # fig.suptitle(title,size='small') #if the user wants to specify a title, this works...
-    fig.savefig(out, dpi= 300)
+    fig.suptitle("Smooth Surface Plots", size = 'small')
+   #fig.suptitle(title, size = 'small') #if the user wants to specify a title, this works...
+    fig.savefig(out, dpi = 300)
 
     exit()
 
 #----- in case of plotting membrance curvature -------
-plot_contours(lower_leaf,upper_leaf,label,level,limit,cmap,title,out)
+plot_contours(lower_leaf, 
+              upper_leaf, 
+              label, 
+              level, 
+              limit, 
+              cmap, 
+              title, 
+              out)

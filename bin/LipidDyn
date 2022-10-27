@@ -542,16 +542,18 @@ def module_curvature(universe,
     out_dir : str
         Name of the output folder
     """
+
     bins = round(universe.dimensions[0]/20)  # !should be defined in config file 
         
     # define dictionary 
-    dict_selection=parsed_yaml["lipids"] 
+    dict_selection = parsed_yaml["lipids"] 
     
     # define headgroups
-    g = select_lipid_headgroups(universe, dict_selection) # necessary ? defined elsewhere ? 
+    g = select_lipid_headgroups(universe, dict_selection) # defined elsewhere ? 
     
     # output directory
     out_folder = os.path.abspath(os.path.join(out_dir, "curv"))
+
     if not os.path.exists(out_folder):
         try:
             os.mkdir((out_folder)) 
@@ -560,7 +562,7 @@ def module_curvature(universe,
                 raise 
 
     # find leaflets and store them in a dictionary
-    L =  LeafletFinder(universe,g) #select = 'all' doesn't seem to work 
+    L = LeafletFinder(universe, g) 
     
     upper_leaflet = L.groups(0)
     lower_leaflet = L.groups(1)
@@ -573,38 +575,67 @@ def module_curvature(universe,
 
     # turn headgroup selections into string
     sentence = list()
-    for x in range(len(selection_up)-1):
+    for x in range(len(selection_up) - 1):
         sentence.append(str(selection_up[x]) + " or name")
     sentence.append(str(selection_up[-1]))
     sentence = ' '.join(sentence)
     
+    
     sentence1 = list()
-    for x in range(len(selection_low)-1):
+    for x in range(len(selection_low) - 1):
         sentence1.append(str(selection_low[x]) + " or name")
     sentence1.append(str(selection_low[-1]))
     sentence1 = ' '.join(sentence1)
         
     
     # define upper and lower leaflet strings
-    up_string = "resid 1-" + str(upper_leaflet.n_residues)+ " and (name " + sentence + ")"
-    print(up_string) #note location of parentheses as well as 'or' and 'and' statements 
+   # up_string = ("resid 1-"
+   #             + str(upper_leaflet.n_residues)
+   #             + " and (name " 
+   #             + sentence 
+   #             + ")")
+ 
     
-    low_string = "resid " + str(int(upper_leaflet.n_residues)+1) + "-" + str(int(upper_leaflet.n_residues + lower_leaflet.n_residues)) +  " and (name "  + sentence1 + ")"
-    print(low_string)
-    
+   # low_string = ("resid " 
+   #              + str(int(upper_leaflet.n_residues) + 1) 
+   #              + "-" 
+   #              + str(int(upper_leaflet.n_residues + lower_leaflet.n_residues)) 
+   #              + " and (name "  
+   #              + sentence1 
+   #              + ")")
+   
+    # new method for defining upper and lower leaflet strings
+    # define upper and lower leaflet headgroups for string
+    up_string = (" and (name "
+                + sentence
+                + ")")
+
+    low_string = (" and (name "
+                 + sentence1
+                 + ")")
+
+    # define residues for each leaflet
+    sel_upper = " ".join([str(r) for r in upper_leaflet.residues.resids])
+    sel_lower = " ".join([str(r) for r in lower_leaflet.residues.resids])
+
+    # define full selection string 
+    upper_string = "resid {} {}".format(sel_upper, up_string)
+    lower_string = "resid {} {}".format(sel_lower, low_string)
+
 
     # run MembraneCurvature on both leaflets
-    curvature_upper_leaflet = MembraneCurvature(universe,
-                                                select= up_string,
-                                                n_x_bins=bins,
-                                                n_y_bins=bins,
-                                                wrap=True).run()
+    curvature_upper_leaflet = MembraneCurvature(universe,              # universe
+                                                select = upper_string, # selection of reference
+                                                n_x_bins = bins,       # number of bins in the x_dimension
+                                                n_y_bins = bins,       # number of bins in the y_dimension
+                                                wrap = True).run()     # wrap coordinated to keep atoms in 
+                                                                       # the main unit cell
     
     curvature_lower_leaflet = MembraneCurvature(universe,
-                                                select= low_string,
-                                                n_x_bins=bins,
-                                                n_y_bins=bins,
-                                                wrap=True).run()
+                                                select = lower_string,
+                                                n_x_bins = bins,
+                                                n_y_bins = bins,
+                                                wrap = True).run()
     
     # progress bar
     pbar = ProgressBar().start()
@@ -612,39 +643,46 @@ def module_curvature(universe,
     step = 1
 
     # extract data 
-    [a,b,c,d,e,f] = curvature_data_extraction(curvature_upper_leaflet)
-    [g,h,i,j,k,l] = curvature_data_extraction(curvature_lower_leaflet)
-
-    #data = [a,b,c,d,e,f]+[g,h,i,j,k,l]
-    #names = ['up_AF_surface', 'up_AF_mean_curvature', 'up_AF_gaussian_curvature', 'up_Avg_surface', 'up_Avg_mean_curvature', 'up_Avg_gaussian_curvature', 'low_AF_surface', 'low_AF_mean_curvature', 'low_AF_gaussian_curvature', 'low_Avg_surface', 'low_Avg_mean_curvature', 'low_Avg_gaussian_curvature']
+    [a, b, c, d, e, f] = curvature_data_extraction(curvature_upper_leaflet)
+    [g, h, i, j, k, l] = curvature_data_extraction(curvature_lower_leaflet)
+   
+    # define 2D and 3D data
+    data2D = [d, e, f] + [j, k, l]
     
-    # combine data and names 
-    #all_data = list(zip(names,data))
+    names2D = ['up_Avg_surface',
+               'up_Avg_mean_curvature',
+               'up_Avg_gaussian_curvature',
+               'low_Avg_surface',
+               'low_Avg_mean_curvature',
+               'low_Avg_gaussian_curvature']
+
     
-    # save files in output folder
-   # for tup in all_data:
-   #     np.savetxt(out_folder+'/'+tup[0]+'.dat',tup[1].reshape(tup[1].shape[0],-1),
-   #             delimiter='\t',
-   #             fmt='%1.4f')
-
-
-
-#----- Update: only multiframe data is 3D and needs to be reshaped ------    
-    data2D = [d,e,f]+[j,k,l]
-    names2D = ['up_Avg_surface','up_Avg_mean_curvature','up_Avg_gaussian_curvature','low_Avg_surface','low_Avg_mean_curvature','low_Avg_gaussian_curvature']
-
-    data3D = [a,b,c]+[g,h,i]
-    names3D = ['up_AF_surface','up_AF_mean_curvature','up_AF_gaussian_curvature','low_AF_surface','low_AF_mean_curvature','low_AF_gaussian_curvature']
+    data3D = [a, b, c] + [g, h, i]
     
-    all_data2D = list(zip(names2D,data2D))
-    all_data3D = list(zip(names3D,data3D))
+    names3D = ['up_AF_surface',
+               'up_AF_mean_curvature',
+               'up_AF_gaussian_curvature',
+               'low_AF_surface',
+               'low_AF_mean_curvature',
+               'low_AF_gaussian_curvature']
+    
+    # combine data and data lables 
+    all_data2D = list(zip(names2D, data2D))
+    all_data3D = list(zip(names3D, data3D))
 
+    # save to output folder
     for tup2 in all_data2D:
-        np.savetxt(out_folder+'/'+tup2[0]+'.dat',tup2[1],delimiter='\t',fmt='%1.4f')
-        
-    for tup3 in all_data3D:
-        np.savetxt(out_folder+'/'+tup3[0]+'.dat',tup3[1].reshape(tup3[1].shape[0],-1),delimiter='\t',fmt='%1.4f')
+        np.savetxt(out_folder + '/' + tup2[0] + '.dat',
+                   tup2[1],
+                   delimiter = '\t',
+                   fmt = '%1.4f')
 
+    # only multiframe data is 3D and needs to be reshaped
+    for tup3 in all_data3D:
+        np.savetxt(out_folder + '/' + tup3[0] + '.dat',
+                   tup3[1].reshape(tup3[1].shape[0],-1),
+                   delimiter = '\t',
+                   fmt = '%1.4f')
 
 
     pbar.finish()
@@ -1054,7 +1092,7 @@ def main():
                              parsed_yaml,
                              out_dir)
 
-        logging.info("--------------------------------------")
+            logging.info("--------------------------------------")
 
 
     if args.clean :
