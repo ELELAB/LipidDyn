@@ -870,18 +870,22 @@ def main():
                            out_dir)
             logging.info("--------------------------------------")
 
-        if args.enrichment and args.prot:
-            # add enrichment analysis with a protein
-            # do it if there is also the flag for the
-            # prot
-            logging.info("Analysis: Enrichment Analysis")
-            module_enrichment(u,
-                              leaflets,
-                              dict_selection,
-                              ncore,
-                              out_dir)
-            logging.info("--------------------------------------")
-
+        if args.enrichment :
+        
+            if args.prot :
+                # add enrichment analysis with a protein
+                # do it if there is also the flag for the
+                # prot
+                logging.info("Analysis: Enrichment Analysis")
+                module_enrichment(u,
+                                  leaflets,
+                                  dict_selection,
+                                  ncore,
+                                  out_dir)
+                logging.info("--------------------------------------")
+            
+            else :
+                logging.error("Enrichment can only be performed on simulations with proteins embedded in the membrane")
 
         if args.mod_mov :
 
