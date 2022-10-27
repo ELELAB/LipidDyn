@@ -886,7 +886,8 @@ def main():
             
             else :
                 logging.error("Enrichment can only be performed on simulations with proteins embedded in the membrane")
-
+                logging.info("--------------------------------------")
+    
         if args.mod_mov :
 
             logging.info("Analysis: Diffusion movements")
