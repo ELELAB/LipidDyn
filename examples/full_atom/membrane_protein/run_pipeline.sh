@@ -29,7 +29,12 @@ ordpar -i Order_Parameter/Order_Parameter_SSM.csv -o Order_Parameter/Order_Param
 ordpar -i Order_Parameter/Order_Parameter_POPC.csv -o Order_Parameter/Order_Parameter_POPC.pdf -s sch
 
 # Membrane Curvature
-curvature -u curv/up_Avg_surface.dat -l curv/low_Avg_surface.dat -o curv/Avg_basic_surface.pdf -plot basic
-curvature -u curv/up_Avg_surface.dat -l curv/low_Avg_surface.dat -o curv/Avg_smooth_surface.pdf -plot smooth
-curvature -u curv/up_Avg_mean_curvature.dat -l curv/low_Avg_mean_curvature.dat -o curv/Avg_mean_curvature.pdf -plot mean
-curvature -u curv/up_Avg_gaussian_curvature.dat -l curv/low_Avg_gaussian_curvature.dat -o curv/Avg_gaussian_curvature.pdf -plot gaussian
+curvature -l1 curv/up_Avg_surface.dat -l2 curv/low_Avg_surface.dat -o curv/Avg_basic_surface.pdf -plot basic
+curvature -l1 curv/up_Avg_surface.dat -l2 curv/low_Avg_surface.dat -o curv/Avg_smooth_surface.pdf -plot smooth
+curvature -l1 curv/up_Avg_mean_curvature.dat -l2 curv/low_Avg_mean_curvature.dat -o curv/Avg_mean_curvature.pdf -plot mean
+curvature -l1 curv/up_Avg_gaussian_curvature.dat -l2 curv/low_Avg_gaussian_curvature.dat -o curv/Avg_gaussian_curvature.pdf -plot gaussian
+# Membrane Curvature - Avg. Plots side-by-side for each leaflet
+curvature -l1 curv/low_Avg_surface.dat -l2 curv/low_Avg_mean_curvature.dat -l3 curv/low_Avg_gaussian_curvature.dat -o curv/3_Avg_lower_plots.pdf -plot 3_curvatures -t 'Lower Leaflet'
+curvature -l1 curv/up_Avg_surface.dat -l2 curv/up_Avg_mean_curvature.dat -l3 curv/up_Avg_gaussian_curvature.dat -o curv/3_Avg_upper_plots.pdf -plot 3_curvatures -t 'Upper Leaflet'
+# Membrane Curvature - Single and Multiframe Plots 
+# (to be added)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python 
 
-# ----- Plotting Membrane Curvature Data ------
+#------ Plotting Membrane Curvature Data ------
 
 import MDAnalysis as mda
 import numpy as np
@@ -24,10 +24,10 @@ def plot_contours(lower_leaf,
                   out):
     
     """
-    Function used to plot contours of MembraneCurvature results.
-    User can determine number of contour lines / regions (levels),
-    label of the colorbar (label), upper and lower limit for the 
-    colorbar (limit) and colormap (cmap).
+    Function used to plot contours of MembraneCurvature results. The
+    user can determine number of contour lines / regions (level), label 
+    of the colorbar (label), upper and lower limit for the colorbar 
+    (limit), colormap (cmap), title (title), and the output file (out).
 
     Parameters
     ----------
@@ -57,11 +57,11 @@ def plot_contours(lower_leaf,
                                    dpi = 200)
     
     max_ = np.nanmax(np.concatenate(data)) #overall max for both leaflets
-    max_ = limit #otherwise specified max via argument 
+    max_ = limit                           #otherwise specified max via argument 
     min_ = np.nanmin(np.concatenate(data)) #overall min for both leaflets
     
     low_max = np.nanmax(data[0]) #max for lower leaflet 
-    up_min = np.nanmin(data[1]) #min for upper leaflet 
+    up_min = np.nanmin(data[1])  #min for upper leaflet 
 
     half = (min_ + ((max_ - min_) / 2)) #halfway point between overall max and min
 
@@ -71,7 +71,8 @@ def plot_contours(lower_leaf,
                           mode = 'wrap', 
                           order = 2)
         
-        if np.min(rs) < 0 < np.max(rs):
+        #if max and min are below and above zero
+        if np.min(rs) < 0 < np.max(rs): 
             levs = np.linspace(-max_, max_, level)
             im = ax.contourf(rs, 
                              cmap = cmap, 
@@ -83,6 +84,7 @@ def plot_contours(lower_leaf,
         
             tcs = [-max_, 0, max_]
         
+        #if max and min are both above zero
         else:
             levs = np.linspace(min_, max_, level)
             im = ax.contourf(rs, 
@@ -102,55 +104,58 @@ def plot_contours(lower_leaf,
         fig.subplots_adjust(right = 0.8)
         cbar_ax = fig.add_axes([0.83, 0.32, 0.02, 0.35])
         cbar = fig.colorbar(im, cax = cbar_ax, ticks = tcs) 
-        #cbar = plt.colorbar(im, 
-        #                    ticks = tcs, 
-        #                    orientation ='horizontal', 
-        #                    ax = ax, 
-        #                    shrink = 0.7, 
-        #                    aspect = 10, 
-        #                    pad = 0.05)
         cbar.ax.tick_params(labelsize = 5, width = 0.5)
         cbar.set_label(label, fontsize = 5, labelpad = 5)
-    
-    fig.suptitle(title, y = 0.85)
-    #plt.tight_layout()
-    plt.savefig(out, dpi = 300)
+        
+    fig.suptitle(title, y = 0.8, fontsize = 10)
+    plt.savefig(out, bbox_inches='tight', dpi = 300)
 
 
-usage = ('curvature -u [.dat] -l [.dat] -c [colormap] -t [Title of the plot]' \
-          '-plot[mean/gaussian/basic/smooth] -level [int] -lim [float] -o ["".png/pdf]')
+usage = ('curvature -l1 [.dat] -l2 [.dat] -l3 [.dat] -c [colormap]'\
+         '-t [title of the plot] -plot[mean/gaussian/basic/smooth/3_curvatures]'\
+         '-level [int] -lim [float] -o ["".png/pdf]')
 
-description= 'This script is to plot the membrane curvature and surface' \
+description= 'This script is to plot the membrane curvature and surface'\
               'maps of the lipids composing the leaflets in the box.'\
-              'The input file is an .dat file coming from the analysis'
+              'The input files are .dat files coming from the analysis'
                                     
 
+# defining the plotting arguments 
+
 parser = argparse.ArgumentParser(usage = usage, description= description)
-
-
-parser.add_argument('-u',
-                    '--upper',
-                    dest='upper',
+parser.add_argument('-l1',
+                    '--leaflet_1',
+                    dest='leaflet_1',
                     type=str,
                     required=True,
                     metavar='',
-                    help='upper leaflet input file'
+                    help='first/upper leaflet input file'
                     )
 
-parser.add_argument('-l',
-                    '--lower',
-                    dest='lower',
+parser.add_argument('-l2',
+                    '--leaflet_2',
+                    dest='leaflet_2',
                     type=str,
                     required=True,
                     metavar='',
-                    help='lower leaflet input file'
+                    help='second/lower leaflet input file'
+                    )
+
+parser.add_argument('-l3',
+                    '--leaflet_3',
+                    dest='leaflet_3',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    help='third leaflet input file'
                     )
 
 parser.add_argument('-plot',
-                    choices=['mean','gaussian','basic','smooth','smoot'],
+                    choices=['mean','gaussian','basic','smooth','3_curvatures'],
                     required=True,
                     dest='plot',
-                    help='Specify the type of plot')
+                    help='Specify the type of plot'
+                    )
 
 parser.add_argument('-level',
                     nargs='?',
@@ -170,7 +175,6 @@ parser.add_argument('-lim',
                     help='Specify spectrum limit to assign to the plot',
                     )
 
-
 parser.add_argument('-c', 
                     '--colormap',
                      dest='cmap',
@@ -185,7 +189,7 @@ parser.add_argument('-t',
                     dest='title',
                     type=str,
                     required=False,
-                    default='2D Membrane Curvature Map',
+                    default='',
                     metavar='',
                     help='Title to assign to the plot',
                     )
@@ -202,8 +206,9 @@ parser.add_argument('-o',
 
 
 args = parser.parse_args()
-lower_leaflet = args.lower
-upper_leaflet = args.upper
+leaf_1 = args.leaflet_1
+leaf_2 = args.leaflet_2
+leaf_3 = args.leaflet_3
 out = args.output
 level = args.level
 lim = args.speclim
@@ -211,13 +216,15 @@ title = args.title
 plot = args.plot
 cmap = args.cmap
 
+
+# define leaflets
 leaflets = ["Lower", "Upper"]
 
-lower_leaf = np.loadtxt(lower_leaflet)
-upper_leaf = np.loadtxt(upper_leaflet)
-leafs = [lower_leaf,  
-         upper_leaf] 
-concat_leafs = np.concatenate(leafs) #new  
+first_leaf = np.loadtxt(leaf_1) #upper leaflet
+second_leaf = np.loadtxt(leaf_2) #lower leaflet
+
+leafs = [second_leaf, first_leaf]     
+concat_leafs = np.concatenate(leafs)   
 
 # assign mean label
 if args.plot == 'mean':    
@@ -227,27 +234,26 @@ if args.plot == 'mean':
 # assign gaussian label
 if args.plot == 'gaussian':    
     label = '$K$ ($\AA^{-2}$)'
-    title = 'Gaussian Curvature Plots'
-
-if args.plot == 'smoot': #temporary
-    label = 'Height lipid headgroups (${\AA}$)'
-    title = 'Smooth Plots of Surface' 
+    title = 'Gaussian Curvature Plots' 
 
 # set limit
 if lim:
     limit = lim
 else:
-    limit = np.nanmax(abs(concat_leafs)) #changed from np.max(abs(upper_leaf))     
+    limit = np.nanmax(abs(concat_leafs)) #limit is the overall max when 
+                                         #taking the absolute value of 
+                                         #the values in both leaflets     
 
 
-#------ in case of plotting surface ---------
-leafs_max = np.nanmax(concat_leafs) #overall max for both leaflets  
-leafs_min = np.nanmin(concat_leafs) #overall min for both leaflets
+#----------------- Plotting Basic and Smooth Surface ----------------------
 
-low_max = np.nanmax(leafs[0]) #max for lower leaflet
-up_min = np.nanmin(leafs[1]) #min for upper leaflet
-
-half = (leafs_min + ((leafs_max - leafs_min) / 2)) #halfway point between overall max and min
+# define lables for colorbar
+leafs_max = np.nanmax(concat_leafs)                #overall max for both leaflets  
+leafs_min = np.nanmin(concat_leafs)                #overall min for both leaflets
+low_max = np.nanmax(leafs[0])                      #max for lower leaflet
+up_min = np.nanmin(leafs[1])                       #min for upper leaflet
+half = (leafs_min + ((leafs_max - leafs_min) / 2)) #halfway point between overall 
+                                                   #max and min
 
 # basic plot
 if args.plot == 'basic':
@@ -272,8 +278,9 @@ if args.plot == 'basic':
     cbar.ax.tick_params(labelsize = 5, width = 0.5)
     cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
 
-    fig.suptitle("Basic Surface Plots", size = 'small')
-    fig.savefig(out, dpi = 300)
+    fig.suptitle("Basic Surface Plots", fontsize = 10)
+    #fig.suptitle(title, size = 'small') #if the user wants to specify a title, this works...
+    fig.savefig(out, bbox_inches='tight', dpi = 300)
 
     exit()
 
@@ -301,18 +308,81 @@ if args.plot == 'smooth':
     cbar.ax.tick_params(labelsize = 5, width = 0.5)
     cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
 
-    fig.suptitle("Smooth Surface Plots", size = 'small')
-   #fig.suptitle(title, size = 'small') #if the user wants to specify a title, this works...
-    fig.savefig(out, dpi = 300)
+    fig.suptitle("Smooth Surface Plots", fontsize = 10)
+    fig.savefig(out, bbox_inches='tight', dpi = 300)
 
     exit()
 
-#----- in case of plotting membrance curvature -------
-plot_contours(lower_leaf, 
-              upper_leaf, 
-              label, 
-              level, 
-              limit, 
-              cmap, 
-              title, 
+
+#-------- Plotting 3 Curvature Measurements for One Leaflet side-by-side --------
+
+if args.plot == '3_curvatures':
+    
+    third_leaf = np.loadtxt(leaf_3)
+    
+    def plots_by_leaflet(results):
+        
+        """
+        Generate figure with of surface, $H$ and $K$
+        as subplots.
+        """
+        cms = ["Spectral_r", "Spectral_r", "Spectral_r"]
+        units = ['$Z$ $(\AA)$','$H$ (Å$^{-1})$', '$K$ (Å$^{-2})$']
+        titles = ['Surface', 'Mean Curvature', 'Gaussian Curvature']
+
+        fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, figsize = (7,4), dpi = 200)
+        for ax, mc, titl, cm, unit in zip((ax1, ax2, ax3), results, titles, cms, units):
+            mc = ndimage.zoom(mc, 3, mode = 'wrap', order = 1)
+            bound = max(abs(np.min(mc)), abs(np.max(mc)))
+            
+            if np.min(mc) < 0 < np.max(mc):
+                im = ax.contourf(mc, 
+                                 cmap = cm, 
+                                 levels = 40, 
+                                 alpha = 0.95, 
+                                 vmin = -bound, 
+                                 vmax = +bound)
+                tcs = [np.min(mc), 0, np.max(mc)]
+            
+            else:
+                im = ax.contourf(mc, 
+                                 cmap = cm, 
+                                 levels = 60, 
+                                 alpha = 0.95)
+                                 
+            ax.set_aspect('equal')
+            ax.set_title(titl, fontsize = 12)
+            ax.axis('off')
+            cbar=plt.colorbar(im, 
+                              ticks = [np.min(mc), 0, np.max(mc)] if np.min(mc) < 0 < np.max(mc) 
+                                       else [np.min(mc), np.max(mc)], 
+                              ax = ax, 
+                              orientation = 'horizontal', 
+                              pad = 0.05, 
+                              aspect = 15)
+            cbar.ax.tick_params(labelsize = 7, width = 0.5)
+            cbar.set_label(unit, fontsize = 9, labelpad = 2)
+        
+        plt.tight_layout()
+        fig.suptitle(title, y = 0.85, fontsize = 10)
+        fig.savefig(out, dpi = 300)
+
+    results = [first_leaf,  #surface
+               second_leaf, #mean
+               third_leaf]  #gaussian
+    
+    plots_by_leaflet(results)
+    
+    exit()
+
+
+# plot mean or gaussian curvature 
+plot_contours(second_leaf, #lower leaflet
+              first_leaf,  #upper leaflet
+              label,
+              level,
+              limit,
+              cmap,
+              title,
               out)
+
