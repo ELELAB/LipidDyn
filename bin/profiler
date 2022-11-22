@@ -306,6 +306,91 @@ def profiler(data,
         plt.savefig(out_dir + dist, dpi=300, format='pdf')
     
 
+#######################################################################################################
+def profiler_species(data,
+                     xlab,
+                     ylab,
+                     n_bins,
+                     unit,
+                     title,
+                     out_dir,
+                     out,
+                     dist):
+
+    """
+    Parameters
+    ----------
+    df : pandas dataframe
+            dataframe with apl/thickness data 
+
+    xlab : str
+            string containing the x axis label
+
+    ylab : str  
+            string containing the x axis label
+            
+    n_bins: int
+            
+            int specifying the numeber of bins 
+
+    unit : str
+            string containing the unit measure for the legend
+
+    title : str 
+            string containing the title
+
+    out : str 
+            string containing the output filename
+    
+    dist: str
+            string containing the output distribution filename
+    """
+
+    # flag to visualize the merged distribution plots 
+    if dist:
+        
+        fig1 = plt.figure(figsize=(7,7))
+        axs_d = fig1.add_subplot(111)
+        
+        species_av = data.loc[:, data.columns != 'Time'].columns
+        
+        palette = sns.color_palette('husl', len(species_av))
+        col = 0
+        
+        for specie_av in species_av:
+        
+            sns.distplot(data[specie_av],
+                         vertical=False, 
+                         kde=True, 
+                         color=palette[col], 
+                         kde_kws={"shade": True},
+                         hist=False,
+                         label=specie_av)
+            
+            col = col+1             
+
+
+        # set x-axis label
+        axs_d.set_xlabel(ylab)
+        
+        # set legend
+        axs_d.legend(species_av)
+        
+        # set title and save
+        fig1.tight_layout()
+        fig1.suptitle(title)
+        fig1.subplots_adjust(top=0.95)
+        
+        # set x-axis limits 
+        y_min = (data[species_av].min().min()) - 0.005
+        y_max = (data[species_av].max().max()) + 0.005
+        
+        plt.xlim(y_min,y_max)
+
+        plt.savefig(out_dir + dist, dpi=300, format='pdf')
+
+######################################################################################################
+
 
 usage = ('profiler -i ["".xvg]' \
          '-plot [apl/thickness]' \
@@ -535,6 +620,8 @@ if out_name_grouped:
              dist)
     
     if species:   
+        
+        df_av_combined = pd.DataFrame({})
               
         for species in os.listdir('Fatslim/species'):
             out_dir = str('Fatslim/species/' + species + '/')
@@ -561,6 +648,25 @@ if out_name_grouped:
                      out_dir,
                      species + '_' + out_name,
                      species + '_' + dist)
+        
+            df_av_combined[species] = df['Membrane']
+        
+        # Species plotted together
+        df_av_combined.insert(0, 'Time', df['Time'])
+        
+        profiler_species(df_av_combined,
+                         xlab,
+                         y_lab,
+                         n_bins,
+                         unit,
+                         'Single lipid contribution to the ' + plot + ' distribution',
+                         'Fatslim/',
+                         'species_combined_' + out_name,
+                         'species_combined_' + dist)
 
+        
+ #           df_av_combined = append.
+ #      plotttet plot
+ #      save 
 else:
     logging.warning("Output not selected. Please select.")
