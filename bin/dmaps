@@ -82,8 +82,6 @@ def plotting(data,
     mean = np.round(np.mean(data),3)
     std = np.round(np.std(data),3)
 
-    print(data)
-    print(mean,std)
     if enrichment:
         plot = plt.imshow(data,
                           cmap=cmap,
