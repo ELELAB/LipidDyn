@@ -29,7 +29,7 @@ from progressbar import ProgressBar
 import numpy as np
 import logging
 import yaml
-import pandas as pd #remember to install
+import pandas as pd
 
 #Import the classes and functions from the utils
 from LipidDyn.core import *
@@ -81,18 +81,25 @@ def module_fatslim(trajectory_file,
     ----------
     trajectory_file : str
             Name of the processed .xtc file.
+    
     topology_file : str
             Name of the last producte .gro file.
+    
     index_headgroups : str
             Filename of the index containing all the headgroups
+    
     directory_name : str
             Name of the output folder
+    
     apl_cutoff : float
             Number representing the cut-off for the APL
+    
     tck_cutoff : float
             Number representing the cut-off for the thickness
+    
     raw : True/False
             Value to include or not the raw output
+    
     ncore : int
             Number of cores for parallelization
     """
@@ -192,12 +199,15 @@ def module_densmap(universe,
     -------------
     universe : class
         MDAnalysis universe class
+    
     leaflets : dict
         Dictionary with MDAnalysis AtomGroup as keys of all
         the lipid residues in upper and lower leaflet.
         Obtained using LeafletFinder class in MDAnalysis
+    
     ncore : int
         Number of cores for parallelization
+    
     directory_name : str
         Name of the output folder
     """
@@ -242,14 +252,18 @@ def module_enrichment(universe,
     -------------
     universe : class
         MDAnalysis universe class
+    
     leaflets: dict
         MDAnalysis AtomGroup selection of all the
         lipid residue constituting each leaflet
+    
     dict_selection: dict
         dictionary from config file to parse the ratio 
         in bulk of each lipid if specified 
+    
     ncore : int
         Number of cores for parallelization
+    
     out_dir : str
         Name of the output folder
     """
@@ -351,10 +365,12 @@ def module_movements(universe,
     ----------
     universe : obj
             Universe object from MDAnalysis library
+    
     leaflets : dict
         Dictionary with MDAnalysis AtomGroup as keys of all
         the lipid residues in upper and lower leaflet.
         Obtained using LeafletFinder class in MDAnalysis
+    
     directory_name : str
             Name of the output folder
     """

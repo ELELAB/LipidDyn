@@ -28,12 +28,12 @@ import errno
 import subprocess
 import argparse
 import shutil
-import pandas as pd #remember to install
+import pandas as pd
 import logging
 from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
 import re
-mp.set_start_method("fork") # Allow multiprocessing to work with MacOS
+mp.set_start_method("fork")
 
  
 
@@ -729,6 +729,8 @@ class FatslimCommands:
                 Path to directory with raw files
         RS_convert : df
                 Dataframe correlating residnumber and lipid species
+        out_file : str
+                Name of output file
         """
         
         #Open and save content of raw files in a dictonary of dataframes
