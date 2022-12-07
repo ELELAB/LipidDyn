@@ -320,8 +320,6 @@ def parse_op_input(def_file):
             ordPars[items[0]] = OrderParameter(*items)
     return ordPars
 
-#*******************************************************************
-
 
 class Density:
 
@@ -792,5 +790,4 @@ class FatslimCommands:
                 for line in xvgFile:
                     f.write(line)
                     f.write('\n')
-
 

@@ -461,10 +461,3 @@ if __name__ == '__main__':
     else:
         logging.warning("Output name not selected. Please select.")
 
-
-
-
-
-
-
-
