@@ -264,22 +264,41 @@ We can use the ```profiler``` tool to plot the data.
 Access the folder with the terminal and run :   
 
 ```
-profiler -i apl.xvg -out area_per_lipid.pdf -d distribution.pdf -plot apl
-profiler -i thickness.xvg -out thickness.pdf -d distribution.pdf -plot thick 
+profiler -p Fatslim -out thickness.pdf -d thickness_distribution.pdf -plot thickness -s
+profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -s
 ```
 N.B.<br/>
 In some cases, there could be thickness or apl uncommon values (i.e. too low or negative values) computed for one or more frames. This could compromise the overall plot layout. The user can handle this by inserting the flag ```-th``` that specifies the threshold below which discard the values in the plotting.
+Furthermore The user is able to make visualization for each lipid species and a combination there of by adding the argument ```-s```
 
 #### 2) Density Maps
 
 The output of this step can be found in the directory ```2Dmaps/```. 
 The folder contains ```lower_leaflet_2dmap.dat``` and ```upper_leaflet_2dmap.dat``` density files. <br/>
-We can use the ```dmaps``` tool to plot the data. 
+We can use the ```dmaps``` tool to plot the data. dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
+
 Access the folder with the terminal and run: 
 
 ```
-dmaps -i lower_leaflet_2dmap.dat -o lower_leaflet_2dmap.pdf 
-dmaps -i upper_leaflet_2dmap.dat -o upper_leaflet_2dmap.pdf
+dmaps -i 2D_maps/lower_leaflet_2dmap.dat -o 2D_maps/lower_leaflet_2dmap.pdf
+dmaps -i 2D_maps/upper_leaflet_2dmap.dat -o 2D_maps/upper_leaflet_2dmap.pdf
 ```
 
 
