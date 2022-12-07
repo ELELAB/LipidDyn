@@ -36,5 +36,12 @@ curvature -l1 curv/up_Avg_gaussian_curvature.dat -l2 curv/low_Avg_gaussian_curva
 # Membrane Curvature - Avg. Plots side-by-side for each leaflet
 curvature -l1 curv/low_Avg_surface.dat -l2 curv/low_Avg_mean_curvature.dat -l3 curv/low_Avg_gaussian_curvature.dat -o curv/3_Avg_lower_plots.pdf -plot 3_curvatures -t 'Lower Leaflet'
 curvature -l1 curv/up_Avg_surface.dat -l2 curv/up_Avg_mean_curvature.dat -l3 curv/up_Avg_gaussian_curvature.dat -o curv/3_Avg_upper_plots.pdf -plot 3_curvatures -t 'Upper Leaflet'
-# Membrane Curvature - Single and Multiframe Plots 
-# (to be added)
+# Membrane Curvature - Single Frame Plots
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/AF_basic_surface.pdf -plot basic -frame 5
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/AF_smooth_surface.pdf -plot smooth -frame 5
+curvature -l1 curv/up_AF_gaussian_curvature.dat -l2 curv/low_AF_gaussian_curvature.dat -o curv/AF_gaussian_curvature.pdf -plot gaussian -frame 5
+curvature -l1 curv/up_AF_mean_curvature.dat -l2 curv/low_AF_mean_curvature.dat -o curv/AF_mean_curvature.pdf -plot mean -frame 5
+# Membrane Curvature - Multi Frame (6 frame) Plots
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6f_up_smooth_surface.pdf -o2 curv/6f_low_smooth_surface.pdf -plot first_6
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6m_up_smooth_surface.pdf -o2 curv/6m_low_smooth_surface.pdf -plot middle_6
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6l_up_smooth_surface.pdf -o2 curv/6l_low_smooth_surface.pdf -plot last_6
