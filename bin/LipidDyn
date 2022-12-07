@@ -526,7 +526,6 @@ def module_order_parameter(u,
 
 
 
-#-----------DRAFT FOR MEMBRANE CURVATURE----------
 def module_curvature(universe,
                      parsed_yaml,
                      out_dir
@@ -536,14 +535,17 @@ def module_curvature(universe,
     -------------
     universe : class
         MDAnalysis universe class
+        
     parsed_yaml : dict
             Contains the beads definition for
             leaflet curvature calculation    
+    
     out_dir : str
         Name of the output folder
     """
 
-    bins = round(universe.dimensions[0]/20)  # !should be defined in config file 
+    # define number of bins based on size of universe
+    bins = round(universe.dimensions[0]/20) 
         
     # define dictionary 
     dict_selection = parsed_yaml["lipids"] 
@@ -567,11 +569,9 @@ def module_curvature(universe,
     upper_leaflet = L.groups(0)
     lower_leaflet = L.groups(1)
     
-    
     # simplify array to have only one of each headgroup found 
     selection_up = np.unique(upper_leaflet.names)
     selection_low = np.unique(lower_leaflet.names)
-    
 
     # turn headgroup selections into string
     sentence = list()
@@ -580,31 +580,13 @@ def module_curvature(universe,
     sentence.append(str(selection_up[-1]))
     sentence = ' '.join(sentence)
     
-    
     sentence1 = list()
     for x in range(len(selection_low) - 1):
         sentence1.append(str(selection_low[x]) + " or name")
     sentence1.append(str(selection_low[-1]))
     sentence1 = ' '.join(sentence1)
-        
-    
-    # define upper and lower leaflet strings
-   # up_string = ("resid 1-"
-   #             + str(upper_leaflet.n_residues)
-   #             + " and (name " 
-   #             + sentence 
-   #             + ")")
- 
-    
-   # low_string = ("resid " 
-   #              + str(int(upper_leaflet.n_residues) + 1) 
-   #              + "-" 
-   #              + str(int(upper_leaflet.n_residues + lower_leaflet.n_residues)) 
-   #              + " and (name "  
-   #              + sentence1 
-   #              + ")")
    
-    # new method for defining upper and lower leaflet strings
+
     # define upper and lower leaflet headgroups for string
     up_string = (" and (name "
                 + sentence
@@ -613,6 +595,7 @@ def module_curvature(universe,
     low_string = (" and (name "
                  + sentence1
                  + ")")
+
 
     # define residues for each leaflet
     sel_upper = " ".join([str(r) for r in upper_leaflet.residues.resids])
@@ -626,10 +609,11 @@ def module_curvature(universe,
     # run MembraneCurvature on both leaflets
     curvature_upper_leaflet = MembraneCurvature(universe,              # universe
                                                 select = upper_string, # selection of reference
-                                                n_x_bins = bins,       # number of bins in the x_dimension
-                                                n_y_bins = bins,       # number of bins in the y_dimension
-                                                wrap = True).run()     # wrap coordinated to keep atoms in 
-                                                                       # the main unit cell
+                                                n_x_bins = bins,       # bins in the x_dim
+                                                n_y_bins = bins,       # bins in the y_dim
+                                                wrap = True).run()     # wrap coordinated to 
+                                                                       # keep atoms in the 
+                                                                       # main unit cell
     
     curvature_lower_leaflet = MembraneCurvature(universe,
                                                 select = lower_string,
@@ -680,7 +664,7 @@ def module_curvature(universe,
     # only multiframe data is 3D and needs to be reshaped
     for tup3 in all_data3D:
         np.savetxt(out_folder + '/' + tup3[0] + '.dat',
-                   tup3[1].reshape(tup3[1].shape[0],-1),
+                   tup3[1].reshape(tup3[1].shape[0], -1),
                    delimiter = '\t',
                    fmt = '%1.4f')
 

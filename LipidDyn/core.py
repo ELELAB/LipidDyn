@@ -713,23 +713,38 @@ class FatslimCommands:
 
 
 
-#--------------- DRAFT MEMBRANE CURVATURE ---------------
-# the first few functions are taken straight from the MembraneCurvature Github
+#--------------- MEMBRANE CURVATURE ---------------
+#---------- From MembraneCurvature Github --------- 
+"""
+MembraneCurvature
+=======================================
 
+:Author: Estefania Barreto-Ojeda
+:Year: 2021
+:Copyright: GNU Public License v3
+
+MembraneCurvature calculates the mean and Gaussian curvature of
+surfaces derived from a selection of reference.
+
+Mean curvature is calculated in units of Å :sup:`-1` and Gaussian curvature
+in units of Å :sup:`-2`.
+"""
+
+# curvature calculations 
 def gaussian_curvature(Z):
     """
     Calculate gaussian curvature from Z cloud points.
 
     Parameters
     ---------
-    Z: np.ndarray.
-    Multidimensional array of shape (n,n).
+      Z: np.ndarray.
+      Multidimensional array of shape (n,n).
 
     Returns
     -------
     K : np.ndarray.
-    The result of gaussian curvature of Z. Returns multidimensional
-    array object with values of gaussian curvature of shape `(n, n)`. 
+      The result of gaussian curvature of Z. Returns multidimensional
+      array object with values of gaussian curvature of shape `(n, n)`. 
     """
 
     Zy, Zx = np.gradient(Z)
@@ -749,13 +764,13 @@ def mean_curvature(Z):
     Parameters
     ----------
     Z: np.ndarray.
-    Multidimensional array of shape (n,n).
+      Multidimensional array of shape (n,n).
 
     Returns
     -------
     H : np.ndarray.
-    The result of gaussian curvature of Z. Returns multidimensional
-    array object with values of gaussian curvature of shape `(n, n)`.
+      The result of gaussian curvature of Z. Returns multidimensional
+      array object with values of gaussian curvature of shape `(n, n)`.
     """
 
     Zy, Zx = np.gradient(Z)
@@ -767,8 +782,8 @@ def mean_curvature(Z):
 
     return(H)
 
-#-------------
-   
+
+# surface calculations   
 def derive_surface(atoms, 
                    n_cells_x, 
                    n_cells_y, 
@@ -782,21 +797,25 @@ def derive_surface(atoms,
     Parameters
     ----------
     atoms: AtomGroup.
-    AtomGroup of reference selection to define the surface of the membrane.
+      AtomGroup of reference selection to define the surface of the membrane.
+   
     n_cells_x: int.
-    number of cells in the grid of size `max_width_x`, `x` axis.
+      number of cells in the grid of size `max_width_x`, `x` axis.
+   
     n_cells_y: int.
-    number of cells in the grid of size `max_width_y`, `y` axis.
+      number of cells in the grid of size `max_width_y`, `y` axis.
+   
     max_width_x: float.
-    Maximum width of simulation box in x axis. (Determined by simulation box dimensions)
+      Maximum width of simulation box in x axis. (Determined by simulation box dimensions)
+   
     max_width_y: float.
-    Maximum width of simulation box in y axis. (Determined by simulation box dimensions)
+      Maximum width of simulation box in y axis. (Determined by simulation box dimensions)
     
     Returns
     -------
     z_coordinates: numpy.ndarray
-    Average z-coordinate values. Return Numpy array of floats of
-    shape `(n_cells_x, n_cells_y)`.
+      Average z-coordinate values. Return Numpy array of floats of
+      shape `(n_cells_x, n_cells_y)`.
     """
         
     coordinates = atoms.positions
@@ -809,6 +828,8 @@ def derive_surface(atoms,
 
 mda.start_logging()
 logger = logging.getLogger("MDAnalysis.MDAKit.membrane_curvature")
+
+
 
 def get_z_surface(coordinates, 
                   n_x_bins = 10, 
@@ -823,21 +844,25 @@ def get_z_surface(coordinates,
     Parameters
     ----------
     coordinates : numpy.ndarray 
-    Coordinates of AtomGroup. Numpy array of shape=(n_atoms, 3).
+      Coordinates of AtomGroup. Numpy array of shape=(n_atoms, 3).
+   
     n_x_bins : int.
-    Number of bins in grid in the `x` dimension. 
+      Number of bins in grid in the `x` dimension. 
+   
     n_y_bins : int.
-    Number of bins in grid in the `y` dimension. 
+      Number of bins in grid in the `y` dimension. 
+   
     x_range : tuple of (float, float)
-    Range of coordinates (min, max) in the `x` dimension with shape=(2,).
+      Range of coordinates (min, max) in the `x` dimension with shape=(2,).
+   
     y_range : tuple of (float, float)
-    Range of coordinates (min, max) in the `y` dimension with shape=(2,). 
+      Range of coordinates (min, max) in the `y` dimension with shape=(2,). 
 
     Returns
     -------
     z_surface: np.ndarray
-    Surface derived from set of coordinates in grid of `x_range, y_range` dimensions.
-    Returns Numpy array of floats of shape (`n_x_bins`, `n_y_bins`)
+      Surface derived from set of coordinates in grid of `x_range, y_range` dimensions.
+      Returns Numpy array of floats of shape (`n_x_bins`, `n_y_bins`)
     """
 
     grid_z_coordinates = np.zeros((n_x_bins, n_y_bins))
@@ -887,17 +912,19 @@ def normalized_grid(grid_z_coordinates, grid_norm_unit):
     Parameters
     ----------
     z_ref: np.array
-    Empty array of `(l,m)`
+      Empty array of `(l,m)`
+   
     grid_z_coordinates: np.array
-    Array of size `(l,m)` with `z` coordinates stored in unit cell.
+      Array of size `(l,m)` with `z` coordinates stored in unit cell.
+   
     grid_norm_unit: np.array
-    Array of size `(l,m)` with number of atoms in unit cell.
+      Array of size `(l,m)` with number of atoms in unit cell.
     
     Returns
     -------
     z_surface: np.ndarray
-    Normalized `z` coordinates in grid.        
-    Returns Numpy array of floats of shape (`n_x_bins`, `n_y_bins`)
+      Normalized `z` coordinates in grid.        
+      Returns Numpy array of floats of shape (`n_x_bins`, `n_y_bins`)
     """
     
     grid_norm_unit = np.where(grid_norm_unit > 0, grid_norm_unit, np.nan)
@@ -906,7 +933,7 @@ def normalized_grid(grid_z_coordinates, grid_norm_unit):
     return(z_normalized)
 
 
-#------- My own function --------
+#------------------ Own function --------------------
 def curvature_data_extraction(mc):
     # All frames = AF, upper and lower leaflets
     AF_surface = mc.results.z_surface
@@ -925,21 +952,13 @@ def curvature_data_extraction(mc):
             Avg_mean_curvature, 
             Avg_gaussian_curvature])
 
+
 #------- More from MembraneCurvature Github --------
-
 """
-MembraneCurvature
-=======================================
-
 :Author: Estefania Barreto-Ojeda
 :Year: 2021
 :Copyright: GNU Public License v3
 
-MembraneCurvature calculates the mean and Gaussian curvature of
-surfaces derived from a selection of reference.
-
-Mean curvature is calculated in units of Å :sup:`-1` and Gaussian curvature
-in units of Å :sup:`-2`.
 """
 
 mda.start_logging()
@@ -953,40 +972,51 @@ class MembraneCurvature(AnalysisBase):
     Parameters
     ----------
     universe : Universe or AtomGroup
-    An MDAnalysis Universe object.
+      An MDAnalysis Universe object.
+    
     select : str or iterable of str, optional.
-    The selection string of an atom selection to use as a reference to derive a surface.
+      The selection string of an atom selection to use as a reference to derive a surface.
+    
     wrap : bool, optional
-    Apply coordinate wrapping to pack atoms into the primary unit cell.
+      Apply coordinate wrapping to pack atoms into the primary unit cell.
+    
     n_x_bins : int, optional, default: '100'
-    Number of bins in grid in the x dimension.
+      Number of bins in grid in the x dimension.
+    
     n_y_bins : int, optional, default: '100'
-    Number of bins in grid in the y dimension.
+      Number of bins in grid in the y dimension.
+    
     x_range : tuple of (float, float), optional, default: (0, `universe.dimensions[0]`)
-    Range of coordinates (min, max) in the x dimension.
+      Range of coordinates (min, max) in the x dimension.
+    
     y_range : tuple of (float, float), optional, default: (0, `universe.dimensions[1]`)
-    Range of coordinates (min, max) in the y dimension.
+      Range of coordinates (min, max) in the y dimension.
 
     Attributes
     ----------
     results.z_surface : ndarray
-    Surface derived from atom selection in every frame
-    Array of shape (`n_frames`, `n_x_bins`, `n_y_bins`)
+      Surface derived from atom selection in every frame
+      Array of shape (`n_frames`, `n_x_bins`, `n_y_bins`)
+    
     results.mean_curvature : ndarray
-    Mean curvature associated to the surface.
-    Array of shape (`n_frames`, `n_x_bins`, `n_y_bins`)
+      Mean curvature associated to the surface.
+      Array of shape (`n_frames`, `n_x_bins`, `n_y_bins`)
+    
     results.gaussian_curvature : ndarray
-    Gaussian curvature associated to the surface.
-    Arrays of shape (`n_frames`, `n_x_bins`, `n_y_bins`
+      Gaussian curvature associated to the surface.
+      Arrays of shape (`n_frames`, `n_x_bins`, `n_y_bins`
+    
     results.average_z_surface : ndarray
-    Average of the array elements in `z_surface`.
-    Each array has shape (`n_x_bins`, `n_y_bins`)
+      Average of the array elements in `z_surface`.
+      Each array has shape (`n_x_bins`, `n_y_bins`)
+    
     results.average_mean_curvature : ndarray
-    Average of the array elements in `mean_curvature`.
-    Each array has shape (`n_x_bins`, `n_y_bins`)
+      Average of the array elements in `mean_curvature`.
+      Each array has shape (`n_x_bins`, `n_y_bins`)
+    
     results.average_gaussian_curvature: ndarray
-    Average of the array elements in `gaussian_curvature`.
-    Each array has shape (`n_x_bins`, `n_y_bins`)
+      Average of the array elements in `gaussian_curvature`.
+      Each array has shape (`n_x_bins`, `n_y_bins`)
     """
 
     def __init__(self,
