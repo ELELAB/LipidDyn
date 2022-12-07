@@ -35,64 +35,87 @@ def dfPrep(XvgPath,
            ymax,
            th,
            plot):
+
+    """
+    Parameters
+    ----------
+    XvgPath : str
+            Path to xvg data file 
+
+    ylab : str  
+            string containing the x axis label
+
+    y_min : float
+            float specifying the y-axis lower limit
+
+    y_max : float
+            float specifying the y-axis upper limit
     
+    th: int
+            
+            int specifying the threshold to detect uncommon values
+
+    unit : str
+            string containing the unit measure for the legend
+
+    plot : str 
+            string defining whether thickness or apl is performed
+    """
+
     df = pd.read_csv(XvgPath,
                      skiprows=15,
                      names = ['Time','Membrane','Lower_Leaflet','Upper_Leaflet'],
                      engine='python',
                      sep="   ")
-    
-    
-    
+
+
+
     # convert ps to ns
     df["Time"]=df["Time"].divide(1000)
-    
+
     # assign unit and y-axis label
     if args.plot == 'thickness':    
         unit = ylab[2]
         ylab = ylab[1]
-       
-    
+
+
     # assign unit and y-axis label
     if args.plot == 'apl':    
         unit = ylab[3]
         ylab = ylab[0]
-    
-    
+
+
     # detect uncommon values and remove them
     frame = df.loc[(df['Upper_Leaflet'] < th) | (df['Lower_Leaflet'] < th) | (df['Membrane'] < th)]
     df = df[(df['Upper_Leaflet'] > th) & (df['Lower_Leaflet'] > th) & (df['Membrane'] > th)]
-    
+
     # check if data frame is empty 
     if df.empty == True:
         logging.error(f'Empty dataframe created: please check the threshold value, it could be too high')
         exit(1)
-    
+
     # warn user if there are rows to be removed due to uncommon values
     if frame.empty == False:
         logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n  {frame} \n  will be discarded')
-    
-    
+
+
     # set y-axis lower limit
     if ymin:
         y_min = ymin     
     else:
         y_min = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].min().min()) - 0.005
-        
+
     # set y-axis upper limit
     if ymax:
         y_max = ymax
     else:
         y_max = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].max().max()) + 0.005
-    
+
     return([df,
             unit,
             ylab,
             y_min,
             y_max])
-
-
-
 
 
 def profiler(data,
@@ -306,7 +329,6 @@ def profiler(data,
         plt.savefig(out_dir + dist, dpi=300, format='pdf')
     
 
-#######################################################################################################
 def profiler_species(data,
                      xlab,
                      ylab,
@@ -320,7 +342,7 @@ def profiler_species(data,
     """
     Parameters
     ----------
-    df : pandas dataframe
+    data : pandas dataframe
             dataframe with apl/thickness data 
 
     xlab : str
@@ -339,6 +361,9 @@ def profiler_species(data,
     title : str 
             string containing the title
 
+    outdir : str 
+            Path for output filename
+    
     out : str 
             string containing the output filename
     
@@ -534,7 +559,6 @@ parser.add_argument('-s',
                     )
 
 args = parser.parse_args()
-
 Path = os.path.abspath(os.path.join(args.inputPath))
 xlab = args.xlabel
 ylab = args.ylabel
@@ -664,9 +688,5 @@ if out_name_grouped:
                          'species_combined_' + out_name,
                          'species_combined_' + dist)
 
-        
- #           df_av_combined = append.
- #      plotttet plot
- #      save 
 else:
     logging.warning("Output not selected. Please select.")
