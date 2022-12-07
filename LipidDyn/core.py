@@ -28,10 +28,12 @@ import errno
 import subprocess
 import argparse
 import shutil
+import pandas as pd
 import logging
 from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
-mp.set_start_method("fork") # Allow multiprocessing to work with MacOS
+import re
+mp.set_start_method("fork")
 
  
 
@@ -317,8 +319,6 @@ def parse_op_input(def_file):
             items = line.split()
             ordPars[items[0]] = OrderParameter(*items)
     return ordPars
-
-#*******************************************************************
 
 
 class Density:
@@ -709,4 +709,86 @@ class FatslimCommands:
                                  stdout=subprocess.DEVNULL,
                                  stderr=subprocess.DEVNULL
                                 )
+
+
+    def SpeciesXVG(self,
+                   AnalysisDir,
+                   RS_convert,
+                   out_file):
+                   
+        """Execute the APL command of fatslim,
+        which compute the average area per lipid 
+        of lower,upper leaflet and the entire membrane 
+        in a ''.xvg file along the trajectory.
+    
+        Parameters
+        ----------
+        AnalysisDir : str 
+                Path to directory with raw files
+        RS_convert : df
+                Dataframe correlating residnumber and lipid species
+        out_file : str
+                Name of output file
+        """
+        
+        #Open and save content of raw files in a dictonary of dataframes
+        #by Iterating trough each frame:    
+        RawDict = {}
+        for filename in os.listdir(AnalysisDir):
+            FilePath = os.path.join(AnalysisDir, filename)
+            raw_df = pd.read_csv(FilePath)
+            
+            #convert residue numbers to lipid species and rename the column
+            raw_df['resid'] = raw_df['resid'].map(RS_convert.set_index('resid')['Species'])
+            raw_df.rename(columns={'resid':'species'}, inplace=True)
+            
+            #Add to dictonary with a name indicating frame number
+            nFrame = int(re.findall("\d+", filename)[0].lstrip("_"))
+            RawDict[nFrame] = raw_df
+        RawDict = dict(sorted(RawDict.items()))
+        
+        #Creates a xvg (plot ready) file for each species 
+        #A copy of the average xvg file is copied and the content changed
+        #We iterate over each frame and calulate the average of the avergaes for each species
+        
+        analysis = AnalysisDir.split('_')[-1]
+        XVGpath = str(AnalysisDir.split('/raw_data')[0] + '/average/' + analysis + '.xvg')
+        with open(XVGpath) as f:
+            xvgFile = f.read()
+            xvgFile = xvgFile.split('\n')
+        
+        Species = list(dict.fromkeys(RS_convert['Species']))
+        for nSpecies in Species:
+            List = []
+            for frame in RawDict:
+                #Indexes
+                mAtoms = (RawDict[frame]['species'] == nSpecies)
+                lAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'lower leaflet')
+                uAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'upper leaflet')
+        
+                #averages
+                Membrane = format(RawDict[frame].iloc[: , -1][mAtoms].mean(),'.3f')
+                LowLeaf = format(RawDict[frame].iloc[: , -1][lAtoms].mean(),'.3f')
+                UppLeaf = format(RawDict[frame].iloc[: , -1][uAtoms].mean(),'.3f')
+        
+                #Combine in list that fits format of xvg
+                time = str(str(frame*20) + '.000')
+                test = [time, Membrane, LowLeaf, UppLeaf]
+                test = str((8-len(str(time)))*' ' + '    '.join(str(e) for e in test) + ' ')
+                List.append(test)
+            
+            #the xvg files are saved in species specific folders.
+            if not os.path.exists(out_file + '/' + nSpecies):
+                try: 
+                    os.mkdir((out_file + '/' + nSpecies))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+                
+            xvgFile[15:] = List
+            with open(out_file + '/' + nSpecies + '/' + analysis + '_' + nSpecies + '.xvg', 'w') as f:
+                for line in xvgFile:
+                    f.write(line)
+                    f.write('\n')
+
 

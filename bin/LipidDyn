@@ -29,6 +29,7 @@ from progressbar import ProgressBar
 import numpy as np
 import logging
 import yaml
+import pandas as pd
 
 #Import the classes and functions from the utils
 from LipidDyn.core import *
@@ -57,9 +58,7 @@ def tac():
     (t_min, t_sec) = divmod(t_sec,60)
     (t_hour,t_min) = divmod(t_min,60)
     print('Time passed: {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec))
-
-
-
+    
 
 def module_fatslim(trajectory_file,
                    topology_file,
@@ -68,7 +67,8 @@ def module_fatslim(trajectory_file,
                    apl_cutoff,
                    tck_cutoff,
                    raw,
-                   ncore
+                   ncore,
+                   RS_convert
                    ):
 
     """Fuction consisting of fatslim analysis
@@ -79,20 +79,30 @@ def module_fatslim(trajectory_file,
     ----------
     trajectory_file : str
             Name of the processed .xtc file.
+    
     topology_file : str
             Name of the last producte .gro file.
+    
     index_headgroups : str
             Filename of the index containing all the headgroups
+    
     directory_name : str
             Name of the output folder
+    
     apl_cutoff : float
             Number representing the cut-off for the APL
+    
     tck_cutoff : float
             Number representing the cut-off for the thickness
+    
     raw : True/False
             Value to include or not the raw output
+    
     ncore : int
             Number of cores for parallelization
+            
+    RS_convert : df
+            Dataframe that defines the converson from residue ID to lipid class
     """
 
 
@@ -127,8 +137,10 @@ def module_fatslim(trajectory_file,
         fatslim_thickness = os.path.abspath(os.path.join(analysis_fatlism,
                                                          'fatslim_thickness'))
 
-        if not os.path.exists(fatslim_apl) \
-        or not os.path.exists(fatslim_thickness):
+        if not os.path.exists('raw_data/fatslim_apl') \
+        or not os.path.exists('raw_data/fatslim_thickness') \
+        or not os.path.exists('average') \
+        or not os.path.exists('species'):
             try: 
                 os.mkdir((analysis_fatlism +'/fatslim_apl'))
                 os.mkdir((analysis_fatlism + '/fatslim_thickness'))
@@ -137,29 +149,38 @@ def module_fatslim(trajectory_file,
                     raise
 
         fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
-                                 '/fatslim_apl/raw_apl.csv')
+                                 '/raw_data/fatslim_apl/raw_apl.csv')
 
         pbar.update((2/step)*100)
         fatslim.raw_thickness(out_file = analysis_fatlism + \
-                              '/fatslim_thickness/raw_thickness.csv'
-                              )
+                              '/raw_data/fatslim_thickness/raw_thickness.csv')
 
         pbar.update((3/step)*100)
-        fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
-                     )
+        fatslim.thickness(out_file = analysis_fatlism +'/average/thickness.xvg'
 
         pbar.update((4/step)*100)
-        fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
+        fatslim.AreaPerLipid(out_file = analysis_fatlism + '/average/apl.xvg')
+
+        ##### go through raw data ###
+        fatslim.SpeciesXVG(AnalysisDir = analysis_fatlism + '/raw_data/fatslim_apl', 
+                           RS_convert = RS_convert,
+                           out_file = analysis_fatlism + '/species')
+
+        fatslim.SpeciesXVG(AnalysisDir = analysis_fatlism + '/raw_data/fatslim_thickness', 
+                           RS_convert = RS_convert,
+                           out_file = analysis_fatlism + '/species')    
+    
+
     else:
         step = 2
         pbar.update((1/step)*100)
-        fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg'
-                     )
+        fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg')
 
         pbar.update((2/step)*100)
         fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
 
     pbar.finish()
+
 
 def module_densmap(universe,
                    leaflets,
@@ -171,13 +192,16 @@ def module_densmap(universe,
     -------------
     universe : class
         MDAnalysis universe class
+    
     leaflets : dict
         Dictionary with MDAnalysis AtomGroup as keys of all
         the lipid residues in upper and lower leaflet.
         Obtained using LeafletFinder class in MDAnalysis
+    
     ncore : int
         Number of cores for parallelization
-    directory_name : str
+    
+    out_dir : str
         Name of the output folder
     """
 
@@ -221,14 +245,18 @@ def module_enrichment(universe,
     -------------
     universe : class
         MDAnalysis universe class
+    
     leaflets: dict
         MDAnalysis AtomGroup selection of all the
         lipid residue constituting each leaflet
+    
     dict_selection: dict
         dictionary from config file to parse the ratio 
         in bulk of each lipid if specified 
+    
     ncore : int
         Number of cores for parallelization
+    
     out_dir : str
         Name of the output folder
     """
@@ -330,11 +358,13 @@ def module_movements(universe,
     ----------
     universe : obj
             Universe object from MDAnalysis library
+    
     leaflets : dict
         Dictionary with MDAnalysis AtomGroup as keys of all
         the lipid residues in upper and lower leaflet.
         Obtained using LeafletFinder class in MDAnalysis
-    directory_name : str
+    
+    out_dir : str
             Name of the output folder
     """
 
@@ -404,12 +434,11 @@ def module_order_parameter(u,
             Contains the sn beads definition for
             OP calculation
 
-    directory_name : str
+    out_dir : str
             Name of the output folder
     """
 
   
-
     # Creates different folder in which the output is stored
 
     order_folder = os.path.join(out_dir, 'Order_Parameter')
@@ -522,8 +551,6 @@ def module_order_parameter(u,
             pbar.update((step/total_step)*100)
             step += 1
         pbar.finish()
-
-
 
 
 def main():
@@ -775,7 +802,11 @@ def main():
                                                  mode='w') as ndx:
             ndx.write(upper_leaflet, name="upper_leaflet")
             ndx.write(lower_leaflet, name="lower_leaflet")
-
+    
+    # Create a dataframe that correlates resid with Lipid Species
+    RS_convert = pd.DataFrame({'resid': list(g.resids), 
+                               'Species': list(g.resnames)})
+    
     # The user selected the -all flag for all the analysis
     if all_modules :
 
@@ -793,9 +824,8 @@ def main():
                        apl_cutoff,
                        tck_cutoff,
                        raw,
-                       ncore
-                       )
-
+                       ncore,
+                       RS_convert)
 
 
         logging.info("--------------------------------------")
@@ -858,7 +888,8 @@ def main():
                            apl_cutoff,
                            tck_cutoff,
                            raw,
-                           ncore)
+                           ncore,
+                           RS_convert)
             logging.info("--------------------------------------")
 
         if args.mod_maps :
