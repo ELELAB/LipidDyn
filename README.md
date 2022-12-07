@@ -269,7 +269,7 @@ profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -s
 ```
 N.B.<br/>
 In some cases, there could be thickness or apl uncommon values (i.e. too low or negative values) computed for one or more frames. This could compromise the overall plot layout. The user can handle this by inserting the flag ```-th``` that specifies the threshold below which discard the values in the plotting.
-Furthermore The user is able to make visualization for each lipid species and a combination there of by adding the argument ```-s```
+Furthermore, the user is able to make visualization for each lipid species and a combination there of by adding the argument ```-s```
 
 #### 2) Density Maps
 
