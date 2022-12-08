@@ -1,6 +1,6 @@
 # Import the environment prior to run this script
 
-LipidDyn -f heterogeneous_membrane.xtc -s heterogeneous_membrane.gro -g coarse_grained.yml -fatslim -op -2d -mov -enr -n 4 -r -c
+LipidDyn -f heterogeneous_membrane.xtc -s heterogeneous_membrane.gro -g coarse_grained.yml -fatslim -op -2d -mov -enr -n 4 -c -spe
 
 # Plotting 
 

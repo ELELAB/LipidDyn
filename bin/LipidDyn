@@ -67,6 +67,7 @@ def module_fatslim(trajectory_file,
                    apl_cutoff,
                    tck_cutoff,
                    raw,
+                   species,
                    ncore,
                    RS_convert
                    ):
@@ -96,7 +97,10 @@ def module_fatslim(trajectory_file,
             Number representing the cut-off for the thickness
     
     raw : True/False
-            Value to include or not the raw output
+          Value to include or not the raw output
+          
+    species : True/False
+          Value to include lipid species specific output
     
     ncore : int
             Number of cores for parallelization
@@ -127,58 +131,65 @@ def module_fatslim(trajectory_file,
                               tck_cutoff)
     # progress bar
     pbar = ProgressBar().start()
+    step = 8
+    pbar.update((1/step)*100) # current step/total steps * 100    
 
-    if raw : # if the user required the raw data
-        step = 4
-        pbar.update((1/step)*100) # current step/total steps * 100
-
-        fatslim_apl = os.path.abspath(os.path.join(analysis_fatlism,
-                                                   'fatslim_apl'))
-        fatslim_thickness = os.path.abspath(os.path.join(analysis_fatlism,
-                                                         'fatslim_thickness'))
-
-        if not os.path.exists('raw_data/fatslim_apl') \
-        or not os.path.exists('raw_data/fatslim_thickness') \
-        or not os.path.exists('average') \
-        or not os.path.exists('species'):
-            try: 
-                os.mkdir((analysis_fatlism +'/fatslim_apl'))
-                os.mkdir((analysis_fatlism + '/fatslim_thickness'))
-            except OSError as exc:
-                if exc.errno != errno.EEXIST:
-                    raise
-
-        fatslim.raw_AreaPerLipid(out_file = analysis_fatlism +
-                                 '/raw_data/fatslim_apl/raw_apl.csv')
-
-        pbar.update((2/step)*100)
-        fatslim.raw_thickness(out_file = analysis_fatlism + \
-                              '/raw_data/fatslim_thickness/raw_thickness.csv')
-
-        pbar.update((3/step)*100)
-        fatslim.thickness(out_file = analysis_fatlism +'/average/thickness.xvg'
-
-        pbar.update((4/step)*100)
-        fatslim.AreaPerLipid(out_file = analysis_fatlism + '/average/apl.xvg')
-
-        ##### go through raw data ###
-        fatslim.SpeciesXVG(AnalysisDir = analysis_fatlism + '/raw_data/fatslim_apl', 
-                           RS_convert = RS_convert,
-                           out_file = analysis_fatlism + '/species')
-
-        fatslim.SpeciesXVG(AnalysisDir = analysis_fatlism + '/raw_data/fatslim_thickness', 
-                           RS_convert = RS_convert,
-                           out_file = analysis_fatlism + '/species')    
+   # prepare directories:       
+    if not os.path.exists(analysis_fatlism + '/raw_data/apl') \
+    or not os.path.exists(analysis_fatlism + '/raw_data/thickness') \
+    or not os.path.exists(analysis_fatlism + '/average'):
+        try: 
+            os.mkdir((analysis_fatlism +'/raw_data'))
+            os.mkdir((analysis_fatlism +'/raw_data/apl'))
+            os.mkdir((analysis_fatlism +'/raw_data/thickness'))
+            os.mkdir((analysis_fatlism +'/average'))
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
     
+    # xvg files:
+    pbar.update((2/step)*100)
+    fatslim.thickness(out_file = analysis_fatlism +'/average/thickness.xvg')
+    
+    pbar.update((3/step)*100)
+    fatslim.AreaPerLipid(out_file = analysis_fatlism + '/average/apl.xvg')
 
-    else:
-        step = 2
-        pbar.update((1/step)*100)
-        fatslim.thickness(out_file = analysis_fatlism +'/thickness.xvg')
+        
+    if raw or species:    
+        # Raw files:
+        pbar.update((4/step)*100)
+        fatslim.raw_AreaPerLipid(out_file = analysis_fatlism + '/raw_data/apl/raw_apl.csv')
+        
+        pbar.update((5/step)*100)
+        fatslim.raw_thickness(out_file = analysis_fatlism + '/raw_data/thickness/raw_thickness.csv')
+    
+    
+        # Species specific xvgs:
+        if species:
+        
+            if not os.path.exists(analysis_fatlism + '/species'):
+                try: 
+                    os.mkdir((analysis_fatlism + '/species'))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+                    
+            #Iterate through raw data to create lipid class specific xvgs
+            pbar.update((7/step)*100)
+            fatslim.SpeciesXVG(RawDir = analysis_fatlism + '/raw_data/apl',
+                               XvgDir = analysis_fatlism + '/average/apl.xvg', 
+                               RS_convert = RS_convert,
+                               out_file = analysis_fatlism + '/species')
+            
+            pbar.update((8/step)*100)
+            fatslim.SpeciesXVG(RawDir = analysis_fatlism + '/raw_data/thickness',
+                               XvgDir = analysis_fatlism + '/average/thickness.xvg',
+                               RS_convert = RS_convert,
+                               out_file = analysis_fatlism + '/species')    
 
-        pbar.update((2/step)*100)
-        fatslim.AreaPerLipid(out_file = analysis_fatlism + '/apl.xvg')
-
+    if not raw:                               
+        shutil.rmtree(analysis_fatlism + '/raw_data')
+         
     pbar.finish()
 
 
@@ -683,6 +694,13 @@ def main():
                               each frame'
                        )
 
+    parser.add_argument('-spe',
+                        '--species',
+                        action='store_true',
+                        dest='species',
+                        help='Get a lipid species specific xvg file for the fatslim analysis'
+                       )
+
     parser.add_argument('-c',
                         '--clean',
                         action='store_true',
@@ -704,6 +722,7 @@ def main():
     apl_cutoff = args.apl_cutoff
     tck_cutoff = args.tck_cutoff
     raw = args.raw
+    species = args.species
     all_modules = args.all_modules
     
      # Setup log module
@@ -824,10 +843,9 @@ def main():
                        apl_cutoff,
                        tck_cutoff,
                        raw,
+                       species,
                        ncore,
                        RS_convert)
-
-
         logging.info("--------------------------------------")
 
 
@@ -888,6 +906,7 @@ def main():
                            apl_cutoff,
                            tck_cutoff,
                            raw,
+                           species,
                            ncore,
                            RS_convert)
             logging.info("--------------------------------------")

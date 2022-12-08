@@ -1,6 +1,6 @@
 # Import the environment prior to run this script
 
-LipidDyn -f heterogeneous_membrane_protein.xtc -s heterogeneous_membrane_protein.gro -g coarse_grained.yml -p -a -n 4 -c -r
+LipidDyn -f heterogeneous_membrane_protein.xtc -s heterogeneous_membrane_protein.gro -g coarse_grained.yml -p -a -n 4 -c -spe
 
 # Plotting 
 

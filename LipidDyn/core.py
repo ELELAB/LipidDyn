@@ -712,7 +712,8 @@ class FatslimCommands:
 
 
     def SpeciesXVG(self,
-                   AnalysisDir,
+                   RawDir,
+                   XvgDir,
                    RS_convert,
                    out_file):
                    
@@ -723,8 +724,12 @@ class FatslimCommands:
     
         Parameters
         ----------
-        AnalysisDir : str 
+        RawDir : str 
                 Path to directory with raw files
+        
+        XvgDir : str
+                Path to directory with xvg files
+        
         RS_convert : df
                 Dataframe correlating residnumber and lipid species
         out_file : str
@@ -734,8 +739,8 @@ class FatslimCommands:
         #Open and save content of raw files in a dictonary of dataframes
         #by Iterating trough each frame:    
         RawDict = {}
-        for filename in os.listdir(AnalysisDir):
-            FilePath = os.path.join(AnalysisDir, filename)
+        for filename in os.listdir(RawDir):
+            FilePath = os.path.join(RawDir, filename)
             raw_df = pd.read_csv(FilePath)
             
             #convert residue numbers to lipid species and rename the column
@@ -751,9 +756,9 @@ class FatslimCommands:
         #A copy of the average xvg file is copied and the content changed
         #We iterate over each frame and calulate the average of the avergaes for each species
         
-        analysis = AnalysisDir.split('_')[-1]
-        XVGpath = str(AnalysisDir.split('/raw_data')[0] + '/average/' + analysis + '.xvg')
-        with open(XVGpath) as f:
+        analysis = RawDir.split('/')[-1]
+        
+        with open(XvgDir) as f:
             xvgFile = f.read()
             xvgFile = xvgFile.split('\n')
         
