@@ -82,7 +82,7 @@ def plot_contours(lower_leaf,
         #if max and min are below and above zero
         if np.min(rs) < 0 < np.max(rs): 
             levs = np.linspace(-max_, max_, level)
-            im = ax.contourf(rs, 
+            im = ax.contourf(rs.T, 
                              cmap = cmap, 
                              origin = 'lower', 
                              levels = levs, 
@@ -95,7 +95,7 @@ def plot_contours(lower_leaf,
         #if max and min are both above zero
         else:
             levs = np.linspace(min_, max_, level)
-            im = ax.contourf(rs, 
+            im = ax.contourf(rs.T, 
                              cmap = cmap, 
                              origin = 'lower', 
                              levels = levs, 
@@ -173,7 +173,7 @@ def plot_smooth(surface,
                                    dpi = 200)
     
     for ax, surfs, lf in zip((ax1, ax2), surface, leaflets):
-        im = ax.imshow(surfs, 
+        im = ax.imshow(surfs.T, 
                        interpolation = 'gaussian', 
                        cmap = 'Spectral_r', 
                        origin = 'lower', 
@@ -466,7 +466,7 @@ if args.plot == 'basic':
                                        dpi = 200)
         
         for ax, surfs, lf in zip((ax1, ax2), leafs, leaflets):
-            im = ax.imshow(surfs, 
+            im = ax.imshow(surfs.T, 
                            cmap = 'Spectral_r', 
                            origin = 'lower', 
                            vmin = leafs_min, 
@@ -512,7 +512,7 @@ if args.plot == 'basic':
                                        dpi = 200)
         
         for ax, surfs, lf in zip((ax1, ax2), surface, leaflets):
-            im = ax.imshow(surfs, 
+            im = ax.imshow(surfs.T, 
                            cmap = 'Spectral_r', 
                            origin = 'lower', 
                            vmin = leafs_min, 
@@ -614,7 +614,7 @@ if args.plot == '3_curvatures':
             bound = max(abs(np.min(mc)), abs(np.max(mc)))
             
             if np.min(mc) < 0 < np.max(mc):
-                im = ax.contourf(mc, 
+                im = ax.contourf(mc.T, 
                                  cmap = cm, 
                                  levels = level, 
                                  alpha = 0.95, 
@@ -623,7 +623,7 @@ if args.plot == '3_curvatures':
                 tcs = [np.min(mc), 0, np.max(mc)]
             
             else:
-                im = ax.contourf(mc, 
+                im = ax.contourf(mc.T, 
                                  cmap = cm, 
                                  levels = level, 
                                  alpha = 0.95)
@@ -690,14 +690,14 @@ def plot_over_frames(surface, label, cmap, title, out):
     fig, axs = plt.subplots(ncols=6, figsize=(15,4), dpi=300)
     
     for ax, surfs, frame in zip(axs, surface, range(first_leaf.shape[0])):
-        im = ax.imshow(surface[frame], interpolation='gaussian',
+        im = ax.imshow(surface[frame].T, interpolation='gaussian',
                        cmap=cmap, origin='lower',
                        vmin=leafs_min, vmax=leafs_max) # ignores nan values
         ax.set_aspect('equal')
         ax.set_title('Frame = {}'.format(frame), fontsize = 7)
         ax.axis('off')
     
-    tcs = [leafs_min, low_max, half, up_min, leafs_max]
+    tcs = [leafs_min, low_max, up_min, leafs_max]
     
     cbar = plt.colorbar(im, ticks=tcs,
                         orientation='vertical', ax=axs, shrink=0.45,

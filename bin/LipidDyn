@@ -545,10 +545,23 @@ def module_curvature(universe,
     """
 
     # define number of bins based on size of universe
-    bins = round(universe.dimensions[0]/20) 
-        
+    # unless provided in configuration file
+    bins = parsed_yaml["bins"] 
+    
+    if bins == None:
+        print(" ")
+        print("!!!bins not defined in configuration file; bin size set to 20 Angstrom!!! ")
+        bins = round(universe.dimensions[0]/20) 
+        print(" ")
+    
+    print(" ")
+    print("Number of bins in x and y dimensions of grid:")
+    print(bins)
+    print(" ")
+
     # define dictionary 
     dict_selection = parsed_yaml["lipids"] 
+
     
     # define headgroups
     g = select_lipid_headgroups(universe, dict_selection) # defined elsewhere ? 
