@@ -694,7 +694,7 @@ def plot_over_frames(surface, label, cmap, title, out):
                        cmap=cmap, origin='lower',
                        vmin=leafs_min, vmax=leafs_max) # ignores nan values
         ax.set_aspect('equal')
-        ax.set_title('Frame = {}'.format(frame), fontsize = 7)
+        ax.set_title('{}'.format(frame), fontsize = 7)
         ax.axis('off')
     
     tcs = [leafs_min, low_max, up_min, leafs_max]
@@ -733,27 +733,28 @@ first_leaf = first_leaf.reshape(first_leaf.shape[0],
 # plotting based on frames chosen
 if args.plot == 'first_6':
     plot_over_frames(first_leaf[0:6],                     # first 6 frames
-                     "Height (${\AA}$)",                  # Colorbar label
+                     "Height lipid headgroups (${\AA}$)", # Colorbar label
                      'Spectral_r',                        # cmap
-                     'First 6 Frames for Upper Leaflet',  # title
+                     'Surface: First 6 Frames for Upper Leaflet',  # title
                      out)
     
     plot_over_frames(second_leaf[0:6],
-                     "Height (${\AA}$)",
+                     "Height lipid headgroups (${\AA}$)",
                      'Spectral_r',
-                     'First 6 Frames for Lower Leaflet',
+                     'Surface: First 6 Frames for Lower Leaflet',
                      out2)
 
 if args.plot == 'last_6':
     plot_over_frames(first_leaf[-7:-1],                   # last 6 frames 
-                     "Height (${\AA}$)",                               
-                     'Spectral_r','Last 6 Frames for Upper Leaflet',
+                     "Height lipid headgroups (${\AA}$)",                               
+                     'Spectral_r',
+                     'Surface: Last 6 Frames for Upper Leaflet',
                      out)   
     
     plot_over_frames(second_leaf[-7:-1],
-                     "Height (${\AA}$)",
+                     "Height lipid headgroups (${\AA}$)",
                      'Spectral_r',
-                     'Last 6 Frames for Lower Leaflet',
+                     'Surface: Last 6 Frames for Lower Leaflet',
                      out2)
 
 if args.plot == 'middle_6':                               # middle 6 frames 
@@ -764,15 +765,15 @@ if args.plot == 'middle_6':                               # middle 6 frames
 
     if length_surf > 6: 
         plot_over_frames(first_leaf[m5:p5],
-                         "Height (${\AA}$)",    
+                         "Height lipid headgroups (${\AA}$)",    
                          'Spectral_r',
-                         'Middle 6 Frames for Upper Leaflet',
+                         'Surface: Middle 6 Frames for Upper Leaflet',
                          out)        
     
         plot_over_frames(second_leaf[m5:p5],
-                         "Height (${\AA}$)",
+                         "Height lipid headgroups (${\AA}$)",
                          'Spectral_r',
-                         'Middle 6 Frames for Lower Leaflet',
+                         'Surface: Middle 6 Frames for Lower Leaflet',
                          out2)
 
     
