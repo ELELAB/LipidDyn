@@ -736,53 +736,57 @@ class FatslimCommands:
                 Name of output file
         """
         
-        #Open and save content of raw files in a dictonary of dataframes
-        #by Iterating trough each frame:    
+        # open Raw data
         RawDict = {}
         for filename in os.listdir(RawDir):
             FilePath = os.path.join(RawDir, filename)
             raw_df = pd.read_csv(FilePath)
             
-            #convert residue numbers to lipid species and rename the column
+            # convert residue numbers to lipid species and rename the column
             raw_df['resid'] = raw_df['resid'].map(RS_convert.set_index('resid')['Species'])
             raw_df.rename(columns={'resid':'species'}, inplace=True)
             
-            #Add to dictonary with a name indicating frame number
+            # add to dictonary with a name indicating frame number
             nFrame = int(re.findall("\d+", filename)[0].lstrip("_"))
             RawDict[nFrame] = raw_df
         RawDict = dict(sorted(RawDict.items()))
         
-        #Creates a xvg (plot ready) file for each species 
-        #A copy of the average xvg file is copied and the content changed
-        #We iterate over each frame and calulate the average of the avergaes for each species
-        
-        analysis = RawDir.split('/')[-1]
-        
+        # open average xvg file
         with open(XvgDir) as f:
             xvgFile = f.read()
             xvgFile = xvgFile.split('\n')
         
+        # define either APL or Thickness
+        analysis = RawDir.split('/')[-1]
+        
+        # create an xvg file for each lipid class. For each class the following is done:
+        # iterating trough each raw file to calulate the average property for each frame.       
+        # a copy of the average xvg file is copied and the content changed with the calulated.
         Species = list(dict.fromkeys(RS_convert['Species']))
         for nSpecies in Species:
-            List = []
+            i = -1
+            SpeContent = []
             for frame in RawDict:
-                #Indexes
+                # indexes of species in csv (membrane, upper and lower leaflet)
                 mAtoms = (RawDict[frame]['species'] == nSpecies)
                 lAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'lower leaflet')
                 uAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'upper leaflet')
         
-                #averages
+                # average properties in csv (membrane, upper and lower leaflet)
                 Membrane = format(RawDict[frame].iloc[: , -1][mAtoms].mean(),'.3f')
                 LowLeaf = format(RawDict[frame].iloc[: , -1][lAtoms].mean(),'.3f')
                 UppLeaf = format(RawDict[frame].iloc[: , -1][uAtoms].mean(),'.3f')
         
-                #Combine in list that fits format of xvg
-                time = str(str(frame*20) + '.000')
-                test = [time, Membrane, LowLeaf, UppLeaf]
-                test = str((8-len(str(time)))*' ' + '    '.join(str(e) for e in test) + ' ')
-                List.append(test)
+                # frame time is taken from orignal average xvg
+                i = i + 1 
+                time = xvgFile[15:][i][0:8]
+
+                # combine and edit to fit xvg format and append to List.            
+                Row = [time, Membrane, LowLeaf, UppLeaf]
+                Row = str("    ".join(str(e) for e in Row) + ' ')
+                SpeContent.append(Row)
             
-            #the xvg files are saved in species specific folders.
+            # The xvg files are saved in species specific folders.
             if not os.path.exists(out_file + '/' + nSpecies):
                 try: 
                     os.mkdir((out_file + '/' + nSpecies))
@@ -790,7 +794,8 @@ class FatslimCommands:
                     if exc.errno != errno.EEXIST:
                         raise
                 
-            xvgFile[15:] = List
+            # avereage xvg content is replaced
+            xvgFile[15:] = SpeContent
             with open(out_file + '/' + nSpecies + '/' + analysis + '_' + nSpecies + '.xvg', 'w') as f:
                 for line in xvgFile:
                     f.write(line)
