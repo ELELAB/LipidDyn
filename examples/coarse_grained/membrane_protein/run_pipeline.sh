@@ -18,8 +18,8 @@ dmaps -i Enrichment/POPC_upper_leaflet_enrich.dat -o Enrichment/POPC_upper_leafl
   
 
 # Plot APL and Thicknes
-profiler -p Fatslim -out thickness.pdf -d thickness_distribution.pdf -plot thickness -s
-profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -s
+profiler -p Fatslim -out thickness.pdf -d thickness_distribution.pdf -plot thickness -spe
+profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -spe
 
 # Diffusion
 diffusion -i Diffusion_movements/Lower_leaflet_coordinates.dat -o Diffusion_movements/Lower_leaflet_coordinates -t he 

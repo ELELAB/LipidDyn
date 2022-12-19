@@ -51,12 +51,8 @@ def dfPrep(XvgPath,
     y_max : float
             float specifying the y-axis upper limit
     
-    th: int
-            
+    th: int            
             int specifying the threshold to detect uncommon values
-
-    unit : str
-            string containing the unit measure for the legend
 
     plot : str 
             string defining whether thickness or apl is performed
@@ -71,7 +67,7 @@ def dfPrep(XvgPath,
 
 
     # convert ps to ns
-    df["Time"]=df["Time"].divide(1000)
+    df["Time"] = df["Time"].divide(1000)
 
     # assign unit and y-axis label
     if args.plot == 'thickness':    
@@ -148,8 +144,7 @@ def profiler(data,
     y_max : float
             float specifying the y-axis upper limit
     
-    n_bins: int
-            
+    n_bins: int            
             int specifying the numeber of bins 
 
     unit : str
@@ -158,6 +153,9 @@ def profiler(data,
     title : str 
             string containing the title
 
+    outdir : str 
+            Path for output filename
+    
     out : str 
             string containing the output filename
     
@@ -530,16 +528,6 @@ parser.add_argument('-out',
                     help='output name of the file',
                     )
 
-parser.add_argument('-og',
-                    '--outputgrouped',
-                    dest='out_group',
-                    type=str,
-                    required=False,
-                    metavar='',
-                    default= 'profileGrouped.pdf',
-                    help='Grouped output name of the file '
-                    )
-
 parser.add_argument('-d',
                     '--distribution-output',
                     dest='distribution',
@@ -549,9 +537,10 @@ parser.add_argument('-d',
                     default= 'distribution.pdf',
                     help='output name of the file',
                     )
-parser.add_argument('-s',
+                    
+parser.add_argument('-spe',
                     '--Analysis per species',
-                    dest='s',
+                    dest='spe',
                     action='store_true',
                     help='Select to plot for each species',
                     )
@@ -565,11 +554,10 @@ ymax = args.ymaximum
 n_bins = args.bins_number
 title = args.title
 out_name = args.output
-out_name_grouped = args.out_group
 th = args.threshold_value
 plot = args.plot
 dist = args.distribution
-species = args.s
+species = args.spe
 
 
 if out_name:
@@ -597,94 +585,57 @@ if out_name:
              title,
              out_dir,
              out_name,
-             dist)
-             
-    if species:         
-        
-        for species in os.listdir('Fatslim/species'):
-            out_dir = str('Fatslim/species/' + species + '/')
-            
-            [df,
-            unit,
-            y_lab,
-            y_min,
-            y_max] = dfPrep(out_dir + plot + '_' + species + '.xvg',                
-                           ylab,
-                           ymin,
-                           ymax,
-                           th,
-                           plot)
-                   
-            profiler(df,
-                     xlab,
-                     y_lab,
-                     y_min,
-                     y_max,
-                     n_bins,
-                     unit,
-                     title + ' ' + species,
-                     out_dir,
-                     species + '_' + out_name,
-                     species + '_' + dist)
-        
-        
-if out_name_grouped:
-    profiler(df,
-             xlab,
-             ylab,
-             y_min,
-             y_max,
-             n_bins,
-             unit,
-             title,
-             out_dir,
-             out_name_grouped,
-             dist)
-    
+             dist)        
+       
     if species:   
         
-        df_av_combined = pd.DataFrame({})
-              
-        for species in os.listdir('Fatslim/species'):
-            out_dir = str('Fatslim/species/' + species + '/')
-            
-            [df,
-            unit,
-            y_lab,
-            y_min,
-            y_max] = dfPrep(out_dir + plot + '_' + species + '.xvg',                
-                           ylab,
-                           ymin,
-                           ymax,
-                           th,
-                           plot)
-                   
-            profiler(df,
-                     xlab,
-                     y_lab,
-                     y_min,
-                     y_max,
-                     n_bins,
-                     unit,
-                     title + ' ' + species,
-                     out_dir,
-                     species + '_' + out_name,
-                     species + '_' + dist)
+        # check if xvgs are made
+        if not os.path.exists('Fatslim/species'):
+            logging.warning("Single species data not available. Please run LipidDyn with the argument -spe")
         
-            df_av_combined[species] = df['Membrane']
-        
-        # Species plotted together
-        df_av_combined.insert(0, 'Time', df['Time'])
-        
-        profiler_species(df_av_combined,
+        else:
+            df_av_combined = pd.DataFrame({})
+                  
+            for species in os.listdir('Fatslim/species'):
+                out_dir = str('Fatslim/species/' + species + '/')
+                
+                [df,
+                unit,
+                y_lab,
+                y_min,
+                y_max] = dfPrep(out_dir + plot + '_' + species + '.xvg',                
+                               ylab,
+                               ymin,
+                               ymax,
+                               th,
+                               plot)
+                       
+                profiler(df,
                          xlab,
                          y_lab,
+                         y_min,
+                         y_max,
                          n_bins,
                          unit,
-                         'Single lipid contribution to the ' + plot + ' distribution',
-                         'Fatslim/',
-                         'species_combined_' + out_name,
-                         'species_combined_' + dist)
-
+                         title + ' ' + species,
+                         out_dir,
+                         species + '_' + out_name,
+                         species + '_' + dist)
+            
+                df_av_combined[species] = df['Membrane']
+            
+            # species plotted together (average membrane)
+            df_av_combined.insert(0, 'Time', df['Time'])
+            
+            profiler_species(df_av_combined,
+                             xlab,
+                             y_lab,
+                             n_bins,
+                             unit,
+                             'Single lipid contribution to the ' + plot + ' distribution',
+                             'Fatslim/',
+                             'species_combined_' + out_name,
+                             'species_combined_' + dist)
+                     
 else:
     logging.warning("Output not selected. Please select.")

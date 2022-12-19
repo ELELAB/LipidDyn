@@ -264,12 +264,12 @@ We can use the ```profiler``` tool to plot the data.
 Access the folder with the terminal and run :   
 
 ```
-profiler -p Fatslim -out thickness.pdf -d thickness_distribution.pdf -plot thickness -s
-profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -s
+profiler -p Fatslim -out thickness.pdf -d thickness_distribution.pdf -plot thickness -spe
+profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -spe
 ```
 N.B.<br/>
 In some cases, there could be thickness or apl uncommon values (i.e. too low or negative values) computed for one or more frames. This could compromise the overall plot layout. The user can handle this by inserting the flag ```-th``` that specifies the threshold below which discard the values in the plotting.
-Furthermore, the user is able to make visualization for each lipid species and a combination there of by adding the argument ```-s```
+Furthermore, the user is able to make visualization for each lipid species and a combination there of by adding the argument ```-spe```
 
 #### 2) Density Maps
 

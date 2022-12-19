@@ -134,7 +134,7 @@ def module_fatslim(trajectory_file,
     step = 8
     pbar.update((1/step)*100) # current step/total steps * 100    
 
-   # prepare directories:       
+    # prepare directories      
     if not os.path.exists(analysis_fatlism + '/raw_data/apl') \
     or not os.path.exists(analysis_fatlism + '/raw_data/thickness') \
     or not os.path.exists(analysis_fatlism + '/average'):
@@ -147,7 +147,7 @@ def module_fatslim(trajectory_file,
             if exc.errno != errno.EEXIST:
                 raise
     
-    # xvg files:
+    # create average xvg files
     pbar.update((2/step)*100)
     fatslim.thickness(out_file = analysis_fatlism +'/average/thickness.xvg')
     
@@ -156,17 +156,14 @@ def module_fatslim(trajectory_file,
 
         
     if raw or species:    
-        # Raw files:
+        # create raw files
         pbar.update((4/step)*100)
         fatslim.raw_AreaPerLipid(out_file = analysis_fatlism + '/raw_data/apl/raw_apl.csv')
         
         pbar.update((5/step)*100)
         fatslim.raw_thickness(out_file = analysis_fatlism + '/raw_data/thickness/raw_thickness.csv')
     
-    
-        # Species specific xvgs:
-        if species:
-        
+        if species:   
             if not os.path.exists(analysis_fatlism + '/species'):
                 try: 
                     os.mkdir((analysis_fatlism + '/species'))
@@ -174,7 +171,7 @@ def module_fatslim(trajectory_file,
                     if exc.errno != errno.EEXIST:
                         raise
                     
-            #Iterate through raw data to create lipid class specific xvgs
+            # create single species xvgs
             pbar.update((7/step)*100)
             fatslim.SpeciesXVG(RawDir = analysis_fatlism + '/raw_data/apl',
                                XvgDir = analysis_fatlism + '/average/apl.xvg', 
@@ -187,7 +184,8 @@ def module_fatslim(trajectory_file,
                                RS_convert = RS_convert,
                                out_file = analysis_fatlism + '/species')    
 
-    if not raw:                               
+    if not raw:
+        # remove raw files                            
         shutil.rmtree(analysis_fatlism + '/raw_data')
          
     pbar.finish()
