@@ -825,15 +825,18 @@ def main():
                                'Species': list(g.resnames)})
     
     # The user selected the -all flag for all the analysis
-    if all_modules :
+    if all_modules:
+        args.mod_fat = True
+        args.mod_maps = True
+        args.enrichment = True
+        args.mod_mov = True
+        args.mod_ord = True
 
+    logging.info("Starting now with the calculation, please stand by")
+    logging.info(u"\u2622")
 
-        logging.info("Starting now with the calculation, please stand by...")
-        logging.info(u"\u2622")
-        
-
+    if args.mod_fat:
         logging.info("Analysis: Area per lipid & Thickness calculation")
-        
         module_fatslim(traj,
                        topol,
                        index_headgroups,
@@ -846,114 +849,46 @@ def main():
                        RS_convert)
         logging.info("--------------------------------------")
 
-
+    if args.mod_maps:
         logging.info("Analysis: Density maps")
         module_densmap(u,
                        leaflets,
                        ncore,
                        out_dir)
-
         logging.info("--------------------------------------")
 
+    if args.enrichment:
         if args.prot:
             # add enrichment analysis with a protein
+            # do it if there is also the flag for the
+            # prot
             logging.info("Analysis: Enrichment Analysis")
             module_enrichment(u,
                               leaflets,
                               dict_selection,
                               ncore,
                               out_dir)
-
             logging.info("--------------------------------------")
 
+        else:
+            logging.error("Enrichment can only be performed on simulations with proteins embedded in the membrane")
 
-
-
+    if args.mod_mov:
         logging.info("Analysis: Diffusion movements")
         module_movements(u,
                          leaflets,
                          out_dir)
-
         logging.info("--------------------------------------")
 
-
+    if args.mod_ord:
         logging.info("Analysis: Order Parameter")
         module_order_parameter(u,
                                lipid_resnames,
                                traj,
                                topol,
                                parsed_yaml,
-                               out_dir
-                               )
-
+                               out_dir)
         logging.info("--------------------------------------")
-
-
-    else:
-        logging.info("Starting now with the calculation, please stand by")
-        logging.info(u"\u2622")
-
-
-        if args.mod_fat :
-
-            logging.info("Analysis: Area per lipid & Thickness calculation")
-            module_fatslim(traj,
-                           topol,
-                           index_headgroups,
-                           out_dir,
-                           apl_cutoff,
-                           tck_cutoff,
-                           raw,
-                           species,
-                           ncore,
-                           RS_convert)
-            logging.info("--------------------------------------")
-
-        if args.mod_maps :
-
-            logging.info("Analysis: Density maps")
-            module_densmap(u,
-                           leaflets,
-                           ncore,
-                           out_dir)
-            logging.info("--------------------------------------")
-
-        if args.enrichment :
-        
-            if args.prot :
-                # add enrichment analysis with a protein
-                # do it if there is also the flag for the
-                # prot
-                logging.info("Analysis: Enrichment Analysis")
-                module_enrichment(u,
-                                  leaflets,
-                                  dict_selection,
-                                  ncore,
-                                  out_dir)
-                logging.info("--------------------------------------")
-            
-            else :
-                logging.error("Enrichment can only be performed on simulations with proteins embedded in the membrane")
-                logging.info("--------------------------------------")
-    
-        if args.mod_mov :
-
-            logging.info("Analysis: Diffusion movements")
-            module_movements(u,
-                             leaflets,
-                             out_dir)
-            logging.info("--------------------------------------")
-
-        if args.mod_ord :
-
-            logging.info("Analysis: Order Parameter")
-            module_order_parameter(u,
-                                   lipid_resnames,
-                                   traj,
-                                   topol,
-                                   parsed_yaml,
-                                   out_dir)
-            logging.info("--------------------------------------")
 
     if args.clean :
         os.remove(os.path.join(out_dir, 'index_headgroups.ndx'))
