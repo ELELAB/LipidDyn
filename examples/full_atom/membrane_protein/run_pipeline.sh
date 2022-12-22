@@ -1,6 +1,6 @@
 # Import the environment prior to run this script
 
-LipidDyn -f heterogeneous_membrane_protein.xtc -s heterogeneous_membrane_protein.gro -g full_atom.yml -p -a -n 4 -c -r
+LipidDyn -f heterogeneous_membrane_protein.xtc -s heterogeneous_membrane_protein.gro -g full_atom.yml -p -a -n 4 -c -spe
 
 # Plotting 
 
@@ -15,8 +15,8 @@ dmaps -i Enrichment/SSM_lower_leaflet_enrich.dat -o Enrichment/SSM_lower_leaflet
 dmaps -i Enrichment/SSM_upper_leaflet_enrich.dat -o Enrichment/SSM_upper_leaflet_enrich.pdf -enr
 
 # Plot APL and Thicknes
-profiler -i Fatslim/thickness.xvg -out Fatslim/thickness.pdf -d Fatslim/distribution_thickness.pdf -plot thick
-profiler -i Fatslim/apl.xvg -out Fatslim/apl.pdf -d Fatslim/distribution_apl.pdf -plot apl
+profiler -p Fatslim -out thickness.pdf -d thickness_distribution.pdf -plot thickness -spe
+profiler -p Fatslim -out apl.pdf -d apl_distribution.pdf -plot apl -spe
 
 # Diffusion
 diffusion -i Diffusion_movements/Lower_leaflet_coordinates.dat -o Diffusion_movements/Lower_leaflet_coordinates -t he
