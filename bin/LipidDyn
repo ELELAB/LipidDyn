@@ -542,7 +542,7 @@ def module_curvature(universe,
     
     out_dir : str
         Name of the output folder
-    """
+    """        
 
     # define number of bins based on size of universe
     # unless provided in configuration file
@@ -553,18 +553,13 @@ def module_curvature(universe,
         print("!!!bins not defined in configuration file; bin size set to 20 Angstrom!!! ")
         bins = round(universe.dimensions[0]/20) 
         print(" ")
-    
-    print(" ")
-    print("Number of bins in x and y dimensions of grid:")
-    print(bins)
-    print(" ")
 
     # define dictionary 
     dict_selection = parsed_yaml["lipids"] 
 
     
     # define headgroups
-    g = select_lipid_headgroups(universe, dict_selection) # defined elsewhere ? 
+    g = select_lipid_headgroups(universe, dict_selection)  
     
     # output directory
     out_folder = os.path.abspath(os.path.join(out_dir, "curv"))
@@ -634,6 +629,23 @@ def module_curvature(universe,
                                                 n_y_bins = bins,
                                                 wrap = True).run()
     
+    
+    # print basic information on universe size
+    print("Universe info:")
+    print("\nBox dimensions[x,y,z]: {}." \
+          "".format(universe.dimensions[:3]))
+
+    print("\n{} residues and {} atoms." \
+         "".format(universe.residues.n_residues, universe.residues.n_atoms))
+
+    print("\nThe trajectory includes {} frames."\
+          "".format(universe.trajectory.n_frames))
+    
+    print(" ")
+    print("Number of bins in x and y dimensions of grid:")
+    print(bins)
+    print(" ")
+
     # progress bar
     pbar = ProgressBar().start()
     total_step = 2

@@ -69,6 +69,9 @@ details of the conformations that the atoms in the lipid tails adopt. <br/>
 The calculation of the Order Parameter is done for full-atom systems taking into account the SCH parameter based on the algorithm originally developed by J. Melcr. with the contribution from  H. Antila for NMRlipids project and readapted for the purpose of this work [4].
 For coarse-grained systems, the Order Parameter SCC is computed. Its implementation is based on the usage of the Lipyphilic class SCC() [5]. <br/>
  
+### Membrane Curvature
+This analysis tool allows the investigation of how lipid composition and membrane proteins generate membrane curvature. It provides visual representation of how the shape and curvature of the membrane changes along the simulation time. The surface, mean curvature and Gaussian curvature values are computed for each leaflet constituting the bilayer, and the graphical outputs consist of average plots for all frames in the trajectory as well as single- and multi-frame graphical outputs. The latter reveal the frame-by-frame alterations in membrane curvature.
+
 
 ## Installing LipidDyn UNIX users
 
@@ -249,6 +252,12 @@ LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mov -n "n" -c
 5) Order Parameter calculation for each lipid category:
 ```
 LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -op -n "n" -c
+
+6) Membrane Curvature calculation for upper and lower leaflets:
+```
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mc -n "n" -c
+
+
 ```
 ### Visualization of data
 
@@ -331,6 +340,54 @@ ordpar -i Order_Parameter_lipid_residue.csv -o custom_name.pdf -s [scc/sch]
 
 **N.B.**<br/>
 If you want to customize the range of order parameter values to visualize in the ```ordpar``` output plot, you can adjust the upper and lower limits of the SCH/SCC values specifying the flag ```-min``` and ```-max```
+
+
+#### 6) Membrane Curvature 
+
+The output of this step can be found in the directory ```curv/```.
+The folder contains multiple file ```.dat``` named after the lipid residues constituting the upper and lower leaflets **i.e** "up_Avg_surface.dat", "low_AF_mean_curvature.dat" etc... "Avg" refers to the average data taken over n frames in the trajectory. "AF" stands for all frames and contains the curvature values for each individual frame.  
+We can use the ```curvature``` tool to plot the data with ```-plot``` flag to decide which type of plot to produce.  
+Access the folder with the terminal and run :
+
+For average plots:
+The ```-plot``` flag can be used to plot the basic surface, smooth surface, mean curvature, and Gaussian curvature as well as surface, mean and Gaussian curvature side-by-side in one figure for each leaflet.
+```
+curvature -l1 up_Avg_surface.dat -l2 low_Avg_surface.dat -o custom_name.pdf -plot basic
+curvature -l1 up_Avg_surface.dat -l2 low_Avg_surface.dat -o custom_name.pdf -plot smooth 
+curvature -l1 up_Avg_mean_curvature.dat -l2 low_Avg_mean_curvature.dat -o custom_name.pdf -plot mean 
+curvature -l1 up_Avg_gaussian_curvature.dat -l2 low_Avg_gaussian_curvature.dat -o custom_name.pdf -plot gaussian 
+curvature -l1 low_Avg_surface.dat -l2 low_Avg_mean_curvature.dat -l3 low_Avg_gaussian_curvature.dat -o custom_name.pdf -plot 3_curvatures -t 'custom title lower leaflet'
+curvature -l1 up_Avg_surface.dat -l2 up_Avg_mean_curvature.dat -l3 up_Avg_gaussian_curvature.dat -o custom_name.pdf -plot 3_curvatures -t 'custom title upper leaflet' 
+
+```
+
+For single frame plots:
+The ```-frame``` flag can be used to plot a specific frame in the trajectory.
+```
+curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custom_name.pdf -plot basic -frame [int] 
+curvature -l1 up_AF_surface.dat -l2 curv/low_AF_surface.dat -o custom_name.pdf -plot smooth -frame [int]
+curvature -l1 up_AF_gaussian_curvature.dat -l2 low_AF_gaussian_curvature.dat -o custom_name.pdf -plot gaussian -frame [int] 
+curvature -l1 up_AF_mean_curvature.dat -l2 low_AF_mean_curvature.dat -o custom_name.pdf -plot mean -frame [int]
+
+```
+
+For multi-frame plots:
+The ```-plot``` flag can be used to plot the first, middle and last six frames of the trajectory for surface. 
+```
+curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custom_name_upper.pdf -o2 custom_name_lower.pdf -plot first_6
+curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custum_name_upper.pdf -o2 custom_name_lower.pdf -plot middle_6
+curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custom_name_upper.pdf -o2 custom_name_lower.pdf -plot last_6
+
+```
+
+**N.B.** <br/>
+When running membrane curvature calculations on long simulation systems it is suggested to use a small subset of frames for the average plots (i.e. last 1 us from the entire trajectory) according to the user requirments, so as to obtain a more clear output where the curvature has not evened out to much.
+
+**N.B.**<br/>
+If you want to gain a better visualization of the curvature of the system for mean and Gaussian curvature plots, you can adjust the upper and lower limits of the plots color bar by specifying the flag ```-lim```. 
+
+**N.B.**<br/>
+The user can deviate from default settings by using the ```-t``` argument to define the title of the plot, ```-c``` for the color spectrum on the colorbar, and ```-label``` for the label on the colorbar. For the outputs of mean and Gaussian curvature, the user can also specify the number of contour lines via ```-level```.
 
 ## License
 

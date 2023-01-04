@@ -25,5 +25,5 @@ lipids:
         bulk_ratio:
 protein: ""
 forcefield: 'FA'
-
+bins: 
     

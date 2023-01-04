@@ -71,7 +71,7 @@ def plot_contours(lower_leaf,
     low_max = np.nanmax(data[0]) #max for lower leaflet 
     up_min = np.nanmin(data[1])  #min for upper leaflet 
 
-    half = (min_ + ((max_ - min_) / 2)) #halfway point b/w overall max and min
+    half = (min_ + ((max_ - min_) / 2))#halfway point b/w overall max and min
 
     for ax, rs, lf in zip((ax1, ax2), data, leaflets):
         rs = ndimage.zoom(rs, 
@@ -88,7 +88,8 @@ def plot_contours(lower_leaf,
                              levels = levs, 
                              alpha = 0.95, 
                              vmin = -max_, 
-                             vmax = max_)
+                             vmax = max_,
+                             extend = "both")
         
             tcs = [-max_, 0, max_]
         
@@ -101,7 +102,8 @@ def plot_contours(lower_leaf,
                              levels = levs, 
                              alpha = 0.95, 
                              vmin = min_, 
-                             vmax = max_)
+                             vmax = max_,
+                             extend = "both")
             
             tcs = [min_, low_max, half, up_min, max_]
 
@@ -483,7 +485,7 @@ if args.plot == 'basic':
         cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
     
         fig.suptitle("Basic Surface Plots", fontsize = 10)
-        #fig.suptitle(title, size = 'small') #if the user wants to specify a title, this works...
+        #fig.suptitle(title, size = 'small') #if the user wants to specify a title.
         fig.savefig(out, bbox_inches='tight', dpi = 300)
         
         
@@ -529,7 +531,7 @@ if args.plot == 'basic':
         cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
     
         fig.suptitle("Basic Surface Plots (for a single frame)", fontsize = 10)
-        #fig.suptitle(title, size = 'small') #if the user wants to specify a title, this works...
+        #fig.suptitle(title, size = 'small') #if the user wants to specify a title.
         fig.savefig(out, bbox_inches='tight', dpi = 300)
         
 
@@ -619,14 +621,16 @@ if args.plot == '3_curvatures':
                                  levels = level, 
                                  alpha = 0.95, 
                                  vmin = -bound, 
-                                 vmax = +bound)
+                                 vmax = +bound,
+                                 extend = "both")
                 tcs = [np.min(mc), 0, np.max(mc)]
             
             else:
                 im = ax.contourf(mc.T, 
                                  cmap = cm, 
                                  levels = level, 
-                                 alpha = 0.95)
+                                 alpha = 0.95,
+                                 extend = "both")
                                  
             ax.set_aspect('equal')
             ax.set_title(titl, fontsize = 12)
@@ -758,19 +762,19 @@ if args.plot == 'last_6':
                      out2)
 
 if args.plot == 'middle_6':                               # middle 6 frames 
-    length_surf = int(len(first_leaf))
+    length_surf = len(first_leaf)
     halfway = int(length_surf/2)
-    m5 = halfway - 3
-    p5 = halfway + 3
+    m3 = halfway - 3
+    p3 = halfway + 3
 
     if length_surf > 6: 
-        plot_over_frames(first_leaf[m5:p5],
+        plot_over_frames(first_leaf[m3:p3],
                          "Height lipid headgroups (${\AA}$)",    
                          'Spectral_r',
                          'Surface: Middle 6 Frames for Upper Leaflet',
                          out)        
     
-        plot_over_frames(second_leaf[m5:p5],
+        plot_over_frames(second_leaf[m3:p3],
                          "Height lipid headgroups (${\AA}$)",
                          'Spectral_r',
                          'Surface: Middle 6 Frames for Lower Leaflet',
