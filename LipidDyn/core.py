@@ -28,13 +28,14 @@ import errno
 import subprocess
 import argparse
 import shutil
+import pandas as pd
 import logging
 from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
-mp.set_start_method("fork") # Allow multiprocessing to work with MacOS
 import warnings
 from MDAnalysis.analysis.base import AnalysisBase
-
+import re
+mp.set_start_method("fork")
  
 
 #/******************************************************************
@@ -320,7 +321,7 @@ def parse_op_input(def_file):
             ordPars[items[0]] = OrderParameter(*items)
     return ordPars
 
-#*******************************************************************
+
 
 class Density:
 
@@ -711,10 +712,98 @@ class FatslimCommands:
                                  stderr=subprocess.DEVNULL
                                 )
 
+    def SpeciesXVG(self,
+                   RawDir,
+                   XvgDir,
+                   RS_convert,
+                   out_file):
+
+        """Execute the APL command of fatslim,
+        which compute the average area per lipid
+        of lower,upper leaflet and the entire membrane
+        in a ''.xvg file along the trajectory.
+
+        Parameters
+        ----------
+        RawDir : str
+                Path to directory with raw files
+
+        XvgDir : str
+                Path to directory with xvg files
+
+        RS_convert : df
+                Dataframe correlating residnumber and lipid species
+        out_file : str
+                Name of output file
+        """
+
+        # open Raw data
+        RawDict = {}
+        for filename in os.listdir(RawDir):
+            FilePath = os.path.join(RawDir, filename)
+            raw_df = pd.read_csv(FilePath)
+
+            # convert residue numbers to lipid species and rename the column
+            raw_df['resid'] = raw_df['resid'].map(RS_convert.set_index('resid')['Species'])
+            raw_df.rename(columns={'resid':'species'}, inplace=True)
+
+            # add to dictonary with a name indicating frame number
+            nFrame = int(re.findall("\d+", filename)[0].lstrip("_"))
+            RawDict[nFrame] = raw_df
+        RawDict = dict(sorted(RawDict.items()))
+
+        # open average xvg file
+        with open(XvgDir) as f:
+            xvgFile = f.read()
+            xvgFile = xvgFile.split('\n')
+
+        # define either APL or Thickness
+        analysis = RawDir.split('/')[-1]
+
+        # create an xvg file for each lipid class. For each class the following is done:
+        # iterating trough each raw file to calulate the average property for each frame.
+        # a copy of the average xvg file is copied and the content changed with the calulated.
+        Species = list(dict.fromkeys(RS_convert['Species']))
+        for nSpecies in Species:
+            i = -1
+            SpeContent = []
+            for frame in RawDict:
+                # indexes of species in csv (membrane, upper and lower leaflet)
+                mAtoms = (RawDict[frame]['species'] == nSpecies)
+                lAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'lower leaflet')
+                uAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'upper leaflet')
+
+                # average properties in csv (membrane, upper and lower leaflet)
+                Membrane = format(RawDict[frame].iloc[: , -1][mAtoms].mean(),'.3f')
+                LowLeaf = format(RawDict[frame].iloc[: , -1][lAtoms].mean(),'.3f')
+                UppLeaf = format(RawDict[frame].iloc[: , -1][uAtoms].mean(),'.3f')
+
+                # frame time is taken from orignal average xvg
+                i = i + 1
+                time = xvgFile[15:][i][0:8]
+
+                # combine and edit to fit xvg format and append to List.
+                Row = [time, Membrane, LowLeaf, UppLeaf]
+                Row = str("    ".join(str(e) for e in Row) + ' ')
+                SpeContent.append(Row)
+
+            # The xvg files are saved in species specific folders.
+            if not os.path.exists(out_file + '/' + nSpecies):
+                try:
+                    os.mkdir((out_file + '/' + nSpecies))
+                except OSError as exc:
+                    if exc.errno != errno.EEXIST:
+                        raise
+
+            # avereage xvg content is replaced
+            xvgFile[15:] = SpeContent
+            with open(out_file + '/' + nSpecies + '/' + analysis + '_' + nSpecies + '.xvg', 'w') as f:
+                for line in xvgFile:
+                    f.write(line)
+                    f.write('\n')
 
 
 #--------------- MEMBRANE CURVATURE ---------------
-#---------- From MembraneCurvature Github --------- 
 """
 MembraneCurvature
 =======================================

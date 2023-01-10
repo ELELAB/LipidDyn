@@ -29,6 +29,89 @@ import logging
 sns.set()
 
 
+def dfPrep(XvgPath,
+           ylab,
+           ymin,
+           ymax,
+           th,
+           plot):
+
+    """
+    Parameters
+    ----------
+    XvgPath : str
+            Path to xvg data file 
+
+    ylab : str  
+            string containing the x axis label
+
+    y_min : float
+            float specifying the y-axis lower limit
+
+    y_max : float
+            float specifying the y-axis upper limit
+    
+    th: int            
+            int specifying the threshold to detect uncommon values
+
+    plot : str 
+            string defining whether thickness or apl is performed
+    """
+
+    df = pd.read_csv(XvgPath,
+                     skiprows=15,
+                     names = ['Time','Membrane','Lower_Leaflet','Upper_Leaflet'],
+                     engine='python',
+                     sep="   ")
+
+
+
+    # convert ps to ns
+    df["Time"] = df["Time"].divide(1000)
+
+    # assign unit and y-axis label
+    if args.plot == 'thickness':    
+        unit = ylab[2]
+        ylab = ylab[1]
+
+
+    # assign unit and y-axis label
+    if args.plot == 'apl':    
+        unit = ylab[3]
+        ylab = ylab[0]
+
+
+    # detect uncommon values and remove them
+    frame = df.loc[(df['Upper_Leaflet'] < th) | (df['Lower_Leaflet'] < th) | (df['Membrane'] < th)]
+    df = df[(df['Upper_Leaflet'] > th) & (df['Lower_Leaflet'] > th) & (df['Membrane'] > th)]
+
+    # check if data frame is empty 
+    if df.empty == True:
+        logging.error(f'Empty dataframe created: please check the threshold value, it could be too high')
+        exit(1)
+
+    # warn user if there are rows to be removed due to uncommon values
+    if frame.empty == False:
+        logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n  {frame} \n  will be discarded')
+
+
+    # set y-axis lower limit
+    if ymin:
+        y_min = ymin     
+    else:
+        y_min = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].min().min()) - 0.005
+
+    # set y-axis upper limit
+    if ymax:
+        y_max = ymax
+    else:
+        y_max = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].max().max()) + 0.005
+
+    return([df,
+            unit,
+            ylab,
+            y_min,
+            y_max])
 
 
 def profiler(data,
@@ -39,6 +122,7 @@ def profiler(data,
              n_bins,
              unit,
              title,
+             out_dir,
              out,
              dist):
 
@@ -60,8 +144,7 @@ def profiler(data,
     y_max : float
             float specifying the y-axis upper limit
     
-    n_bins: int
-            
+    n_bins: int            
             int specifying the numeber of bins 
 
     unit : str
@@ -70,6 +153,9 @@ def profiler(data,
     title : str 
             string containing the title
 
+    outdir : str 
+            Path for output filename
+    
     out : str 
             string containing the output filename
     
@@ -189,7 +275,7 @@ def profiler(data,
     fig.tight_layout()
     fig.suptitle(title)
     fig.subplots_adjust(top=0.90)
-    plt.savefig(out, dpi=300, format='pdf')
+    plt.savefig(out_dir + out, dpi=300, format='pdf')
     
 
 
@@ -238,12 +324,97 @@ def profiler(data,
         # set x-axis limits 
         plt.xlim(y_min,y_max)
 
-        plt.savefig(dist, dpi=300, format='pdf')
+        plt.savefig(out_dir + dist, dpi=300, format='pdf')
     
+
+def profiler_species(data,
+                     xlab,
+                     ylab,
+                     n_bins,
+                     unit,
+                     title,
+                     out_dir,
+                     out,
+                     dist):
+
+    """
+    Parameters
+    ----------
+    data : pandas dataframe
+            dataframe with apl/thickness data 
+
+    xlab : str
+            string containing the x axis label
+
+    ylab : str  
+            string containing the x axis label
+            
+    n_bins: int
+            
+            int specifying the numeber of bins 
+
+    unit : str
+            string containing the unit measure for the legend
+
+    title : str 
+            string containing the title
+
+    outdir : str 
+            Path for output filename
+    
+    out : str 
+            string containing the output filename
+    
+    dist: str
+            string containing the output distribution filename
+    """
+
+    # flag to visualize the merged distribution plots 
+    if dist:
+        
+        fig1 = plt.figure(figsize=(7,7))
+        axs_d = fig1.add_subplot(111)
+        
+        species_av = data.loc[:, data.columns != 'Time'].columns
+        
+        palette = sns.color_palette('husl', len(species_av))
+        col = 0
+        
+        for specie_av in species_av:
+        
+            sns.distplot(data[specie_av],
+                         vertical=False, 
+                         kde=True, 
+                         color=palette[col], 
+                         kde_kws={"shade": True},
+                         hist=False,
+                         label=specie_av)
+            
+            col = col+1             
+
+
+        # set x-axis label
+        axs_d.set_xlabel(ylab)
+        
+        # set legend
+        axs_d.legend(species_av)
+        
+        # set title and save
+        fig1.tight_layout()
+        fig1.suptitle(title)
+        fig1.subplots_adjust(top=0.95)
+        
+        # set x-axis limits 
+        y_min = (data[species_av].min().min()) - 0.005
+        y_max = (data[species_av].max().max()) + 0.005
+        
+        plt.xlim(y_min,y_max)
+
+        plt.savefig(out_dir + dist, dpi=300, format='pdf')
 
 
 usage = ('profiler -i ["".xvg]' \
-         '-plot [apl/thick]' \
+         '-plot [apl/thickness]' \
          ' -xlab [xlabel]' \
          '-ylab [ylabel]' \
          '-ymin [y minimum]' \
@@ -265,9 +436,9 @@ description= 'This script is to plot the average values of '\
 
 parser = argparse.ArgumentParser(usage = usage,description= description)
 
-parser.add_argument('-i',
-                    '--input',
-                    dest='input',
+parser.add_argument('-p',
+                    '--Path',
+                    dest='inputPath',
                     type=str,
                     required=True,
                     metavar='',
@@ -275,7 +446,7 @@ parser.add_argument('-i',
                     )
 
 parser.add_argument('-plot',
-                    choices=['apl','thick'],
+                    choices=['apl','thickness'],
                     required=True,
                     dest='plot')
 
@@ -366,87 +537,105 @@ parser.add_argument('-d',
                     default= 'distribution.pdf',
                     help='output name of the file',
                     )
-
+                    
+parser.add_argument('-spe',
+                    '--Analysis per species',
+                    dest='spe',
+                    action='store_true',
+                    help='Select to plot for each species',
+                    )
 
 args = parser.parse_args()
-
-data = args.input
+Path = os.path.abspath(os.path.join(args.inputPath))
 xlab = args.xlabel
 ylab = args.ylabel
 ymin = args.yminimum
 ymax = args.ymaximum
 n_bins = args.bins_number
 title = args.title
-out = args.output
+out_name = args.output
 th = args.threshold_value
 plot = args.plot
 dist = args.distribution
-
-df = pd.read_csv(data,
-                 skiprows=15,
-                 names = ['Time','Membrane','Lower_Leaflet','Upper_Leaflet'],
-                 engine='python',
-                 sep="   ")
+species = args.spe
 
 
-
-# convert ps to ns
-df["Time"]=df["Time"].divide(1000)
-
-# assign unit and y-axis label
-if args.plot == 'thick':    
-    unit = ylab[2]
-    ylab = ylab[1]
-   
-
-# assign unit and y-axis label
-if args.plot == 'apl':    
-    unit = ylab[3]
-    ylab = ylab[0]
-
-
-# detect uncommon values and remove them
-frame = df.loc[(df['Upper_Leaflet'] < th) | (df['Lower_Leaflet'] < th) | (df['Membrane'] < th)]
-df = df[(df['Upper_Leaflet'] > th) & (df['Lower_Leaflet'] > th) & (df['Membrane'] > th)]
-
-# check if data frame is empty 
-if df.empty == True:
-    logging.error(f'Empty dataframe created: please check the threshold value, it could be too high')
-    exit(1)
-
-# warn user if there are rows to be removed due to uncommon values
-if frame.empty == False:
-    logging.warning(f'Uncommon {args.plot} values for the following frame(s) \n  {frame} \n  will be discarded')
-
-
-# set y-axis lower limit
-if ymin:
-    y_min = ymin     
-else:
-    y_min = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].min().min()) - 0.005
+if out_name:
     
-# set y-axis upper limit
-if ymax:
-    y_max = ymax
-else:
-    y_max = (df[['Upper_Leaflet', 'Lower_Leaflet', 'Membrane']].max().max()) + 0.005
-
+    out_dir = str(Path + '/average/')
     
-
-profiler(df,
-         xlab,
-         ylab,
-         y_min,
-         y_max,
-         n_bins,
-         unit,
-         title,
-         out,
-         dist)
-
-
-
-
-
-
-
+    [df,
+    unit,
+    y_lab,
+    y_min,
+    y_max] = dfPrep(out_dir + plot + '.xvg',                
+                   ylab,
+                   ymin,
+                   ymax,
+                   th,
+                   plot)
+           
+    profiler(df,
+             xlab,
+             y_lab,
+             y_min,
+             y_max,
+             n_bins,
+             unit,
+             title,
+             out_dir,
+             out_name,
+             dist)        
+       
+    if species:   
+        
+        # check if xvgs are made
+        if not os.path.exists('Fatslim/species'):
+            logging.warning("Single species data not available. Please run LipidDyn with the argument -spe")
+        
+        else:
+            df_av_combined = pd.DataFrame({})
+                  
+            for species in os.listdir('Fatslim/species'):
+                out_dir = str('Fatslim/species/' + species + '/')
+                
+                [df,
+                unit,
+                y_lab,
+                y_min,
+                y_max] = dfPrep(out_dir + plot + '_' + species + '.xvg',                
+                               ylab,
+                               ymin,
+                               ymax,
+                               th,
+                               plot)
+                       
+                profiler(df,
+                         xlab,
+                         y_lab,
+                         y_min,
+                         y_max,
+                         n_bins,
+                         unit,
+                         title + ' ' + species,
+                         out_dir,
+                         species + '_' + out_name,
+                         species + '_' + dist)
+            
+                df_av_combined[species] = df['Membrane']
+            
+            # species plotted together (average membrane)
+            df_av_combined.insert(0, 'Time', df['Time'])
+            
+            profiler_species(df_av_combined,
+                             xlab,
+                             y_lab,
+                             n_bins,
+                             unit,
+                             'Single lipid contribution to the ' + plot + ' distribution',
+                             'Fatslim/',
+                             'species_combined_' + out_name,
+                             'species_combined_' + dist)
+                     
+else:
+    logging.warning("Output not selected. Please select.")
