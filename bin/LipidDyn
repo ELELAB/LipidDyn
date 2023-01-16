@@ -560,7 +560,6 @@ def module_order_parameter(u,
             pbar.update((step/total_step)*100)
             step += 1
         pbar.finish()
-D
 
 
 def module_curvature(universe,
@@ -1080,74 +1079,6 @@ def main():
                                parsed_yaml,
                                out_dir)
         logging.info("--------------------------------------")
-
-    else:
-        logging.info("Starting now with the calculation, please stand by")
-        logging.info(u"\u2622")
-
-
-        if args.mod_fat :
-
-            logging.info("Analysis: Area per lipid & Thickness calculation")
-            module_fatslim(traj,
-                           topol,
-                           index_headgroups,
-                           out_dir,
-                           apl_cutoff,
-                           tck_cutoff,
-                           raw,
-                           ncore)
-            logging.info("--------------------------------------")
-
-        if args.mod_maps :
-
-            logging.info("Analysis: Density maps")
-            module_densmap(u,
-                           leaflets,
-                           ncore,
-                           out_dir)
-            logging.info("--------------------------------------")
-
-        if args.enrichment and args.prot:
-            # add enrichment analysis with a protein
-            # do it if there is also the flag for the
-            # prot
-            logging.info("Analysis: Enrichment Analysis")
-            module_enrichment(u,
-                              leaflets,
-                              dict_selection,
-                              ncore,
-                              out_dir)
-            logging.info("--------------------------------------")
-
-
-        if args.mod_mov :
-
-            logging.info("Analysis: Diffusion movements")
-            module_movements(u,
-                             leaflets,
-                             out_dir)
-            logging.info("--------------------------------------")
-
-        if args.mod_ord :
-
-            logging.info("Analysis: Order Parameter")
-            module_order_parameter(u,
-                                   lipid_resnames,
-                                   traj,
-                                   topol,
-                                   parsed_yaml,
-                                   out_dir)
-            logging.info("--------------------------------------")
-
-        if args.mod_curv:
-            logging.info("Analysis: Membrane Curvature")
-            module_curvature(u,
-                             parsed_yaml,
-                             out_dir)
-
-            logging.info("--------------------------------------")
-
 
     if args.clean :
         os.remove(os.path.join(out_dir, 'index_headgroups.ndx'))
