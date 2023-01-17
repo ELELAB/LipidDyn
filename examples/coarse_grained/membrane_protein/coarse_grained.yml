@@ -453,3 +453,4 @@ lipids:
 
 protein: "protein and not name H*"
 forcefield: 'CG'
+bins: 

@@ -1,6 +1,6 @@
 # Import the environment prior to run this script
 
-LipidDyn -f heterogeneous_membrane.xtc -s heterogeneous_membrane.gro -g full_atom.yml -n 4 -c -fatslim -mov -op -2d -spe
+LipidDyn -f heterogeneous_membrane.xtc -s heterogeneous_membrane.gro -g full_atom.yml -n 4 -c -fatslim -mc -mov -op -2d -spe
 
 # Plotting 
 
@@ -23,3 +23,21 @@ ordpar -i Order_Parameter/Order_Parameter_LSM.csv -o Order_Parameter/Order_Param
 ordpar -i Order_Parameter/Order_Parameter_NSM.csv -o Order_Parameter/Order_Parameter_NSM.pdf -s sch
 ordpar -i Order_Parameter/Order_Parameter_PSM.csv -o Order_Parameter/Order_Parameter_PSM.pdf -s sch
 ordpar -i Order_Parameter/Order_Parameter_POPC.csv -o Order_Parameter/Order_Parameter_POPC.pdf -s sch
+
+# Membrane Curvature 
+curvature -l1 curv/up_Avg_surface.dat -l2 curv/low_Avg_surface.dat -o curv/Avg_basic_surface.pdf -plot basic
+curvature -l1 curv/up_Avg_surface.dat -l2 curv/low_Avg_surface.dat -o curv/Avg_smooth_surface.pdf -plot smooth
+curvature -l1 curv/up_Avg_mean_curvature.dat -l2 curv/low_Avg_mean_curvature.dat -o curv/Avg_mean_curvature.pdf -plot mean
+curvature -l1 curv/up_Avg_gaussian_curvature.dat -l2 curv/low_Avg_gaussian_curvature.dat -o curv/Avg_gaussian_curvature.pdf -plot gaussian
+# Membrane Curvature - Avg. Plots side-by-side for each leaflet
+curvature -l1 curv/low_Avg_surface.dat -l2 curv/low_Avg_mean_curvature.dat -l3 curv/low_Avg_gaussian_curvature.dat -o curv/3_Avg_lower_plots.pdf -plot 3_curvatures -t 'Lower Leaflet'
+curvature -l1 curv/up_Avg_surface.dat -l2 curv/up_Avg_mean_curvature.dat -l3 curv/up_Avg_gaussian_curvature.dat -o curv/3_Avg_upper_plots.pdf -plot 3_curvatures -t 'Upper Leaflet'
+# Membrane Curvature - Single Frame Plots
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/AF_basic_surface.pdf -plot basic -frame 5
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/AF_smooth_surface.pdf -plot smooth -frame 5
+curvature -l1 curv/up_AF_gaussian_curvature.dat -l2 curv/low_AF_gaussian_curvature.dat -o curv/AF_gaussian_curvature.pdf -plot gaussian -frame 5 -level 40
+curvature -l1 curv/up_AF_mean_curvature.dat -l2 curv/low_AF_mean_curvature.dat -o curv/AF_mean_curvature.pdf -plot mean -frame 5 -level 40
+# Membrane Curvature - Multi Frame (6 frame) Plots
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6f_up_smooth_surface.pdf -o2 curv/6f_low_smooth_surface.pdf -plot first_6
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6m_up_smooth_surface.pdf -o2 curv/6m_low_smooth_surface.pdf -plot middle_6
+curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6l_up_smooth_surface.pdf -o2 curv/6l_low_smooth_surface.pdf -plot last_6

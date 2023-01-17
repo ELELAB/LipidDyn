@@ -32,9 +32,10 @@ import pandas as pd
 import logging
 from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
+import warnings
+from MDAnalysis.analysis.base import AnalysisBase
 import re
 mp.set_start_method("fork")
-
  
 
 #/******************************************************************
@@ -319,6 +320,7 @@ def parse_op_input(def_file):
             items = line.split()
             ordPars[items[0]] = OrderParameter(*items)
     return ordPars
+
 
 
 class Density:
@@ -710,57 +712,56 @@ class FatslimCommands:
                                  stderr=subprocess.DEVNULL
                                 )
 
-
     def SpeciesXVG(self,
                    RawDir,
                    XvgDir,
                    RS_convert,
                    out_file):
-                   
+
         """Execute the APL command of fatslim,
-        which compute the average area per lipid 
-        of lower,upper leaflet and the entire membrane 
+        which compute the average area per lipid
+        of lower,upper leaflet and the entire membrane
         in a ''.xvg file along the trajectory.
-    
+
         Parameters
         ----------
-        RawDir : str 
+        RawDir : str
                 Path to directory with raw files
-        
+
         XvgDir : str
                 Path to directory with xvg files
-        
+
         RS_convert : df
                 Dataframe correlating residnumber and lipid species
         out_file : str
                 Name of output file
         """
-        
+
         # open Raw data
         RawDict = {}
         for filename in os.listdir(RawDir):
             FilePath = os.path.join(RawDir, filename)
             raw_df = pd.read_csv(FilePath)
-            
+
             # convert residue numbers to lipid species and rename the column
             raw_df['resid'] = raw_df['resid'].map(RS_convert.set_index('resid')['Species'])
             raw_df.rename(columns={'resid':'species'}, inplace=True)
-            
+
             # add to dictonary with a name indicating frame number
             nFrame = int(re.findall("\d+", filename)[0].lstrip("_"))
             RawDict[nFrame] = raw_df
         RawDict = dict(sorted(RawDict.items()))
-        
+
         # open average xvg file
         with open(XvgDir) as f:
             xvgFile = f.read()
             xvgFile = xvgFile.split('\n')
-        
+
         # define either APL or Thickness
         analysis = RawDir.split('/')[-1]
-        
+
         # create an xvg file for each lipid class. For each class the following is done:
-        # iterating trough each raw file to calulate the average property for each frame.       
+        # iterating trough each raw file to calulate the average property for each frame.
         # a copy of the average xvg file is copied and the content changed with the calulated.
         Species = list(dict.fromkeys(RS_convert['Species']))
         for nSpecies in Species:
@@ -771,29 +772,29 @@ class FatslimCommands:
                 mAtoms = (RawDict[frame]['species'] == nSpecies)
                 lAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'lower leaflet')
                 uAtoms = (RawDict[frame]['species'] == nSpecies) & (RawDict[frame]['leaflet'] == 'upper leaflet')
-        
+
                 # average properties in csv (membrane, upper and lower leaflet)
                 Membrane = format(RawDict[frame].iloc[: , -1][mAtoms].mean(),'.3f')
                 LowLeaf = format(RawDict[frame].iloc[: , -1][lAtoms].mean(),'.3f')
                 UppLeaf = format(RawDict[frame].iloc[: , -1][uAtoms].mean(),'.3f')
-        
+
                 # frame time is taken from orignal average xvg
-                i = i + 1 
+                i = i + 1
                 time = xvgFile[15:][i][0:8]
 
-                # combine and edit to fit xvg format and append to List.            
+                # combine and edit to fit xvg format and append to List.
                 Row = [time, Membrane, LowLeaf, UppLeaf]
                 Row = str("    ".join(str(e) for e in Row) + ' ')
                 SpeContent.append(Row)
-            
+
             # The xvg files are saved in species specific folders.
             if not os.path.exists(out_file + '/' + nSpecies):
-                try: 
+                try:
                     os.mkdir((out_file + '/' + nSpecies))
                 except OSError as exc:
                     if exc.errno != errno.EEXIST:
                         raise
-                
+
             # avereage xvg content is replaced
             xvgFile[15:] = SpeContent
             with open(out_file + '/' + nSpecies + '/' + analysis + '_' + nSpecies + '.xvg', 'w') as f:
@@ -801,4 +802,384 @@ class FatslimCommands:
                     f.write(line)
                     f.write('\n')
 
+
+#--------------- MEMBRANE CURVATURE ---------------
+"""
+MembraneCurvature
+=======================================
+
+:Author: Estefania Barreto-Ojeda
+:Year: 2021
+:Copyright: GNU Public License v3
+
+MembraneCurvature calculates the mean and Gaussian curvature of
+surfaces derived from a selection of reference.
+
+Mean curvature is calculated in units of Å :sup:`-1` and Gaussian curvature
+in units of Å :sup:`-2`.
+"""
+
+# curvature calculations 
+def gaussian_curvature(Z):
+    """
+    Calculate gaussian curvature from Z cloud points.
+
+    Parameters
+    ---------
+      Z: np.ndarray.
+      Multidimensional array of shape (n,n).
+
+    Returns
+    -------
+    K : np.ndarray.
+      The result of gaussian curvature of Z. Returns multidimensional
+      array object with values of gaussian curvature of shape `(n, n)`. 
+    """
+
+    Zy, Zx = np.gradient(Z)
+    Zxy, Zxx = np.gradient(Zx)
+    Zyy, _ = np.gradient(Zy)
+
+    K = (Zxx * Zyy - (Zxy ** 2)) / (1 + (Zx ** 2) + (Zy ** 2)) ** 2
+
+    return(K)
+
+
+def mean_curvature(Z):
+        
+    """
+    Calculates mean curvature from Z cloud points.
+
+    Parameters
+    ----------
+    Z: np.ndarray.
+      Multidimensional array of shape (n,n).
+
+    Returns
+    -------
+    H : np.ndarray.
+      The result of gaussian curvature of Z. Returns multidimensional
+      array object with values of gaussian curvature of shape `(n, n)`.
+    """
+
+    Zy, Zx = np.gradient(Z)
+    Zxy, Zxx = np.gradient(Zx)
+    Zyy, _ = np.gradient(Zy)
+
+    H = (1 + Zx**2) * Zyy + (1 + Zy**2) * Zxx - 2 * Zx * Zy * Zxy
+    H = H / (2 * (1 + Zx**2 + Zy**2)**(1.5))
+
+    return(H)
+
+
+# surface calculations   
+def derive_surface(atoms, 
+                   n_cells_x, 
+                   n_cells_y, 
+                   max_width_x, 
+                   max_width_y
+                   ): 
+    
+    """
+    Derive surface from `atom` positions in `AtomGroup`.
+    
+    Parameters
+    ----------
+    atoms: AtomGroup.
+      AtomGroup of reference selection to define the surface of the membrane.
+   
+    n_cells_x: int.
+      number of cells in the grid of size `max_width_x`, `x` axis.
+   
+    n_cells_y: int.
+      number of cells in the grid of size `max_width_y`, `y` axis.
+   
+    max_width_x: float.
+      Maximum width of simulation box in x axis. (Determined by simulation box dimensions)
+   
+    max_width_y: float.
+      Maximum width of simulation box in y axis. (Determined by simulation box dimensions)
+    
+    Returns
+    -------
+    z_coordinates: numpy.ndarray
+      Average z-coordinate values. Return Numpy array of floats of
+      shape `(n_cells_x, n_cells_y)`.
+    """
+        
+    coordinates = atoms.positions
+
+    return(get_z_surface(coordinates, 
+                         n_x_bins = n_cells_x, 
+                         n_y_bins = n_cells_y,
+                         x_range = (0, max_width_x),
+                         y_range = (0, max_width_y)))
+
+mda.start_logging()
+logger = logging.getLogger("MDAnalysis.MDAKit.membrane_curvature")
+
+
+
+def get_z_surface(coordinates, 
+                  n_x_bins = 10, 
+                  n_y_bins = 10, 
+                  x_range = (0, 100),
+                  y_range = (0, 100)
+                  ):
+
+    """
+    Derive surface from distribution of z coordinates in grid.
+    
+    Parameters
+    ----------
+    coordinates : numpy.ndarray 
+      Coordinates of AtomGroup. Numpy array of shape=(n_atoms, 3).
+   
+    n_x_bins : int.
+      Number of bins in grid in the `x` dimension. 
+   
+    n_y_bins : int.
+      Number of bins in grid in the `y` dimension. 
+   
+    x_range : tuple of (float, float)
+      Range of coordinates (min, max) in the `x` dimension with shape=(2,).
+   
+    y_range : tuple of (float, float)
+      Range of coordinates (min, max) in the `y` dimension with shape=(2,). 
+
+    Returns
+    -------
+    z_surface: np.ndarray
+      Surface derived from set of coordinates in grid of `x_range, y_range` dimensions.
+      Returns Numpy array of floats of shape (`n_x_bins`, `n_y_bins`)
+    """
+
+    grid_z_coordinates = np.zeros((n_x_bins, n_y_bins))
+    grid_norm_unit = np.zeros((n_x_bins, n_y_bins))
+
+    x_factor = n_x_bins / (x_range[1] - x_range[0])
+    y_factor = n_y_bins / (y_range[1] - y_range[0])
+
+    x_coords, y_coords, z_coords = coordinates.T
+
+    cell_x_floor = np.floor(x_coords * x_factor).astype(int)
+    cell_y_floor = np.floor(y_coords * y_factor).astype(int)
+
+    for l, m, z in zip(cell_x_floor, cell_y_floor, z_coords):
+        try: 
+            # negative coordinates
+            if l < 0 or m < 0:
+                msg = ("Atom with negative coordinates falls "
+                        "outside grid boundaries. Element "
+                        "({},{}) in grid can't be assigned."
+                        " Skipping atom.").format(l, m)
+                warnings.warn(msg)
+                logger.warning(msg)
+                continue
+
+            grid_z_coordinates[l, m] += z
+            grid_norm_unit[l, m] += 1
+
+        # too large positive coordinates
+        except IndexError:
+            msg = ("Atom coordinates exceed size of grid "
+                    "and element ({},{}) can't be assigned. "
+                    "Maximum (x,y) coordinates must be < ({}, {}). "
+                    "Skipping atom.").format(l, m, x_range[1], y_range[1])
+            warnings.warn(msg)
+            logger.warning(msg)
+
+    z_surface = normalized_grid(grid_z_coordinates, grid_norm_unit)
+    return z_surface
+
+
+def normalized_grid(grid_z_coordinates, grid_norm_unit):
+    
+    """
+    Calculates average `z` coordinates in unit cell.
+
+    Parameters
+    ----------
+    z_ref: np.array
+      Empty array of `(l,m)`
+   
+    grid_z_coordinates: np.array
+      Array of size `(l,m)` with `z` coordinates stored in unit cell.
+   
+    grid_norm_unit: np.array
+      Array of size `(l,m)` with number of atoms in unit cell.
+    
+    Returns
+    -------
+    z_surface: np.ndarray
+      Normalized `z` coordinates in grid.        
+      Returns Numpy array of floats of shape (`n_x_bins`, `n_y_bins`)
+    """
+    
+    grid_norm_unit = np.where(grid_norm_unit > 0, grid_norm_unit, np.nan)
+    z_normalized = grid_z_coordinates / grid_norm_unit
+    
+    return(z_normalized)
+
+
+#------------------ Own function --------------------
+def curvature_data_extraction(mc):
+    # All frames = AF, upper and lower leaflets
+    AF_surface = mc.results.z_surface
+    AF_mean_curvature = mc.results.mean
+    AF_gaussian_curvature = mc.results.gaussian
+
+    # Average over frames, upper and lower leaflets
+    Avg_surface = mc.results.average_z_surface
+    Avg_mean_curvature = mc.results.average_mean
+    Avg_gaussian_curvature = mc.results.average_gaussian
+
+    return([AF_surface, 
+            AF_mean_curvature, 
+            AF_gaussian_curvature, 
+            Avg_surface, 
+            Avg_mean_curvature, 
+            Avg_gaussian_curvature])
+
+
+#------- More from MembraneCurvature Github --------
+"""
+:Author: Estefania Barreto-Ojeda
+:Year: 2021
+:Copyright: GNU Public License v3
+
+"""
+
+mda.start_logging()
+logger = logging.getLogger("MDAnalysis.MDAKit.membrane_curvature")
+
+class MembraneCurvature(AnalysisBase):
+
+    """
+    MembraneCurvature is a tool to calculate membrane curvature.
+
+    Parameters
+    ----------
+    universe : Universe or AtomGroup
+      An MDAnalysis Universe object.
+    
+    select : str or iterable of str, optional.
+      The selection string of an atom selection to use as a reference to derive a surface.
+    
+    wrap : bool, optional
+      Apply coordinate wrapping to pack atoms into the primary unit cell.
+    
+    n_x_bins : int, optional, default: '100'
+      Number of bins in grid in the x dimension.
+    
+    n_y_bins : int, optional, default: '100'
+      Number of bins in grid in the y dimension.
+    
+    x_range : tuple of (float, float), optional, default: (0, `universe.dimensions[0]`)
+      Range of coordinates (min, max) in the x dimension.
+    
+    y_range : tuple of (float, float), optional, default: (0, `universe.dimensions[1]`)
+      Range of coordinates (min, max) in the y dimension.
+
+    Attributes
+    ----------
+    results.z_surface : ndarray
+      Surface derived from atom selection in every frame
+      Array of shape (`n_frames`, `n_x_bins`, `n_y_bins`)
+    
+    results.mean_curvature : ndarray
+      Mean curvature associated to the surface.
+      Array of shape (`n_frames`, `n_x_bins`, `n_y_bins`)
+    
+    results.gaussian_curvature : ndarray
+      Gaussian curvature associated to the surface.
+      Arrays of shape (`n_frames`, `n_x_bins`, `n_y_bins`
+    
+    results.average_z_surface : ndarray
+      Average of the array elements in `z_surface`.
+      Each array has shape (`n_x_bins`, `n_y_bins`)
+    
+    results.average_mean_curvature : ndarray
+      Average of the array elements in `mean_curvature`.
+      Each array has shape (`n_x_bins`, `n_y_bins`)
+    
+    results.average_gaussian_curvature: ndarray
+      Average of the array elements in `gaussian_curvature`.
+      Each array has shape (`n_x_bins`, `n_y_bins`)
+    """
+
+    def __init__(self,
+                 universe,
+                 select = 'all',
+                 n_x_bins = 100,
+                 n_y_bins = 100,
+                 x_range = None,
+                 y_range = None,
+                 wrap = True, 
+                 **kwargs
+                 ):
+
+        super().__init__(universe.universe.trajectory, **kwargs)
+        self.ag = universe.select_atoms(select)
+        self.wrap = wrap
+        self.n_x_bins = n_x_bins
+        self.n_y_bins = n_y_bins
+        self.x_range = x_range if x_range else (0, universe.dimensions[0])
+        self.y_range = y_range if y_range else (0, universe.dimensions[1])
+
+        # Raise if selection doesn't exist
+        if len(self.ag) == 0:
+            raise ValueError("Invalid selection. Empty AtomGroup.")
+
+        # Only checks the first frame. NPT simulations not properly covered here.
+        # Warning message if range doesn't cover entire dimensions of simulation box
+        for dim_string, dim_range, num in [('x', self.x_range, 0), 
+                                           ('y', self.y_range, 1)]:
+            if (dim_range[1] < universe.dimensions[num]):
+                msg = (f"Grid range in {dim_string} does not cover entire "
+                       "dimensions of simulation box.\n Minimum dimensions "
+                       "must be equal to simulation box.")
+                warnings.warn(msg)
+                logger.warn(msg)
+
+        # Apply wrapping coordinates
+        if not self.wrap:
+            # Warning
+            msg = (" `wrap == False` may result in inaccurate calculation "
+                   "of membrane curvature. Surfaces will be derived from "
+                   "a reduced number of atoms. \n "
+                   " Ignore this warning if your trajectory has "
+                   " rotational/translational fit rotations! ")
+            warnings.warn(msg)
+            logger.warn(msg)
+
+    def _prepare(self):
+        # Initialize empty np.array with results
+        self.results.z_surface = np.full((self.n_frames,
+                                          self.n_x_bins,
+                                          self.n_y_bins), np.nan)
+        self.results.mean = np.full((self.n_frames,
+                                     self.n_x_bins,
+                                     self.n_y_bins), np.nan)
+        self.results.gaussian = np.full((self.n_frames,
+                                         self.n_x_bins,
+                                         self.n_y_bins), np.nan)
+
+    def _single_frame(self):
+        # Apply wrapping coordinates
+        if self.wrap:
+            self.ag.wrap()
+        # Populate a slice with np.arrays of surface, mean, and gaussian per frame
+        self.results.z_surface[self._frame_index] = get_z_surface(self.ag.positions,
+                                                                  n_x_bins = self.n_x_bins,
+                                                                  n_y_bins = self.n_y_bins,
+                                                                  x_range = self.x_range,
+                                                                  y_range = self.y_range)
+        self.results.mean[self._frame_index] = mean_curvature(self.results.z_surface[self._frame_index])
+        self.results.gaussian[self._frame_index] = gaussian_curvature(self.results.z_surface[self._frame_index])
+
+    def _conclude(self):
+        self.results.average_z_surface = np.nanmean(self.results.z_surface, axis=0)
+        self.results.average_mean = np.nanmean(self.results.mean, axis=0)
+        self.results.average_gaussian = np.nanmean(self.results.gaussian, axis=0)
 

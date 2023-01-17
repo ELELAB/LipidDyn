@@ -453,3 +453,4 @@ lipids:
 
 protein: 
 forcefield: 'CG'
+bins:  

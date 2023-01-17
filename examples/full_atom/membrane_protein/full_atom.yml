@@ -25,5 +25,5 @@ lipids:
         bulk_ratio:
 protein: "protein and not name H*"
 forcefield: 'FA'
-
+bins: 
     

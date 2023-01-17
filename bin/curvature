@@ -1,0 +1,783 @@
+#!/usr/bin/env python 
+
+#--------------------- Plotting Membrane Curvature Data -------------------------
+
+import MDAnalysis as mda
+import numpy as np
+from scipy import ndimage
+import matplotlib.pyplot as plt
+import argparse
+import seaborn as sns
+import matplotlib.colors
+import math
+
+
+#---- Plotting Function for Average Mean or Gaussian Curvature with Contours ----
+
+# define function 
+def plot_contours(lower_leaf,
+                  upper_leaf,
+                  label, 
+                  level,
+                  limit,
+                  cmap,
+                  title,
+                  out):
+    
+    """
+    Function used to plot contours of MembraneCurvature results. The
+    user can determine number of contour lines / regions (level), label 
+    of the colorbar (label), upper and lower limit for the colorbar 
+    (limit), colormap (cmap), title (title), and the output file (out).
+
+    Parameters
+    ----------
+    lower_leaf : list 
+        List with data for lower leaflet
+    
+    upper_leaf : list
+        List with data for upper leaflet
+    
+    label : str
+        Label to add to colorbar
+    
+    levels : int
+        Determines number of contour lines
+    
+    limit : float
+        Color spectrum limit to use in plot
+    
+    cmap : str
+        Colormap to use in plot
+    
+    title : str
+        String containing the title 
+    
+    out : str
+        String containing the output filename
+
+    """ 
+
+    data = [lower_leaf, upper_leaf]
+    
+    fig, [ax1, ax2] = plt.subplots(ncols = 2, 
+                                   figsize = (4, 3.5), 
+                                   dpi = 200)
+    
+    max_ = np.nanmax(np.concatenate(data)) #overall max for both leaflets
+    max_ = limit                           #otherwise specified max via argument 
+    min_ = np.nanmin(np.concatenate(data)) #overall min for both leaflets
+    
+    low_max = np.nanmax(data[0]) #max for lower leaflet 
+    up_min = np.nanmin(data[1])  #min for upper leaflet 
+
+    half = (min_ + ((max_ - min_) / 2))#halfway point b/w overall max and min
+
+    for ax, rs, lf in zip((ax1, ax2), data, leaflets):
+        rs = ndimage.zoom(rs, 
+                          3, 
+                          mode = 'wrap', 
+                          order = 2)
+        
+        #if max and min are below and above zero
+        if np.min(rs) < 0 < np.max(rs): 
+            levs = np.linspace(-max_, max_, level)
+            im = ax.contourf(rs.T, 
+                             cmap = cmap, 
+                             origin = 'lower', 
+                             levels = levs, 
+                             alpha = 0.95, 
+                             vmin = -max_, 
+                             vmax = max_,
+                             extend = "both")
+        
+            tcs = [-max_, 0, max_]
+        
+        #if max and min are both above zero
+        else:
+            levs = np.linspace(min_, max_, level)
+            im = ax.contourf(rs.T, 
+                             cmap = cmap, 
+                             origin = 'lower', 
+                             levels = levs, 
+                             alpha = 0.95, 
+                             vmin = min_, 
+                             vmax = max_,
+                             extend = "both")
+            
+            tcs = [min_, low_max, half, up_min, max_]
+
+        ax.set_aspect('equal')
+        ax.set_title('{} Leaflet'.format(lf), fontsize = 6)
+        ax.axis('off')
+
+        fig.subplots_adjust(right = 0.8)
+        cbar_ax = fig.add_axes([0.83, 0.32, 0.02, 0.35])
+        cbar = fig.colorbar(im, cax = cbar_ax, ticks = tcs) 
+        cbar.ax.tick_params(labelsize = 5, width = 0.5)
+        cbar.set_label(label, fontsize = 5, labelpad = 5)
+        
+    fig.suptitle(title, y = 0.8, fontsize = 10)
+    plt.savefig(out, bbox_inches='tight', dpi = 300)
+
+
+usage = ('curvature -l1 [.dat] -l2 [.dat] -o ["".png/pdf] -t [title of the plot]'\
+         '-plot[mean/gaussian] -frame [frame number] -level [int]'\
+         '-lim [float] -c [colormap]')
+
+description= 'This script is to plot the mean or Gaussian membrane curvature'\
+              'maps of the lipids composing the leaflets in the box.'\
+              'The input files are .dat files coming from the analysis,'\
+              'and the plot can be either an average of all the frames'\
+              'or a single frame if the -frame argument is provided.'
+ 
+                               
+#-------- Plotting Function for Smooth Surface Average or Single Frame ----------
+
+# define function 
+def plot_smooth(surface, 
+                ticks, 
+                label, 
+                cmap, 
+                title, 
+                out):
+
+    """
+    Function used to plot average (Avg) or all frame (AF) smooth surface results. 
+    The user can determine the specific frame to plot (frame), the tick values
+    for the colorbar, label of the colorbar (label), colormap (cmap), 
+    title (title), and the output file (out).
+
+    Parameters
+    ----------
+    surface : list 
+        List with data for lower and upper leaflet
+    
+    ticks : list 
+        List with tick values for colorbar
+    
+    label : str
+        Label to add to colorbar
+    
+    cmap : str
+        Colormap to use in plot
+    
+    title : str
+        String containing the title 
+    
+    out : str
+        String containing the output filename
+
+    """ 
+
+    fig, [ax1, ax2] = plt.subplots(ncols = 2, 
+                                   figsize = (4,2), 
+                                   dpi = 200)
+    
+    for ax, surfs, lf in zip((ax1, ax2), surface, leaflets):
+        im = ax.imshow(surfs.T, 
+                       interpolation = 'gaussian', 
+                       cmap = 'Spectral_r', 
+                       origin = 'lower', 
+                       vmin = leafs_min, 
+                       vmax = leafs_max)
+        tcs = ticks
+        ax.set_aspect('equal')
+        ax.set_title('{} Leaflet'.format(lf), fontsize = 6)
+        ax.axis('off')
+    
+    fig.subplots_adjust(right = 0.8)
+    cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
+    cbar = fig.colorbar(im, cax = cbar_ax, ticks = tcs)
+    cbar.ax.tick_params(labelsize = 4, width = 0.5)
+    cbar.set_label(label, fontsize = 6, labelpad = 5)
+    
+    fig.suptitle(title, fontsize = 10)
+    fig.savefig(out, bbox_inches='tight', dpi = 300)
+
+usage = ('curvature -l1 [.dat] -l2 [.dat] -c [colormap]'\
+         '-t [title of the plot] -plot[smooth] -frame [frame number]'\
+         '-o ["".png/pdf]')
+
+description= 'This script is to plot the smooth surface maps (for a single'\
+              'frame or an average of all the frames) of the lipids composing'\
+              'the leaflets in the box. The input files are .dat files coming'\
+              'from the analysis.'
+            
+              
+# ----------------------- Defining the Plotting Arguments -----------------------
+
+parser = argparse.ArgumentParser(usage = usage, description= description)
+parser.add_argument('-l1',
+                    '--leaflet_1',
+                    dest='leaflet_1',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='first/upper leaflet input file'
+                    )
+
+parser.add_argument('-l2',
+                    '--leaflet_2',
+                    dest='leaflet_2',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    help='second/lower leaflet input file'
+                    )
+
+parser.add_argument('-l3',
+                    '--leaflet_3',
+                    dest='leaflet_3',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    help='third leaflet input file'
+                    )
+
+parser.add_argument('-plot',
+                    choices=['mean','gaussian','basic','smooth','3_curvatures',
+                             'first_6','last_6','middle_6'],
+                    required=False,
+                    dest='plot',
+                    help='Specify the type of plot'
+                    )
+
+parser.add_argument('-level',
+                    nargs='?',
+                    default=50,
+                    type=int,
+                    dest='level',
+                    help='Specify on how many contour lines to use for \
+                          plotting'
+                   )
+
+parser.add_argument('-lim',
+                    '--spectrum-limit',
+                    dest='speclim',
+                    type=float,
+                    required=False,
+                    metavar='',
+                    help='Specify spectrum limit to assign to the plot',
+                    )
+
+parser.add_argument('-c', 
+                    '--colormap',
+                     dest='cmap',
+                     default='Spectral_r',
+                     type=str,
+                     metavar='',
+                     help='Range of colors used in the plot.'
+                     )
+
+parser.add_argument('-t',
+                    '--title',
+                    dest='title',
+                    type=str,
+                    required=False,
+                    default='',
+                    metavar='',
+                    help='Title to assign to the plot',
+                    )
+
+parser.add_argument('-o',
+                    '--output',
+                    dest='output',
+                    type=str,
+                    required=True,
+                    metavar='',
+                    default= 'curvature.pdf',
+                    help='output name of the file',
+                    )
+                    
+parser.add_argument('-o2',
+                    '--output2',
+                    dest='output2',
+                    type=str,
+                    required=False,
+                    metavar='',
+                    default= 'lower6.pdf',
+                    help='output name of the 2nd output file',
+                    )
+                   
+parser.add_argument('-frame',
+                    nargs='?',
+                    default=float('nan'),
+                    type=int,
+                    dest='frame',
+                    help='Specify which frame to use for single\
+                          frame plotting'
+                   )             
+
+args = parser.parse_args()
+leaf_1 = args.leaflet_1
+leaf_2 = args.leaflet_2
+leaf_3 = args.leaflet_3
+out = args.output
+out2 = args.output2
+level = args.level
+lim = args.speclim
+title = args.title
+plot = args.plot
+cmap = args.cmap
+frame = args.frame
+
+
+# define leaflets
+leaflets = ["Lower", "Upper"]
+
+# load data
+first_leaf = np.loadtxt(leaf_1) #upper leaflet
+second_leaf = np.loadtxt(leaf_2) #lower leaflet
+
+leafs = [second_leaf, first_leaf]     
+concat_leafs = np.concatenate(leafs) 
+
+  
+# set limit
+if lim:
+    limit = lim
+else:
+    limit = np.nanmax(abs(concat_leafs)) #limit is the overall max when 
+                                         #taking the absolute value of 
+                                         #the values in both leaflets    
+
+
+# --------------------------- Plotting Mean Curvature --------------------------- 
+if args.plot == 'mean':    
+    label = '$H$ ($\AA^{-1}$)'
+    title = 'Mean Curvature Plots'
+    
+    # conditonal statement to check if arg doesn't exist
+    if math.isnan(args.frame) == True:
+        result = False
+    else:
+        result = args.frame
+    
+    # if frame not given, run average mean curvature plot 
+    if result == False:
+        plot_contours(second_leaf, #lower leaflet
+              first_leaf,          #upper leaflet
+              label,
+              level,
+              limit,
+              cmap,
+              title,
+              out)
+                 
+    # if frame number is given, reshape data and plot single frame 
+    if result == args.frame:
+        bins = int(math.sqrt(first_leaf.shape[1]))
+        arr = np.random.rand(first_leaf.shape[0], bins, bins)
+    
+        # reshape
+        second_leaf = second_leaf.reshape(second_leaf.shape[0], 
+                                          second_leaf.shape[1] // arr.shape[2], 
+                                          arr.shape[2])
+                                          
+        first_leaf = first_leaf.reshape(first_leaf.shape[0], 
+                                        first_leaf.shape[1] // arr.shape[2], 
+                                        arr.shape[2])
+        
+        # plot mean curvature 
+        plot_contours(second_leaf[frame], #lower leaflet
+                      first_leaf[frame],  #upper leaflet
+                      label,
+                      level,
+                      limit,
+                      cmap,
+                      'Mean Curvature Plots (for a single frame)',
+                      out)
+   
+    exit()
+
+
+# ------------------------- Plotting Gaussian Curvature -------------------------
+if args.plot == 'gaussian':    
+    label = '$K$ ($\AA^{-2}$)'
+    title = 'Gaussian Curvature Plots'
+
+    # conditonal statement to check if arg doesn't exist
+    if math.isnan(args.frame) == True:
+        result = False 
+    else:
+        result = args.frame
+    
+    # if frame not given, run average gaussian curvature plot 
+    if result == False:
+        plot_contours(second_leaf, #lower leaflet
+              first_leaf,          #upper leaflet
+              label,
+              level,
+              limit,
+              cmap,
+              title,
+              out)
+                 
+    # if frame number is given, reshape data and plot single frame 
+    if result == args.frame:
+        bins = int(math.sqrt(first_leaf.shape[1]))
+        arr = np.random.rand(first_leaf.shape[0], bins, bins)
+    
+        # reshape
+        second_leaf = second_leaf.reshape(second_leaf.shape[0], 
+                                          second_leaf.shape[1] // arr.shape[2], 
+                                          arr.shape[2])
+                                          
+        first_leaf = first_leaf.reshape(first_leaf.shape[0], 
+                                        first_leaf.shape[1] // arr.shape[2], 
+                                        arr.shape[2])
+        
+        # plot gaussian curvature 
+        plot_contours(second_leaf[frame], #lower leaflet
+                      first_leaf[frame],  #upper leaflet
+                      label,
+                      level,
+                      limit,
+                      cmap,
+                      'Gaussian Curvature Plots (for a single frame)',
+                      out)
+   
+    exit()
+
+
+#----------------- Plotting Basic and Smooth Surface ----------------------
+
+# define lables for colorbar
+leafs_max = np.nanmax(concat_leafs)                #overall max for both leaflets  
+leafs_min = np.nanmin(concat_leafs)                #overall min for both leaflets
+low_max = np.nanmax(leafs[0])                      #max for lower leaflet
+up_min = np.nanmin(leafs[1])                       #min for upper leaflet
+half = (leafs_min + ((leafs_max - leafs_min) / 2)) #halfway point between overall 
+                                                   #max and min
+
+# basic plot
+if args.plot == 'basic':
+    ticks = [leafs_min, low_max, half, up_min, leafs_max]
+    
+    # conditonal statement to check if arg doesn't exist
+    if math.isnan(args.frame) == True:
+        result = False 
+    else:
+        result = args.frame
+    
+    # if frame not given, run average gaussian curvature plot 
+    if result == False:
+        fig, [ax1, ax2] = plt.subplots(ncols = 2, 
+                                       figsize = (4,2), 
+                                       dpi = 200)
+        
+        for ax, surfs, lf in zip((ax1, ax2), leafs, leaflets):
+            im = ax.imshow(surfs.T, 
+                           cmap = 'Spectral_r', 
+                           origin = 'lower', 
+                           vmin = leafs_min, 
+                           vmax = leafs_max)
+            tcs = [leafs_min, low_max, half, up_min, leafs_max] 
+            ax.set_aspect('equal')
+            ax.set_title('{} Leaflet'.format(lf), fontsize = 6)
+            ax.axis('off')
+    
+        fig.subplots_adjust(right = 0.8)
+        cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
+        cbar = fig.colorbar(im, cax = cbar_ax, ticks = tcs)
+        cbar.ax.tick_params(labelsize = 5, width = 0.5)
+        cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
+    
+        fig.suptitle("Basic Surface Plots", fontsize = 10)
+        #fig.suptitle(title, size = 'small') #if the user wants to specify a title.
+        fig.savefig(out, bbox_inches='tight', dpi = 300)
+        
+        
+    # if frame number is given, reshape data and plot single frame 
+    if result == args.frame:
+        bins = int(math.sqrt(first_leaf.shape[1]))
+        arr = np.random.rand(first_leaf.shape[0], bins, bins)
+    
+        # reshape
+        second_leaf = second_leaf.reshape(second_leaf.shape[0], 
+                                          second_leaf.shape[1] // arr.shape[2], 
+                                          arr.shape[2])
+                                          
+        first_leaf = first_leaf.reshape(first_leaf.shape[0], 
+                                        first_leaf.shape[1] // arr.shape[2], 
+                                        arr.shape[2])
+    
+        # define frame surfaces to plot 
+        surface = [second_leaf[frame],  # surface in lower leaflet from frame
+                   first_leaf[frame]]   # surface in upper leaflet from frame
+        
+        ticks = [leafs_min, low_max, up_min, leafs_max]
+        
+        fig, [ax1, ax2] = plt.subplots(ncols = 2, 
+                                       figsize = (4,2), 
+                                       dpi = 200)
+        
+        for ax, surfs, lf in zip((ax1, ax2), surface, leaflets):
+            im = ax.imshow(surfs.T, 
+                           cmap = 'Spectral_r', 
+                           origin = 'lower', 
+                           vmin = leafs_min, 
+                           vmax = leafs_max)
+            tcs = ticks 
+            ax.set_aspect('equal')
+            ax.set_title('{} Leaflet'.format(lf), fontsize = 6)
+            ax.axis('off')
+    
+        fig.subplots_adjust(right = 0.8)
+        cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
+        cbar = fig.colorbar(im, cax = cbar_ax, ticks = ticks)
+        cbar.ax.tick_params(labelsize = 5, width = 0.5)
+        cbar.set_label("Height lipid headgroups (${\AA}$)", fontsize = 6, labelpad = 5)
+    
+        fig.suptitle("Basic Surface Plots (for a single frame)", fontsize = 10)
+        #fig.suptitle(title, size = 'small') #if the user wants to specify a title.
+        fig.savefig(out, bbox_inches='tight', dpi = 300)
+        
+
+    exit()
+
+# smooth plot
+if args.plot == 'smooth':
+    ticks = [leafs_min, low_max, half, up_min, leafs_max]
+    
+    # conditonal statement to check if arg doesn't exist
+    if math.isnan(args.frame) == True:
+        result = False 
+    else:
+        result = args.frame
+    
+    # if frame not given, run average gaussian curvature plot 
+    if result == False:
+        plot_smooth(leafs,                                # upper and lower leaflets
+                    ticks,                                # tick values on colorbar
+                    "Height lipid headgroups (${\AA}$)",  # Colorbar label
+                    'Spectral_r',                         # cmap
+                    "Smooth Surface Plots",               # title
+                    out)                                  # output file
+    
+                 
+    # if frame number is given, reshape data and plot single frame 
+    if result == args.frame:
+        bins = int(math.sqrt(first_leaf.shape[1]))
+        arr = np.random.rand(first_leaf.shape[0], bins, bins)
+    
+        # reshape
+        second_leaf = second_leaf.reshape(second_leaf.shape[0], 
+                                          second_leaf.shape[1] // arr.shape[2], 
+                                          arr.shape[2])
+                                          
+        first_leaf = first_leaf.reshape(first_leaf.shape[0], 
+                                        first_leaf.shape[1] // arr.shape[2], 
+                                        arr.shape[2])
+    
+        # define frame surfaces to plot 
+        surface = [second_leaf[frame],  # surface in lower leaflet from frame
+                   first_leaf[frame]]   # surface in upper leaflet from frame
+        
+        ticks = [leafs_min, low_max, up_min, leafs_max]
+        
+        plot_smooth(surface,                                     # leaflets for one frame
+                    ticks,                                       # tick values on colorbar
+                    "Height lipid headgroups (${\AA}$)",         # Colorbar label
+                    'Spectral_r',                                # cmap
+                    "Smooth Surface Plots (for a single frame)", # title
+                    out)                                         # output file
+    
+    exit()
+
+
+#-------- Plotting 3 Curvature Measurements for One Leaflet side-by-side --------
+
+if args.plot == '3_curvatures':
+    
+    third_leaf = np.loadtxt(leaf_3) #load data for third leaf 
+    
+    def plots_by_leaflet(results,level):
+        
+        """
+        Generate figure with surface, $H$ and $K$ as subplots.
+
+        results : list
+            List of the three leaflets to plot [first_leaf, second_leaf, third_leaf]
+    
+        levels : int
+            Determines number of contour lines
+        """
+        
+        cms = ["Spectral_r", "Spectral_r", "Spectral_r"]
+        units = ['$Z$ $(\AA)$','$H$ (Å$^{-1})$', '$K$ (Å$^{-2})$']
+        titles = ['Surface', 'Mean Curvature', 'Gaussian Curvature']
+
+        fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, figsize = (7,4), dpi = 200)
+       
+        for ax, mc, titl, cm, unit in zip((ax1, ax2, ax3), results, titles, cms, units):
+            mc = ndimage.zoom(mc, 3, mode = 'wrap', order = 1)
+            bound = max(abs(np.min(mc)), abs(np.max(mc)))
+            
+            if np.min(mc) < 0 < np.max(mc):
+                im = ax.contourf(mc.T, 
+                                 cmap = cm, 
+                                 levels = level, 
+                                 alpha = 0.95, 
+                                 vmin = -bound, 
+                                 vmax = +bound,
+                                 extend = "both")
+                tcs = [np.min(mc), 0, np.max(mc)]
+            
+            else:
+                im = ax.contourf(mc.T, 
+                                 cmap = cm, 
+                                 levels = level, 
+                                 alpha = 0.95,
+                                 extend = "both")
+                                 
+            ax.set_aspect('equal')
+            ax.set_title(titl, fontsize = 12)
+            ax.axis('off')
+            cbar=plt.colorbar(im, 
+                              ticks = [np.min(mc), 0, np.max(mc)] 
+                                       if np.min(mc) < 0 < np.max(mc) 
+                                       else [np.min(mc), np.max(mc)], 
+                              ax = ax, 
+                              orientation = 'horizontal', 
+                              pad = 0.05, 
+                              aspect = 15)
+            cbar.ax.tick_params(labelsize = 7, width = 0.5)
+            cbar.set_label(unit, fontsize = 9, labelpad = 2)
+        
+        plt.tight_layout()
+        fig.suptitle(title, y = 0.85, fontsize = 16)
+        fig.savefig(out, dpi = 300)
+
+    usage = ('curvature -l1 [.dat] -l2 [.dat] -l3 [.dat] -o ["".png/pdf]'\
+             '-t [title of the plot] -plot[3_curvatures] -level [int]')
+
+    description= 'This script is to plot the average surface, mean and Gaussian'\
+                  'curvature maps of the lipids composing one of the leaflets in'\
+                  'the box. The three input files are the same .dat file coming'\
+                  'from the analysis and correspond to either the upper or the '\
+                  'lower leaflet.'
+
+    results = [first_leaf,  # surface
+               second_leaf, # mean
+               third_leaf]  # gaussian
+    
+    plots_by_leaflet(results,level)
+    
+    exit()
+    
+    
+# ----------------------- Plotting 6 Frames Side-by-Side ------------------------
+
+def plot_over_frames(surface, label, cmap, title, out):
+
+    """
+    Generate figure with 6 frames as subplots.
+
+    surface : list 
+        6 frames of lower or upper leaflet
+    
+    label : str
+        Label to add to colorbar
+    
+    cmap : str
+        Colormap to use in plot
+    
+    title : str
+        String containing the title 
+    
+    out : str
+        String containing the output filename
+    """
+    
+    fig, axs = plt.subplots(ncols=6, figsize=(15,4), dpi=300)
+    
+    for ax, surfs, frame in zip(axs, surface, range(first_leaf.shape[0])):
+        im = ax.imshow(surface[frame].T, interpolation='gaussian',
+                       cmap=cmap, origin='lower',
+                       vmin=leafs_min, vmax=leafs_max) # ignores nan values
+        ax.set_aspect('equal')
+        ax.set_title('{}'.format(frame), fontsize = 7)
+        ax.axis('off')
+    
+    tcs = [leafs_min, low_max, up_min, leafs_max]
+    
+    cbar = plt.colorbar(im, ticks=tcs,
+                        orientation='vertical', ax=axs, shrink=0.45,
+                        aspect=15, pad=0.01)
+    cbar.ax.tick_params(labelsize=5, width=0.5)
+    cbar.set_label(label, fontsize=7, labelpad=2)
+    
+    fig.suptitle(title, y = 0.8, fontsize = 10)
+    plt.savefig(out, bbox_inches='tight', dpi = 300)
+
+usage = ('curvature -l1 [.dat] -l2 [.dat] -o ["".png/pdf] -o2 ["".png/pdf]'\
+         '-c [colormap] -t [title] -plot[first_6, middle_6, last_6]')
+
+description= 'This script is to plot surface of the first, middle or last 6'\
+              'frames (specified via -plot agrument) of the trajectory.'\
+              'The input files are .dat files coming from the AF analysis '\
+              'and correspond to either the upper or the lower leaflet.'\
+              'The two outputs save the two leaflets separately.'
+
+bins = int(math.sqrt(first_leaf.shape[1]))
+arr = np.random.rand(first_leaf.shape[0], bins, bins)
+
+# reshape
+second_leaf = second_leaf.reshape(second_leaf.shape[0],
+                                  second_leaf.shape[1] // arr.shape[2],
+                                  arr.shape[2])
+                                    
+first_leaf = first_leaf.reshape(first_leaf.shape[0], 
+                                first_leaf.shape[1] // arr.shape[2], 
+                                arr.shape[2])
+
+
+# plotting based on frames chosen
+if args.plot == 'first_6':
+    plot_over_frames(first_leaf[0:6],                     # first 6 frames
+                     "Height lipid headgroups (${\AA}$)", # Colorbar label
+                     'Spectral_r',                        # cmap
+                     'Surface: First 6 Frames for Upper Leaflet',  # title
+                     out)
+    
+    plot_over_frames(second_leaf[0:6],
+                     "Height lipid headgroups (${\AA}$)",
+                     'Spectral_r',
+                     'Surface: First 6 Frames for Lower Leaflet',
+                     out2)
+
+if args.plot == 'last_6':
+    plot_over_frames(first_leaf[-7:-1],                   # last 6 frames 
+                     "Height lipid headgroups (${\AA}$)",                               
+                     'Spectral_r',
+                     'Surface: Last 6 Frames for Upper Leaflet',
+                     out)   
+    
+    plot_over_frames(second_leaf[-7:-1],
+                     "Height lipid headgroups (${\AA}$)",
+                     'Spectral_r',
+                     'Surface: Last 6 Frames for Lower Leaflet',
+                     out2)
+
+if args.plot == 'middle_6':                               # middle 6 frames 
+    length_surf = len(first_leaf)
+    halfway = int(length_surf/2)
+    m3 = halfway - 3
+    p3 = halfway + 3
+
+    if length_surf > 6: 
+        plot_over_frames(first_leaf[m3:p3],
+                         "Height lipid headgroups (${\AA}$)",    
+                         'Spectral_r',
+                         'Surface: Middle 6 Frames for Upper Leaflet',
+                         out)        
+    
+        plot_over_frames(second_leaf[m3:p3],
+                         "Height lipid headgroups (${\AA}$)",
+                         'Spectral_r',
+                         'Surface: Middle 6 Frames for Lower Leaflet',
+                         out2)
+
+    

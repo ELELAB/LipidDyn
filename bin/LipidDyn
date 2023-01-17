@@ -562,6 +562,178 @@ def module_order_parameter(u,
         pbar.finish()
 
 
+def module_curvature(universe,
+                     parsed_yaml,
+                     out_dir
+                     ):
+    """
+    Parameters
+    -------------
+    universe : class
+        MDAnalysis universe class
+        
+    parsed_yaml : dict
+            Contains the beads definition for
+            leaflet curvature calculation    
+    
+    out_dir : str
+        Name of the output folder
+    """        
+
+    # define number of bins based on size of universe
+    # unless provided in configuration file
+    bins = parsed_yaml["bins"] 
+    
+    if bins == None:
+        print(" ")
+        print("!!!bins not defined in configuration file; bin size set to 20 Angstrom!!! ")
+        bins = round(universe.dimensions[0]/20) 
+        print(" ")
+
+    # define dictionary 
+    dict_selection = parsed_yaml["lipids"] 
+
+    
+    # define headgroups
+    g = select_lipid_headgroups(universe, dict_selection)  
+    
+    # output directory
+    out_folder = os.path.abspath(os.path.join(out_dir, "curv"))
+
+    if not os.path.exists(out_folder):
+        try:
+            os.mkdir((out_folder)) 
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise 
+
+    # find leaflets and store them in a dictionary
+    L = LeafletFinder(universe, g) 
+    
+    upper_leaflet = L.groups(0)
+    lower_leaflet = L.groups(1)
+    
+    # simplify array to have only one of each headgroup found 
+    selection_up = np.unique(upper_leaflet.names)
+    selection_low = np.unique(lower_leaflet.names)
+
+    # turn headgroup selections into string
+    sentence = list()
+    for x in range(len(selection_up) - 1):
+        sentence.append(str(selection_up[x]) + " or name")
+    sentence.append(str(selection_up[-1]))
+    sentence = ' '.join(sentence)
+    
+    sentence1 = list()
+    for x in range(len(selection_low) - 1):
+        sentence1.append(str(selection_low[x]) + " or name")
+    sentence1.append(str(selection_low[-1]))
+    sentence1 = ' '.join(sentence1)
+   
+
+    # define upper and lower leaflet headgroups for string
+    up_string = (" and (name "
+                + sentence
+                + ")")
+
+    low_string = (" and (name "
+                 + sentence1
+                 + ")")
+
+
+    # define residues for each leaflet
+    sel_upper = " ".join([str(r) for r in upper_leaflet.residues.resids])
+    sel_lower = " ".join([str(r) for r in lower_leaflet.residues.resids])
+
+    # define full selection string 
+    upper_string = "resid {} {}".format(sel_upper, up_string)
+    lower_string = "resid {} {}".format(sel_lower, low_string)
+
+
+    # run MembraneCurvature on both leaflets
+    curvature_upper_leaflet = MembraneCurvature(universe,              # universe
+                                                select = upper_string, # selection of reference
+                                                n_x_bins = bins,       # bins in the x_dim
+                                                n_y_bins = bins,       # bins in the y_dim
+                                                wrap = True).run()     # wrap coordinated to 
+                                                                       # keep atoms in the 
+                                                                       # main unit cell
+    
+    curvature_lower_leaflet = MembraneCurvature(universe,
+                                                select = lower_string,
+                                                n_x_bins = bins,
+                                                n_y_bins = bins,
+                                                wrap = True).run()
+    
+    
+    # print basic information on universe size
+    print("Universe info:")
+    print("\nBox dimensions[x,y,z]: {}." \
+          "".format(universe.dimensions[:3]))
+
+    print("\n{} residues and {} atoms." \
+         "".format(universe.residues.n_residues, universe.residues.n_atoms))
+
+    print("\nThe trajectory includes {} frames."\
+          "".format(universe.trajectory.n_frames))
+    
+    print(" ")
+    print("Number of bins in x and y dimensions of grid:")
+    print(bins)
+    print(" ")
+
+    # progress bar
+    pbar = ProgressBar().start()
+    total_step = 2
+    step = 1
+
+    # extract data 
+    [a, b, c, d, e, f] = curvature_data_extraction(curvature_upper_leaflet)
+    [g, h, i, j, k, l] = curvature_data_extraction(curvature_lower_leaflet)
+   
+    # define 2D and 3D data
+    data2D = [d, e, f] + [j, k, l]
+    
+    names2D = ['up_Avg_surface',
+               'up_Avg_mean_curvature',
+               'up_Avg_gaussian_curvature',
+               'low_Avg_surface',
+               'low_Avg_mean_curvature',
+               'low_Avg_gaussian_curvature']
+
+    
+    data3D = [a, b, c] + [g, h, i]
+    
+    names3D = ['up_AF_surface',
+               'up_AF_mean_curvature',
+               'up_AF_gaussian_curvature',
+               'low_AF_surface',
+               'low_AF_mean_curvature',
+               'low_AF_gaussian_curvature']
+    
+    # combine data and data lables 
+    all_data2D = list(zip(names2D, data2D))
+    all_data3D = list(zip(names3D, data3D))
+
+    # save to output folder
+    for tup2 in all_data2D:
+        np.savetxt(out_folder + '/' + tup2[0] + '.dat',
+                   tup2[1],
+                   delimiter = '\t',
+                   fmt = '%1.4f')
+
+    # only multiframe data is 3D and needs to be reshaped
+    for tup3 in all_data3D:
+        np.savetxt(out_folder + '/' + tup3[0] + '.dat',
+                   tup3[1].reshape(tup3[1].shape[0], -1),
+                   delimiter = '\t',
+                   fmt = '%1.4f')
+
+
+    pbar.finish()
+
+#------------------------------------------------------------
+
 def main():
 
     description= 'LipidDyn pipeline for calculating different parameters' \
@@ -639,6 +811,15 @@ def main():
                         help='Execute only the order parameter module of \
                               the pipeline'
                         )
+
+    parser.add_argument('-mc',
+                        '--membrane_curvature',
+                        action='store_true',
+                        dest='mod_curv',
+                        help='Execute only the membrane curvature module of \
+                              the pipeline'
+                        )
+
 
     parser.add_argument('-enr',
                         '--enrichment',
@@ -831,6 +1012,7 @@ def main():
         args.enrichment = True
         args.mod_mov = True
         args.mod_ord = True
+        args.mod_curv = True
 
     logging.info("Starting now with the calculation, please stand by")
     logging.info(u"\u2622")
@@ -855,6 +1037,14 @@ def main():
                        leaflets,
                        ncore,
                        out_dir)
+        logging.info("--------------------------------------")
+
+    if args.mod_curv:
+        logging.info("Analysis: Membrane Curvature")
+        module_curvature(u,
+                         parsed_yaml,
+                         out_dir)
+
         logging.info("--------------------------------------")
 
     if args.enrichment:
