@@ -450,7 +450,7 @@ class Density:
             m2[m2 <  0.0 ] += 1.0
             m2 *= self.n2
 
-            grid_coords = np.array([m1, m2], dtype=np.int)
+            grid_coords = np.array([m1, m2], dtype=np.int64)
 
             np.add.at(grid, tuple(grid_coords), invcellvol)
         l_grids.append(grid) 
