@@ -96,14 +96,6 @@ class OrderParameter:
         # Trajectory as list
         self.traj = []  # for storing OPs
         
-        for field in self.__dict__:
-            if not isinstance(field, str):
-                logging.warning("provided name >> {} << is not a string! \n \
-                Unexpected behaviour might occur.".format(field))
-            else:
-                if not field.strip():
-                    logging.error("provided name >> {} << is empty! \n \
-                    Cannot use empty names for atoms and OP definitions.".format(field))
         
         # extra optional arguments allow setting avg,std values -- suitable for reading-in results of this script
         if len(args) == 2:
@@ -236,7 +228,7 @@ def get_OP_cg(u,lipid_dict,lipid_name, sn):
         
     return op_dict
 
-def read_trajs_calc_OPs(ordPars, top, trajs):
+def read_trajs_calc_OPs(u, ordPars):
     
     """Procedure that creates MDAnalysis (mda) Universe instance 
     with topology top,reads in trajectories trajs and then goes 
@@ -244,45 +236,36 @@ def read_trajs_calc_OPs(ordPars, top, trajs):
     from the list of OPs ordPars.
     Parameters
     ----------
+    u : MDAnalysis.core.universe.Universe object 
+        MDAnalysis universe object
     ordPars : list of OrderParameter class instances
-       each item in this list describes an Order parameter to be calculated in the trajectory
-    top : str
-        filename of a top file (e.g. conf.gro)
-    trajs : list of strings
-        filenames of trajectories
+        each item in this list describes an Order parameter to be calculated in the trajectory
     """
-
-    # read-in topology and trajectory
-    mol = mda.Universe(top, trajs)
 
     # make atom selections for each OP and store it as its attribute for later use with trajectory
     for op in ordPars.values():
         # selection = pairs of atoms, split-by residues
         # this selection format preserves the order of the atoms (atA, atB) independent of their order in the topology
-        selection = mol.select_atoms("resname {rnm} and name {atA}".format(
+        selection = u.select_atoms("resname {rnm} and name {atA}".format(
                                         rnm=op.resname, atA=op.atAname),
                                      "resname {rnm} and name {atB}".format(
                                         rnm=op.resname, atB=op.atBname)
                                     ).atoms.split("residue")
         
         for res in selection:
-            
             # check if we have only 2 atoms (A & B) selected
             if res.n_atoms != 2:
-                logging.debug(res.resnames, res.resids)
-                for atom in res.atoms:
-                    logging.info(atom.name, atom.id)
                 logging.warning("Selection >> name {atA} {atB} << \
                 contains {nat} atoms, but should contain exactly 2!".format(
                 atA=op.atAname, atB=op.atBname, nat=res.n_atoms)
                 )
+
         op.selection = selection
-      
 
     # Go through trajectory frame-by-frame
     # and calculate each OP from the list of OPs
     # for each residue separately
-    for frame in mol.trajectory:
+    for frame in u.trajectory:
         for op in ordPars.values():
             
             # temporary list of order parameters for 
