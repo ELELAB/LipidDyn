@@ -391,18 +391,22 @@ def module_movements(universe,
     total_step = len(leaflets["upper_leaflet"].residues)*2
     step = 1
 
+    leaflet_filenames = {"upper_leaflet" : "Upper_leaflet_coordinates.dat",
+                         "lower_leaflet" : "Lower_leaflet_coordinates.dat"}
+
     # iterate through the dictionary
-    for leaflet in leaflets:
-        if leaflet == "upper_leaflet":
-            filename = "Upper_leaflet_coordinates.dat"
-        else:
-            filename = "Lower_leaflet_coordinates.dat"
+    for leaflet in leaflets.keys():
+        try:
+            filename = leaflet_filenames[leaflet]
+        except KeyError:
+            logging.warning(f"Could not recognize leaflet name: {leaflet}, ignoring")
+            continue
 
         # create outputfile in the directory
-        with open(analysis_traj+'/'+filename,"w") as g:
+        with open(analysis_traj+"/"+filename, "w") as g:
             # iterate through the residues contained in the leaflet
             for residue in leaflets[leaflet].residues:
-                g.write("> " + str(residue).strip("<>").replace(",","")+"\n")
+                g.write("> " + str(residue).strip("<>").replace(",", "") + "\n")
                 # for every frame in the trajectory
 
                 for ts in universe.trajectory:
