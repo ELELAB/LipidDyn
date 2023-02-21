@@ -66,7 +66,7 @@ class OrderParameter:
     #             of the OP (when reading-in an already calculated result)
     
 
-    def __init__(self, name, resname, atom_A_name, atom_B_name, *args):
+    def __init__(self, name, resname, atom_A_name, atom_B_name):
         
         """Initialization of an instance of this class.
         Parameters
@@ -95,20 +95,6 @@ class OrderParameter:
         
         # Trajectory as list
         self.traj = []  # for storing OPs
-        
-        
-        # extra optional arguments allow setting avg,std values -- suitable for reading-in results of this script
-        if len(args) == 2:
-            self.avg = args[0]
-            self.std = args[1]
-        elif len(args) == 3:
-            self.avg  = args[0]
-            self.std  = args[1]
-            self.stem = args[2]
-        else:
-            if len(args) != 0:
-                logging.warning("Number of optional positional arguments is {len}, \
-                    not 3, 2 or 0. Args: {args}\n Wrong file format?".format(len=len(args), args=args))
 
 
     def calc_OP(self, atoms):
@@ -116,7 +102,6 @@ class OrderParameter:
         # Calculates Order Parameter according to equation
         # S = 1/2 * (3*cos(theta)^2 -1)
 
-        
         vec = atoms[1].position - atoms[0].position
         d2 = np.square(vec).sum()
         
@@ -124,17 +109,15 @@ class OrderParameter:
             logging.warning("Atomic distance for atoms \
                 {at1} and {at2} in residue no. {resnr} is suspiciously \
                 long: {d}!\nPBC removed???".format(at1=atoms[0].name, \
-                at2=atoms[1].name, resnr=atoms[0].resid, d=math.sqrt(d2)
-                )
-                )             
+                at2=atoms[1].name, resnr=atoms[0].resid, d=math.sqrt(d2)))
         
         cos2 = vec[2]**2/d2
         S = 0.5*(3.0*cos2-1.0)
         
-        return(S)
+        return S
 
 
-    def calc_angle(self, atoms, z_dim = 45.0):
+    def calc_angle(self, atoms, z_dim=45.0):
         
         # Calculates the angle between the vector and z-axis in degrees
         # no PBC check!
@@ -157,28 +140,26 @@ class OrderParameter:
                 angle = math.degrees(math.acos(cos))
         return angle
 
-    @property
-    def get_avg_std_OP(self):
+
+    # def get_avg_std_OP(self):
         
-        # Provides average and stddev of all OPs in self.traj
-        # This method becomes deprecated after the introduction of 
-        # error estimation
+    #     # Provides average and stddev of all OPs in self.traj
+    #     # This method becomes deprecated after the introduction of 
+    #     # error estimation
         
-        # convert to numpy array
-        return(np.mean(self.traj), np.std(self.traj))
+    #     # convert to numpy array
+    #     return(np.mean(self.traj), np.std(self.traj))
 
 
-    @property
     def get_avg_std_stem_OP(self):
         
         # Provides average, stddev and standard error of mean for 
         # all OPs in self.traj
         
         self.means = np.mean(self.traj, axis=0) # mean over frames
-        #print(len(self.means))  #means contain the mean of each residue
-        return( np.mean(self.traj), 
+        return (np.mean(self.traj), 
                  np.std(self.means), 
-                 np.std(self.means)/np.sqrt(len(self.means)) )  
+                 np.std(self.means)/np.sqrt(len(self.means)))
 
 
 def get_OP_cg(u,lipid_dict,lipid_name, sn):
