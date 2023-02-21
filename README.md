@@ -98,7 +98,7 @@ the name of the enviroment is visible on the terminal
 
 Install numpy with:
 ```
-pip install numpy
+pip install numpy==1.23.5
 ```
 ```
 pip install packaging
