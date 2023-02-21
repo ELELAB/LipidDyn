@@ -444,11 +444,10 @@ def module_order_parameter(u,
 
     if not os.path.exists(order_folder):
         try:
-            os.mkdir((order_folder))
+            os.mkdir(order_folder)
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
-    
     
 
     # check if the system is CG from the config file    # ADD PBAR()
@@ -498,54 +497,46 @@ def module_order_parameter(u,
     # check if the system is FA from the config file
     elif parsed_yaml['forcefield'] == 'FA':
         
-        # retrieve def file for the op in the package folder
-        dirs = pkg_resources.resource_listdir('LipidDyn','/definitions_files/')
+        # retrieve def file names for the op in the package folder
+        def_file_names_all = pkg_resources.resource_listdir('LipidDyn', 'definitions_files')
+
+        # keep for analysis only those file names from residues present in the system
+        u_residues = set(f'{res}.def' for res in u.residues.groupby('resnames').keys())
+        def_file_names = u_residues.intersection(def_file_names_all)
+        if not def_file_names:
+            logging.info('No definition files found matching residues in system')
+        else:
+            logging.info('Performing order parameter analysis using definition files: ' + ', '.join(def_file_names))
 
         pbar = ProgressBar().start()
-        total_step = len(dirs)
+        total_step = len(def_file_names)
         step = 1
-        for def_file in dirs:
-
-            # get the lipid name
+        for def_file in def_file_names:
+            # get the lipid name from the file name
             lipid_name = def_file.split('.')[0]
-            # retrieve the def files from the package
-            defi = pkg_resources.resource_string('LipidDyn','/definitions_files/'+
-                                              def_file)
-            defi = defi.decode("utf-8").split('\n') # decode the strings from bytes
-            defi = list(filter(lambda x: x != '', defi)) # filter empty strings
-            ordPars = parse_op_input(defi)
-        
-            read_trajs_calc_OPs(u,
-                                ordPars
-                                )
 
-            for op in ordPars.values():
-                (op.avg, op.std, op.stem) = op.get_avg_std_stem_OP
+            # retrieve path to definition files
+            def_file_path = pkg_resources.resource_filename('LipidDyn', f'definitions_files/{def_file}')
 
+            # create dict ordPars with OrderParameter instances
+            ordPars = parse_op_input(u, def_file_path)
 
-            # writes the output file in  file
+            # calculate OPs through the trajectory and calculate average, std dev and std error
+            read_trajs_calc_OPs(u, ordPars)
+
+            # writes the output file for the lipid
             try:
-                with open('Order_Parameter_'+ lipid_name +'.csv',"w") as f:
-                    f.write("{},{},{},{},{},{},{}  \n".format(
+                with open(f'{order_folder}/Order_Parameter_{lipid_name}.csv', 'w') as out_file:
+                    out_file.write("{},{},{},{},{},{},{}\n".format(
                     'OP_name','resname','atom1','atom2','OP_mean','OP_stddev','OP_stem'))
                     for op in ordPars.values():
                         # output in csv file format comma separated
-                        f.write(
-                            "{},{},{},{},{: 2.5f},{: 2.5f},{: 2.5f} \n".format(
-                                op.name, op.resname, op.atAname,
-                                op.atBname,op.avg, op.std, op.stem)
-                            )
-                    
+                        out_file.write(
+                            "{},{},{},{},{: 2.5f},{: 2.5f},{: 2.5f}\n".format(
+                            op.name, op.resname, op.atAname,
+                            op.atBname, op.avg, op.std, op.stem))
             except:
-                logging.warning("Problem writing the main outputfile")
-
-
-            with open('Order_Parameter_'+ lipid_name +'.csv','r') as g :
-                if "nan" in g.read():
-                    os.remove('Order_Parameter_'+ lipid_name +'.csv')
-                else:
-                    shutil.move('Order_Parameter_'+ lipid_name +'.csv',
-                                order_folder)
+                logging.error(f'Problem writing output file for lipid {lipid_name}')
 
             pbar.update((step/total_step)*100)
             step += 1
