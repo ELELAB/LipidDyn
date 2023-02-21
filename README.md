@@ -252,13 +252,13 @@ LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mov -n "n" -c
 5) Order Parameter calculation for each lipid category:
 ```
 LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -op -n "n" -c
-
+```
 6) Membrane Curvature calculation for upper and lower leaflets:
 ```
 LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mc -n "n" -c
 
-
 ```
+
 ### Visualization of data
 
 For the visualization of the output data LipidDyn includes a set of tools for graphical representation.
