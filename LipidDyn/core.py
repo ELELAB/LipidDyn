@@ -61,62 +61,63 @@ class OrderParameter:
     #    - name of the OP
     #    - residue name
     #    - involved atoms (exactly 2)
-    #    + extra: mean, std.dev. & err. estimate 
-    #             (using standard error of the means from individual residues)
-    #             of the OP (when reading-in an already calculated result)
     
 
-    def __init__(self, name, resname, atom_A_name, atom_B_name, *args):
+    def __init__(self, u, name, resname, atAname, atBname):
         
-        """Initialization of an instance of this class.
+        """
+        Initialization of an instance of this class.
         Parameters
         ----------
+        u : mda.Universe instance
+                universe to perform selection of the atoms below
         name : str 
                 Name of the order parameter, a label
         resname : str
                 Name of residue atoms are in
-        atom_A_name : str
-                XXX
-        atom_B_name : str
-                XXX
+        atAname : str
+                Name of the first atom from the definition file
+        atBname : str
+                Name of the second atom from the definition file
 
         """
 
         self.name = name             # Name of the order parameter, a label
         self.resname = resname       # Name of residue atoms are in
-        self.atAname = atom_A_name
-        self.atBname = atom_B_name
+        self.atAname = atAname
+        self.atBname = atBname
+        
+        # Trajectory list for storing OPs
+        self.traj = []
 
-        # variables for error estimate -- standard error of the mean (STEM)
-        self.avg   = None   # average/mean value from all residues
-        self.means = None   # list of mean values from each individual residue
-        self.std   = None   # standard deviation (sqrt(variance))
-        self.stem  = None   # STandard Error of the Mean
-        
-        # Trajectory as list
-        self.traj = []  # for storing OPs
-        
-        for field in self.__dict__:
-            if not isinstance(field, str):
-                logging.warning("provided name >> {} << is not a string! \n \
-                Unexpected behaviour might occur.".format(field))
-            else:
-                if not field.strip():
-                    logging.error("provided name >> {} << is empty! \n \
-                    Cannot use empty names for atoms and OP definitions.".format(field))
-        
-        # extra optional arguments allow setting avg,std values -- suitable for reading-in results of this script
-        if len(args) == 2:
-            self.avg = args[0]
-            self.std = args[1]
-        elif len(args) == 3:
-            self.avg  = args[0]
-            self.std  = args[1]
-            self.stem = args[2]
-        else:
-            if len(args) != 0:
-                logging.warning("Number of optional positional arguments is {len}, \
-                    not 3, 2 or 0. Args: {args}\n Wrong file format?".format(len=len(args), args=args))
+        # Select atoms from the mda.universe
+        self.selection = self._select_atoms(u, resname, atAname, atBname)
+
+
+    def _select_atoms(self, u, resname, atAname, atBname):
+
+        '''
+        Internal function for the constructor. Returns mda.universe selection with
+        the provided atoms.
+        ----------
+        Returns : pairs of atoms selection, split-by residues
+        '''
+
+        # This selection format preserves the order of the atoms (atA, atB) independent of their order in the topology
+        selection = u.select_atoms("resname {rnm} and name {atA}".format(
+                                        rnm=resname, atA=atAname),
+                                     "resname {rnm} and name {atB}".format(
+                                        rnm=resname, atB=atBname)
+                                    ).atoms.split("residue")
+
+        # Sanity check for having only 2 atoms (A & B) selected
+        for res in selection:
+            if res.n_atoms != 2:
+                logging.warning("Selection >> name {atA} {atB} << \
+                contains {n_at} atoms, but should contain exactly 2!".format(
+                atA=atAname, atB=atBname, n_at=res.n_atoms))
+
+        return selection
 
 
     def calc_OP(self, atoms):
@@ -124,25 +125,22 @@ class OrderParameter:
         # Calculates Order Parameter according to equation
         # S = 1/2 * (3*cos(theta)^2 -1)
 
-        
         vec = atoms[1].position - atoms[0].position
         d2 = np.square(vec).sum()
         
-        if d2>bond_len_max_sq:
+        if d2 > bond_len_max_sq:
             logging.warning("Atomic distance for atoms \
                 {at1} and {at2} in residue no. {resnr} is suspiciously \
                 long: {d}!\nPBC removed???".format(at1=atoms[0].name, \
-                at2=atoms[1].name, resnr=atoms[0].resid, d=math.sqrt(d2)
-                )
-                )             
+                at2=atoms[1].name, resnr=atoms[0].resid, d=math.sqrt(d2)))
         
         cos2 = vec[2]**2/d2
         S = 0.5*(3.0*cos2-1.0)
         
-        return(S)
+        return S
 
 
-    def calc_angle(self, atoms, z_dim = 45.0):
+    def calc_angle(self, atoms, z_dim=45.0):
         
         # Calculates the angle between the vector and z-axis in degrees
         # no PBC check!
@@ -151,42 +149,38 @@ class OrderParameter:
         d = math.sqrt(np.square(vec).sum())
         cos = vec[2]/d
 
-        
         # values for the bottom leaflet are inverted so that 
         # they have the same nomenclature as the top leaflet
 
-        cos *= math.copysign(1.0, atoms[0].position[2]-z_dim*0.5)
+        cos *= math.copysign(1.0, atoms[0].position[2] - z_dim*0.5)
         try:
             angle = math.degrees(math.acos(cos))
         except ValueError:
-            if abs(cos)>=1.0:
+            if abs(cos) >= 1.0:
                 logging.debug("Cosine is too large = {} --> truncating it to +/-1.0".format(cos))
                 cos = math.copysign(1.0, cos)
                 angle = math.degrees(math.acos(cos))
+
         return angle
 
-    @property
-    def get_avg_std_OP(self):
+
+    # def get_avg_std_OP(self):
         
-        # Provides average and stddev of all OPs in self.traj
-        # This method becomes deprecated after the introduction of 
-        # error estimation
+    #     # Provides average and stddev of all OPs in self.traj
+    #     # This method becomes deprecated after the introduction of 
+    #     # error estimation
         
-        # convert to numpy array
-        return(np.mean(self.traj), np.std(self.traj))
+    #     # convert to numpy array
+    #     return(np.mean(self.traj), np.std(self.traj))
 
 
-    @property
-    def get_avg_std_stem_OP(self):
+    def calc_avg_std_stem_OP(self):
         
-        # Provides average, stddev and standard error of mean for 
-        # all OPs in self.traj
-        
-        self.means = np.mean(self.traj, axis=0) # mean over frames
-        #print(len(self.means))  #means contain the mean of each residue
-        return( np.mean(self.traj), 
-                 np.std(self.means), 
-                 np.std(self.means)/np.sqrt(len(self.means)) )  
+        # Provides average, stddev and standard error of mean for all OPs in self.traj
+        self.means = np.mean(self.traj, axis=0)  # mean over frames
+        self.avg = np.mean(self.traj)
+        self.std = np.std(self.means)
+        self.stem = np.std(self.means)/np.sqrt(len(self.means))
 
 
 def get_OP_cg(u,lipid_dict,lipid_name, sn):
@@ -236,54 +230,25 @@ def get_OP_cg(u,lipid_dict,lipid_name, sn):
         
     return op_dict
 
-def read_trajs_calc_OPs(ordPars, top, trajs):
+def read_trajs_calc_OPs(u, ordPars):
     
-    """Procedure that creates MDAnalysis (mda) Universe instance 
-    with topology top,reads in trajectories trajs and then goes 
+    """
+    Procedure that reads in trajectories trajs and then goes 
     through every frame and evaluates each Order Parameter "S" 
-    from the list of OPs ordPars.
+    from the list of OPs ordPars. Finally providesaverage, stddev and
+    standard error of mean for all OPs in self.traj.
     Parameters
     ----------
+    u : MDAnalysis.core.universe.Universe object 
+        MDAnalysis universe object
     ordPars : list of OrderParameter class instances
-       each item in this list describes an Order parameter to be calculated in the trajectory
-    top : str
-        filename of a top file (e.g. conf.gro)
-    trajs : list of strings
-        filenames of trajectories
+        each item in this list describes an Order parameter to be calculated in the trajectory
     """
 
-    # read-in topology and trajectory
-    mol = mda.Universe(top, trajs)
-
-    # make atom selections for each OP and store it as its attribute for later use with trajectory
+    # Go through trajectory frame-by-frame and calculate each OP
+    # from the list of OPs for each residue separately
     for op in ordPars.values():
-        # selection = pairs of atoms, split-by residues
-        # this selection format preserves the order of the atoms (atA, atB) independent of their order in the topology
-        selection = mol.select_atoms("resname {rnm} and name {atA}".format(
-                                        rnm=op.resname, atA=op.atAname),
-                                     "resname {rnm} and name {atB}".format(
-                                        rnm=op.resname, atB=op.atBname)
-                                    ).atoms.split("residue")
-        
-        for res in selection:
-            
-            # check if we have only 2 atoms (A & B) selected
-            if res.n_atoms != 2:
-                logging.debug(res.resnames, res.resids)
-                for atom in res.atoms:
-                    logging.info(atom.name, atom.id)
-                logging.warning("Selection >> name {atA} {atB} << \
-                contains {nat} atoms, but should contain exactly 2!".format(
-                atA=op.atAname, atB=op.atBname, nat=res.n_atoms)
-                )
-        op.selection = selection
-      
-
-    # Go through trajectory frame-by-frame
-    # and calculate each OP from the list of OPs
-    # for each residue separately
-    for frame in mol.trajectory:
-        for op in ordPars.values():
+        for frame in u.trajectory:
             
             # temporary list of order parameters for 
             # each individual residue for the given frame
@@ -299,26 +264,37 @@ def read_trajs_calc_OPs(ordPars, top, trajs):
             # resulting S-trajectory will be a list of lists
             # so that individual residues can be easily distinquished
             op.traj.append(temp_S)
+        
+        # calculate average, std dev and std error for the trajectory
+        # it is stored as attribute in each OrderParameter instance
+        op.calc_avg_std_stem_OP()
 
 
-def parse_op_input(def_file):
+def parse_op_input(u, def_file_path):
     
     """
-    parses input file with Order Parameter definitions
-    file format is as follows:
-    OP_name    resname    atom1    atom2  +extra: OP_mean  OP_std
-    (flexible cols)
-    fname : string
-        string 
+    Reads order parameter definition file to create OrderParameter instances
+    File format is as follows (ignores blank lines and lines starting by "#"):
+    OP_name    resname    atom1    atom2
+    
+    Parameters
+    ----------
+    u : mda.universe
+        universe instance of the system to make atom selection
+    def_file_path : string
+        path to the definition file
     returns : dictionary 
-        with OrderParameters class instances
+        with OrderParameters class instances, one for each arguments line in input file
     """
-    # Using ordered dict since it preserves the read-in order. Might come in handy when comparing to experiments.
+
+    # Using ordered dict since it preserves the read-in order. Might come in handy when comparing experiments.
     ordPars = OrderedDict()
-    for line in def_file:
-        if not line.startswith("#"):
-            items = line.split()
-            ordPars[items[0]] = OrderParameter(*items)
+    with open(def_file_path, 'r') as def_file:
+        for line in def_file:
+            if not line.startswith("#") and line.strip():
+                args = line.strip().split()
+                ordPars[args[0]] = OrderParameter(u, *args)
+
     return ordPars
 
 
