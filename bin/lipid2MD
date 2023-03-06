@@ -25,66 +25,65 @@ from pathlib import Path
 import glob
 import numpy as np
 import logging
-import pandas as pd 
+import pandas as pd
 import requests
 import tempfile
 import yaml
 import re
+
 pd.set_option('display.max_rows', None)
 
+
 def retrieve_LMSD():
-    
     # Url LMSD
-    url = 'https://www.lipidmaps.org/rest/compound/lm_id/LM/all/download' 
-    
+    url = 'https://www.lipidmaps.org/rest/compound/lm_id/LM/all/download'
+
     # Retrieve the whole database of lipids and write a tmp file and
     # retrieve only the name, synonim, ID, systematic name, ID chain
-    #      
-           
-           
+    #
+
     col = ['lm_id',
-           'name', 
+           'name',
            'abbrev']
-    
-    with tempfile.NamedTemporaryFile(mode = 'w+') as tmp:
+
+    with tempfile.NamedTemporaryFile(mode='w+') as tmp:
         response = requests.get(url)
         tmp.write(response.text)
         tmp.seek(0, 0)
-        df= pd.read_table(tmp,
-                          usecols=col,
-                          skiprows=1) # skip date of download i.e first line
-    
-    return(df)
+        df = pd.read_table(tmp,
+                           usecols=col,
+                           skiprows=1)  # skip date of download i.e first line
+
+    return (df)
+
 
 def find_match_LMSD(dataset,
                     dataframe_LMSD):
-    
     """Parameters
         -------------
-        dataset : pandas.dataframe object 
-            Dataframe containing lipid species and 
-            their concentration 
-        dataframe_LMSD : pandas.dataframe object 
+        dataset : pandas.dataframe object
+            Dataframe containing lipid species and
+            their concentration
+        dataframe_LMSD : pandas.dataframe object
             Dataframe containing the lipids downloaded
-            from Lipidmaps.org   
+            from Lipidmaps.org
     """
-    
-    # Open the lipidomics dataset and 
+
+    # Open the lipidomics dataset and
     # search the LMSD dataframe for the matches
     # Return a filtered dataframe
 
     l = []
     p = []
-    for lipid_id in dataset['Species']:   
+    for lipid_id in dataset['Species']:
         # match names in Lipidmaps and append them
         if dataframe_LMSD['abbrev'].str.fullmatch(lipid_id).any:
-            l.append(dataframe_LMSD.loc[(dataframe_LMSD['abbrev']==lipid_id)])
-    
+            l.append(dataframe_LMSD.loc[(dataframe_LMSD['abbrev'] == lipid_id)])
 
-    final_df = pd.concat(l, 
+    final_df = pd.concat(l,
                          ignore_index=True)
-    dataset.columns = ['abbrev','conc']
-    
+    dataset.columns = ['abbrev', 'conc']
+
     dataset = dataset['abbrev'].to_frame()
     df_merged = dataset.merge(final_df,
                               on='abbrev',
@@ -93,27 +92,27 @@ def find_match_LMSD(dataset,
     # 1. find eventual duplicates in lm_id column
     # 2. Ignore the nan values and build a boolen map of duplicates
     # 3. Clean dataset based on the previous map
-    dupes = df_merged.duplicated(subset=['lm_id'])  
-    dupes[df_merged['lm_id'].isnull()] = False 
+    dupes = df_merged.duplicated(subset=['lm_id'])
+    dupes[df_merged['lm_id'].isnull()] = False
     df_merged = df_merged[~dupes]
-    return(df_merged) 
+    return (df_merged)
+
 
 def find_match_ff(dataset,
                   def_lipids,
                   filtered_dataset,
                   force_field):
-    
     """Parameters
         -------------
-        def_lipids : yaml.dictionary object 
+        def_lipids : yaml.dictionary object
             yaml dictionary containing the
-            the definition of lipids from the 
+            the definition of lipids from the
             force fied
-        filtered_dataset : pandas.dataframe object 
-            Dataframe containing the lipidmaps 
+        filtered_dataset : pandas.dataframe object
+            Dataframe containing the lipidmaps
             filtered dataset
     """
-    
+
     # in martini 3, some chain definitions are annotated as ranges
     # the ones that are, are transformed to 4 combinations
     if force_field == 'martini3':
@@ -122,36 +121,36 @@ def find_match_ff(dataset,
             for lipid_species in def_lipids['martini3'][lipid_class]:
                 ffs_name = lipid_species[0]
                 ffs_chain = lipid_species[1]
-                
-                #If chains are ranges
+
+                # If chains are ranges
                 if '-' in ffs_chain:
-                    #The annotation for the first tail
-                    lipid1 = re.sub('-(.*?)/','/',ffs_chain)
-                    lipid2 = re.sub('\((.*?)-','(',ffs_chain,1)
-                    
-                    #The annotation for the second tail
-                    lipid11 = re.sub('-[^-]*$',')',lipid1)
-                    lipid21 = re.sub('-[^-]*$',')',lipid2)
-                    lipid12 = re.sub('/(.*?)-','/',lipid1)
-                    lipid22 = re.sub('/(.*?)-','/',lipid2)
-                    
-                    #Saves 4 combinations in list:
-                    TempList.append([ffs_name,lipid11])
-                    TempList.append([ffs_name,lipid21])
-                    TempList.append([ffs_name,lipid12])
-                    TempList.append([ffs_name,lipid22])
-                    
+                    # The annotation for the first tail
+                    lipid1 = re.sub('-(.*?)/', '/', ffs_chain)
+                    lipid2 = re.sub('\((.*?)-', '(', ffs_chain, 1)
+
+                    # The annotation for the second tail
+                    lipid11 = re.sub('-[^-]*$', ')', lipid1)
+                    lipid21 = re.sub('-[^-]*$', ')', lipid2)
+                    lipid12 = re.sub('/(.*?)-', '/', lipid1)
+                    lipid22 = re.sub('/(.*?)-', '/', lipid2)
+
+                    # Saves 4 combinations in list:
+                    TempList.append([ffs_name, lipid11])
+                    TempList.append([ffs_name, lipid21])
+                    TempList.append([ffs_name, lipid12])
+                    TempList.append([ffs_name, lipid22])
+
                 else:
-                    TempList.append([ffs_name,ffs_chain])
-            #Update values
-            def_lipids[force_field][lipid_class] = TempList  
-    
+                    TempList.append([ffs_name, ffs_chain])
+            # Update values
+            def_lipids[force_field][lipid_class] = TempList
+
     match = []
     # Cycle through the ID, name, abbreviations
-    for abbrev,lm_id, name, in zip(filtered_dataset.abbrev,
-                                   filtered_dataset.lm_id,
-                                   filtered_dataset.name):
-        name = str(name).rstrip() # get name from lipidmaps
+    for abbrev, lm_id, name, in zip(filtered_dataset.abbrev,
+                                    filtered_dataset.lm_id,
+                                    filtered_dataset.name):
+        name = str(name).rstrip()  # get name from lipidmaps
         abbrev = str(abbrev).rstrip()
         try:
             # lipid_class = abbrev.split()[0] #get lipid class i.e PS, PA ...
@@ -167,17 +166,16 @@ def find_match_ff(dataset,
                                       abbrev,
                                       ffs_name,
                                       ffs_chain])
-                    elif ffs_chain == abbrev: 
+                    elif ffs_chain == abbrev:
                         match.append([lm_id,
                                       name,
                                       abbrev,
                                       ffs_name,
-                                      ffs_chain])                        
+                                      ffs_chain])
                     else:
                         continue
         except:
             continue
-            
 
     # generate a dataframe out of all matches
     df = pd.DataFrame(match,
@@ -185,45 +183,43 @@ def find_match_ff(dataset,
                                'name',
                                'abbrev',
                                force_field,
-                               force_field +' chain']).sort_values(by='abbrev')
+                               force_field + ' chain']).sort_values(by='abbrev')
     # Drop useless columns
-    df.drop(force_field +' chain',
+    df.drop(force_field + ' chain',
             axis=1,
             inplace=True)
 
     # Merge the df with the original dataset from lipidomics:
     # 1. set columns name in the original dataset to match column
     #    names with the matched dataset
-    # 2. Duplicate column to retain original name from lipidomics 
-    # 3. Reorder columns 
+    # 2. Duplicate column to retain original name from lipidomics
+    # 3. Reorder columns
     # 4. Replace 'abbrev' column with the names from the exceptions
     # 5. Merge the two datasets along 'abbrev'(names compliant to LIPIDMAPS)
-    # 6. Reorder columns in the merged dataset
-    
-    dataset.columns=['abbrev','concentration'] 
+    #  6. Reorder columns in the merged dataset
+
+    dataset.columns = ['abbrev', 'concentration']
     dataset['Species'] = dataset['abbrev']
     dataset = dataset[['Species',
                        'abbrev',
                        'concentration']]
     dataset.replace({'abbrev': def_lipids['exceptions']},
                     inplace=True)
-    
 
     df_merged = df.merge(dataset,
                          on='abbrev',
-                         how='outer') 
-    df_merged =  df_merged[['Species',
-                            'lm_id',
-                            'name',
-                            'abbrev',
-                            force_field,
-                            'concentration']]
-    
+                         how='outer')
+    df_merged = df_merged[['Species',
+                           'lm_id',
+                           'name',
+                           'abbrev',
+                           force_field,
+                           'concentration']]
 
     # Extract from the merged dataset the lipids that are in the original
     # dataset, but do not have a LIPIDMAPS ID, name etc.. associated
     # 1. Save in another dataframe the missing values
-    # 2. Drop the Nan values from the merged dataset
+    #  2. Drop the Nan values from the merged dataset
     # 3. Merge the dataframe containing missing values with the filtered
     #    dataset from Lipidmaps to find the ids, names, etc...
     # 4. Drop useless columns
@@ -235,8 +231,8 @@ def find_match_ff(dataset,
     df_matched = df_missing.merge(filtered_dataset,
                                   on=['abbrev'])
 
-    df_matched= df_matched.drop(['lm_id_x','name_x'],
-                                axis=1)
+    df_matched = df_matched.drop(['lm_id_x', 'name_x'],
+                                 axis=1)
     df_matched = df_matched[['Species',
                              'lm_id_y',
                              'name_y',
@@ -249,13 +245,14 @@ def find_match_ff(dataset,
                           'abbrev',
                           force_field,
                           'concentration']
-    df_merged = df_merged.append(df_matched)
+    # df_merged = df_merged.append(df_matched)
+    df_merged = pd.concat([df_merged, df_matched], axis=0)
     df_merged = df_merged.reset_index(drop=True)
     df_merged['Exceptions'] = df_merged.abbrev.isin(
-                              list(def_lipids['exceptions'].values()
-                              )).astype(bool)    
-    df_merged.fillna('NA',inplace=True)
-    columns_titles = ["Species", 
+        list(def_lipids['exceptions'].values()
+             )).astype(bool)
+    df_merged.fillna('NA', inplace=True)
+    columns_titles = ["Species",
                       "abbrev",
                       "lm_id",
                       "name",
@@ -263,60 +260,58 @@ def find_match_ff(dataset,
                       force_field,
                       "concentration",
                       ]
-    df_merged=df_merged.reindex(columns=columns_titles) # Reorder columns
-    
+    df_merged = df_merged.reindex(columns=columns_titles)  #  Reorder columns
+
     # If an abbrev is not found in Lipidmaps, has not an lm_id or is not an exception
     # add it as Nan
     for index, row in df_merged.iterrows():
         if row['abbrev'] == row['Species'] and row['lm_id'] == 'NA' \
-        and row['Exceptions'] == False:
+                and row['Exceptions'] == False:
             df_merged.at[index, 'abbrev'] = 'NA'
         else:
             continue
-   
-    return(df_merged)
-    
+
+    return (df_merged)
 
 
 def output(df,
            out_name):
     """Parameters
         -------------
-        df : pd.DataFrame object 
-             dataset of the lipids with correspoding 
+        df : pd.DataFrame object
+             dataset of the lipids with correspoding
              elements in aa force field
-        out_name : string 
+        out_name : string
             Output name of the file
     """
 
-    df.to_csv(out_name+".csv", index=False)
+    df.to_csv(out_name + ".csv", index=False)
+
 
 def output_grouped(df,
                    out_name_grouped,
                    force_field):
-
     """Parameters
     -------------
-    df : pd.DataFrame object 
-         dataset of the lipids with correspoding 
+    df : pd.DataFrame object
+         dataset of the lipids with correspoding
          elements in aa force field
-    out_name_grouped : string 
+    out_name_grouped : string
         Output name of the file
     """
 
+    #  Reorder the output in order to group different lipids
+    # under the same category
 
-    # Reorder the output in order to group different lipids  
-    # under the same category 
-    
-    d={}
-    species,lm_id,abbrev,ff_name,conc,lm_id2,ff_name_2 = [],[],[],[],[],[],[]
-    df.drop(['Exceptions'], axis=1, inplace = True) # drop exception column
-    df.loc[len(df)] = 0 #fake last row
-    
-    for index in range(len(df)-1):
+    d = {}
+    species, lm_id, abbrev, ff_name, conc, lm_id2, ff_name_2 = [], [], [], [], [], [], []
+    df.drop(['Exceptions'], axis=1, inplace=True)  # drop exception column
+    df.loc[len(df)] = 0  # fake last row
+
+    for index in range(len(df) - 1):
         # if the species are identical group them together while cycling
-        if df.iloc[index]['Species'] == df.iloc[index+1]['Species'] and \
-        df.iloc[index]['concentration'] == df.iloc[index+1]['concentration']:
+        if df.iloc[index]['Species'] == df.iloc[index + 1]['Species'] and \
+                df.iloc[index]['concentration'] == df.iloc[index + 1]['concentration']:
             lm_id2.append(df.iloc[index]['lm_id'])
             ff_name_2.append(df.iloc[index][force_field])
         else:
@@ -328,21 +323,20 @@ def output_grouped(df,
             ff_name_2.append(df.iloc[index][force_field])
             lm_id.append(list((set(lm_id2))))
             ff_name.append(list((set(ff_name_2))))
-            lm_id2=[]
-            ff_name_2=[]
-    
+            lm_id2 = []
+            ff_name_2 = []
+
     # Add to the dictionary the different columns
     d['Species'] = species
     d['abbrev'] = abbrev
     d['lm_id'] = lm_id
     d[force_field] = ff_name
     d['concentration'] = conc
-    df = pd.DataFrame.from_dict(d) # create df
+    df = pd.DataFrame.from_dict(d)  #  create df
     df = df.sort_values(by=['Species'],
-                                ascending=True)
-    
-    df.to_csv(out_name_grouped +"_grouped.csv", index=False)
+                        ascending=True)
 
+    df.to_csv(out_name_grouped + "_grouped.csv", index=False)
 
 
 if __name__ == '__main__':
@@ -381,7 +375,7 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Select to use coarse grained ffs',
                         )
-                        
+
     parser.add_argument('-o',
                         '--output',
                         dest='out',
@@ -389,7 +383,7 @@ if __name__ == '__main__':
                         required=False,
                         metavar='',
                         help='Output name',
-                    )
+                        )
 
     parser.add_argument('-og',
                         '--outputgrouped',
@@ -398,7 +392,7 @@ if __name__ == '__main__':
                         required=False,
                         metavar='',
                         help='Grouped output name'
-                    )
+                        )
 
     args = parser.parse_args()
 
@@ -416,37 +410,37 @@ if __name__ == '__main__':
 
     # load config file
     with open(def_lipids) as config:
-            parsed_yaml = yaml.load(config, 
-                                    Loader=yaml.FullLoader)
+        parsed_yaml = yaml.load(config,
+                                Loader=yaml.FullLoader)
 
     # load original data
     original_data = pd.read_csv(lipidomics_db,
-                                names=['Species','Conc'],
+                                names=['Species', 'Conc'],
                                 header=0)
-    
-    # correct lipidomics database with the corrections coming from the 
+
+    # correct lipidomics database with the corrections coming from the
     # config file
     df1 = original_data.replace({"Species": parsed_yaml['exceptions']})
-    
+
     # Remove hidden characters if present
     df1.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"],
-                value=["",""], 
-                regex=True, 
-                inplace=True) # remove potential newlines etc
+                value=["", ""],
+                regex=True,
+                inplace=True)  #  remove potential newlines etc
     df_lmsd = retrieve_LMSD()
     # Remove hidden characters if present
-    df_lmsd.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], 
-                    value=["",""], 
-                    regex=True, 
-                    inplace=True) # remove potential newlines etc
+    df_lmsd.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"],
+                    value=["", ""],
+                    regex=True,
+                    inplace=True)  #  remove potential newlines etc
     filtered_dataset = find_match_LMSD(df1,
                                        df_lmsd)
-    
+
     if full_atom:
         force_field = 'charmm36'
-    if coarse_grained:    
+    if coarse_grained:
         force_field = 'martini3'
-    
+
     df = find_match_ff(original_data,
                        parsed_yaml,
                        filtered_dataset,
@@ -460,6 +454,7 @@ if __name__ == '__main__':
                        force_field)
     else:
         logging.warning("Output name not selected. Please select.")
+
 
 
 
