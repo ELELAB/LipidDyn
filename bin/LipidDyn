@@ -106,7 +106,7 @@ def module_fatslim(trajectory_file,
             Number of cores for parallelization
             
     RS_convert : df
-            Dataframe that defines the converson from residue ID to lipid class
+            Dataframe that defines the conversion from residue ID to lipid class
     """
 
 
@@ -115,7 +115,7 @@ def module_fatslim(trajectory_file,
     analysis_fatlism = os.path.abspath(os.path.join(out_dir, 'Fatslim'))
     if not os.path.exists(analysis_fatlism):
         try:
-            os.mkdir((analysis_fatlism))
+            os.mkdir(analysis_fatlism)
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise
@@ -352,7 +352,6 @@ def module_enrichment(universe,
     pbar.finish()
 
 
-
 def module_movements(universe,
                      leaflets,
                      out_dir):
@@ -472,30 +471,25 @@ def module_order_parameter(u,
                                                       parsed_yaml['lipids'][lipid][sn],
                                                       lipid,
                                                       sn)
+            pbar.update((step/total_step)*100)
+            step+=1
 
         # parse the dict and write the output file
         for key, values in scc_dict.items():
             new_dict=scc_dict[key]
             # exclude all the keys without OP value
             if key and values:
-
                 try:
-                    with open('Order_Parameter_'+ key +'.csv',"w") as f:
-
+                    with open(path.join(order_folder, f'Order_Parameter_{key}.csv'), 'w') as f:
                         f.write("{},{},{},{},{},{},{}\n".format('OP_name','resname','atom1','atom2','OP_mean', 'OP_std', 'OP_stem'))
                         # get the sn chain, the CC-atoms and the op value  
                         for sn, at in new_dict.items():
                             for k, v in at.items():
                                 f.write("{},{},{},{},{},{},{}\n".format(sn,key,k[4:6], k[7::], v[0], v[1], v[2]))
                 except:
-                    logging.warning("Problem writing the main outputfile")
+                    logging.warning(f"Problem writing outputfile: {path.join(order_folder, f'Order_Parameter_{key}.csv')}")
 
-
-                shutil.move('Order_Parameter_'+ key +'.csv',
-                            order_folder)
-
-            pbar.update((step/total_step)*100)
-            step+=1
+            
         pbar.finish()
 
     # check if the system is FA from the config file
@@ -505,10 +499,9 @@ def module_order_parameter(u,
         def_file_names_all = pkg_resources.resource_listdir('LipidDyn', 'definitions_files')
 
         # keep for analysis only those file names from residues present in the system
-        u_residues = set(f'{res}.def' for res in u.residues.groupby('resnames').keys())
-        def_file_names = u_residues.intersection(def_file_names_all)
+        def_file_names = set(f'{res}.def' for res in lipid_resnames).intersection(def_file_names_all)
         if not def_file_names:
-            logging.info('No definition files found matching residues in system')
+            logging.error('No definition files found matching residues in system')
         else:
             logging.info('Performing order parameter analysis using definition files: ' + ', '.join(def_file_names))
 
@@ -843,7 +836,7 @@ def main():
 
     parser.add_argument('-t_cutoff',
                         '--thickness-cutoff',
-                        default= 6.0,
+                        default=6.0,
                         type=float,
                         dest='tck_cutoff',
                         help='Cutoff distance (in nm) used to identify \
@@ -872,6 +865,12 @@ def main():
                         help='Clean all the temporary files '
                         )
 
+    parser.add_argument('-ow',
+                        '--overwrite',
+                        action='store_true',
+                        dest='overwrite',
+                        help='Force executing the analyses even if the output files are present, overwriting these')
+
     args = parser.parse_args()
 
     
@@ -883,6 +882,7 @@ def main():
     out_dir = args.output_dir
     ncore = args.cores
     cleaning = args.clean
+    overwrite = args.overwrite
     apl_cutoff = args.apl_cutoff
     tck_cutoff = args.tck_cutoff
     raw = args.raw
@@ -1003,69 +1003,140 @@ def main():
     logging.info(u"\u2622")
 
     if args.mod_fat:
-        logging.info("Analysis: Area per lipid & Thickness calculation")
-        module_fatslim(traj,
-                       topol,
-                       index_headgroups,
-                       out_dir,
-                       apl_cutoff,
-                       tck_cutoff,
-                       raw,
-                       species,
-                       ncore,
-                       RS_convert)
+        if overwrite:
+            analyse = True
+        else:
+            analyse = False
+            if not path.exists(path.join(out_dir, 'Fatslim', 'average', 'apl.xvg')) \
+            or not path.exists(path.join(out_dir, 'Fatslim', 'average', 'thickness.xvg')):
+                analyse = True
+            elif species:
+                for res in lipid_resnames:
+                    if not path.exists(path.join(out_dir, 'Fatslim', 'species', res, f'apl_{res}.xvg')) \
+                    or not path.exists(path.join(out_dir, 'Fatslim', 'species', res, f'thickness_{res}.xvg')):
+                        analyse = True
+                        break
+
+        if analyse:
+            logging.info("Analysis: Area per lipid & Thickness calculation")
+            module_fatslim(traj,
+                           topol,
+                           index_headgroups,
+                           out_dir,
+                           apl_cutoff,
+                           tck_cutoff,
+                           raw,
+                           species,
+                           ncore,
+                           RS_convert)
+        else:
+            logging.info("Analysis: Area per lipid & Thickness calculation already performed, skipping...")
         logging.info("--------------------------------------")
 
     if args.mod_maps:
-        logging.info("Analysis: Density maps")
-        module_densmap(u,
-                       leaflets,
-                       ncore,
-                       out_dir)
+        out_set = {'lower_leaflet_2dmap.dat',
+                   'upper_leaflet_2dmap.dat'}
+        mod_out_dir = path.join(out_dir, '2D_maps')
+                      
+        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+            logging.info("Analysis: Density maps")
+            module_densmap(u,
+                           leaflets,
+                           ncore,
+                           out_dir)
+        else:
+            logging.info("Analysis: Density maps already performed, skipping...")
         logging.info("--------------------------------------")
 
     if args.mod_curv:
-        logging.info("Analysis: Membrane Curvature")
-        module_curvature(u,
-                         parsed_yaml,
-                         out_dir)
+        out_set = {'low_AF_gaussian_curvature.dat',
+                   'low_AF_mean_curvature.dat',
+                   'low_AF_surface.dat',
+                   'low_Avg_gaussian_curvature.dat',
+                   'low_Avg_mean_curvature.dat',
+                   'low_Avg_surface.dat',
+                   'up_AF_gaussian_curvature.dat',
+                   'up_AF_mean_curvature.dat',
+                   'up_AF_surface.dat',
+                   'up_Avg_gaussian_curvature.dat',
+                   'up_Avg_mean_curvature.dat',
+                   'up_Avg_surface.dat'}
+        mod_out_dir = path.join(out_dir, 'curv')
 
+        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+            logging.info("Analysis: Membrane Curvature")
+            module_curvature(u,
+                             parsed_yaml,
+                             out_dir)
+        else:
+            logging.info("Analysis: Membrane Curvature already performed, skipping...")
         logging.info("--------------------------------------")
 
     if args.enrichment:
         if args.prot:
             # add enrichment analysis with a protein
-            # do it if there is also the flag for the
-            # prot
-            logging.info("Analysis: Enrichment Analysis")
-            module_enrichment(u,
-                              leaflets,
-                              dict_selection,
-                              ncore,
-                              out_dir)
-            logging.info("--------------------------------------")
+            # do it if there is also the flag for the prot
+            out_set = set()
+            for res in lipid_resnames:
+                out_set.add(f'{res}_lower_leaflet_enrich.dat')
+                out_set.add(f'{res}_upper_leaflet_enrich.dat')
+            mod_out_dir = path.join(out_dir, 'Enrichment')
+            
+            if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+                    logging.info("Analysis: Enrichment Analysis")
+                    module_enrichment(u,
+                                      leaflets,
+                                      dict_selection,
+                                      ncore,
+                                      out_dir)
 
+            else:
+                logging.info("Analysis: Enrichment Analysis already performed, skipping...")
         else:
             logging.error("Enrichment can only be performed on simulations with proteins embedded in the membrane")
+        logging.info("--------------------------------------")
 
     if args.mod_mov:
-        logging.info("Analysis: Diffusion movements")
-        module_movements(u,
-                         leaflets,
-                         out_dir)
+        out_set = {'Lower_leaflet_coordinates.dat',
+                   'Upper_leaflet_coordinates.dat'}
+        mod_out_dir = path.join(out_dir, 'Diffusion_movements')
+
+        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+            logging.info("Analysis: Diffusion movements")
+            module_movements(u,
+                            leaflets,
+                            out_dir)
+        else:
+            logging.info("Analysis: Diffusion movements already performed, skipping...")
         logging.info("--------------------------------------")
 
     if args.mod_ord:
-        logging.info("Analysis: Order Parameter")
-        module_order_parameter(u,
-                               lipid_resnames,
-                               parsed_yaml,
-                               out_dir)
+        out_set = set()
+        if parsed_yaml['forcefield'] == 'CG':
+            for res in lipid_resnames:
+                if parsed_yaml['lipids'][res].get('sn1') or parsed_yaml['lipids'][res].get('sn2'):
+                    out_set.add(f'Order_Parameter_{res}.csv')
+        elif parsed_yaml['forcefield'] == 'FA':
+            def_files = pkg_resources.resource_listdir('LipidDyn', 'definitions_files')
+            res_def_files = set(name.split('.')[0] for name in def_files).intersection(lipid_resnames)
+            for res in res_def_files:
+                out_set.add(f'Order_Parameter_{res}.csv')
+
+        mod_out_dir = path.join(out_dir, 'Order_Parameter')
+        
+        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+            logging.info("Analysis: Order Parameter")
+            module_order_parameter(u,
+                                   lipid_resnames,
+                                   parsed_yaml,
+                                   out_dir)
+        else:
+            logging.info("Analysis: Order Parameter already performed, skipping...")
         logging.info("--------------------------------------")
 
     if args.clean :
-        os.remove(os.path.join(out_dir, 'index_headgroups.ndx'))
-        os.remove(os.path.join(out_dir, 'true_bilayer.ndx'))
+        os.remove(path.join(out_dir, 'index_headgroups.ndx'))
+        os.remove(path.join(out_dir, 'true_bilayer.ndx'))
 
 if __name__ == "__main__":
     main()
