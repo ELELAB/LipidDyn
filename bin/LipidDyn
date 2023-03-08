@@ -895,16 +895,19 @@ def main():
                         format='%(asctime)s:%(levelname)s:%(message)s')
     
 
-    starting_directory = os.getcwd()
- 
-
     # Check if the output directory exists 
-    if not os.path.exists(out_dir):
-        logging.error("The output directory doesn't exist")
-        sys.exit(1)
+    if not path.exists(out_dir):
+        logging.info("The output directory doesn't exist: it will be created")
+
+        # Create directory if it doesn't exist
+        try:
+            os.mkdir(out_dir)
+        except:
+            logging.error("Error while creating output directory")
+            sys.exit(1)
     
     # Check if the selected output directory is actually a directory
-    if not os.path.isdir(out_dir):
+    if not path.isdir(out_dir):
         logging.error(f"{out_dir} is not a directory")
         sys.exit(1)
 
