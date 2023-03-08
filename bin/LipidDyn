@@ -710,7 +710,33 @@ def module_curvature(universe,
 
     pbar.finish()
 
+
+def output_check(out_dir, mod_out_dir, out_files):
+    '''
+    Check that whether if all the output files are present in the
+    corresponding folder. It will join (os.path.join) all three
+    out_dir, mod_out_dir and each file in out_files for the check
+    Returns True if any file is missing and False if every file
+    is present.
+    -----------
+    Parameters:
+    out_dir : str
+            main output directory path
+    mod_out_dir : str
+            module output directory, inside out_dir
+    out_files : iterable
+            iterable with the files to check inside out_dir/mod_out_dir
+    '''
+
+    for file in out_files:
+        if not path.exists(path.join(out_dir, mod_out_dir, file)):
+            return True
+    
+    return False
+
+
 #------------------------------------------------------------
+
 
 def main():
 
@@ -869,12 +895,12 @@ def main():
                         '--overwrite',
                         action='store_true',
                         dest='overwrite',
-                        help='Force executing the analyses even if the output files are present, overwriting these')
+                        help='Force executing the analyses even if the output \
+                              files are present, overwriting these')
 
     args = parser.parse_args()
 
     
-
     # Define Flags
     traj = os.path.abspath(args.trajectory)
     topol = os.path.abspath(args.topology)
@@ -889,7 +915,7 @@ def main():
     species = args.species
     all_modules = args.all_modules
     
-     # Setup log module
+    # Setup log module
     logging.basicConfig(filename=os.path.join(out_dir, 'LipidDynRun.log'),
                         level=logging.INFO,
                         format='%(asctime)s:%(levelname)s:%(message)s')
@@ -1003,21 +1029,14 @@ def main():
     logging.info(u"\u2622")
 
     if args.mod_fat:
-        if overwrite:
-            analyse = True
-        else:
-            analyse = False
-            if not path.exists(path.join(out_dir, 'Fatslim', 'average', 'apl.xvg')) \
-            or not path.exists(path.join(out_dir, 'Fatslim', 'average', 'thickness.xvg')):
-                analyse = True
-            elif species:
-                for res in lipid_resnames:
-                    if not path.exists(path.join(out_dir, 'Fatslim', 'species', res, f'apl_{res}.xvg')) \
-                    or not path.exists(path.join(out_dir, 'Fatslim', 'species', res, f'thickness_{res}.xvg')):
-                        analyse = True
-                        break
+        out_files = [path.join('average', 'apl.xvg'),
+                     path.join('average', 'thickness.xvg')]
+        if species:
+            for res in lipid_resnames:
+                out_files.append(path.join('species', res, f'apl_{res}.xvg'))
+                out_files.append(path.join('species', res, f'thickness_{res}.xvg'))
 
-        if analyse:
+        if overwrite or output_check(out_dir, 'Fatslim', out_files):
             logging.info("Analysis: Area per lipid & Thickness calculation")
             module_fatslim(traj,
                            topol,
@@ -1034,11 +1053,10 @@ def main():
         logging.info("--------------------------------------")
 
     if args.mod_maps:
-        out_set = {'lower_leaflet_2dmap.dat',
-                   'upper_leaflet_2dmap.dat'}
-        mod_out_dir = path.join(out_dir, '2D_maps')
+        out_files = ['lower_leaflet_2dmap.dat',
+                     'upper_leaflet_2dmap.dat']
                       
-        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+        if overwrite or output_check(out_dir, '2D_maps', out_files):
             logging.info("Analysis: Density maps")
             module_densmap(u,
                            leaflets,
@@ -1049,21 +1067,13 @@ def main():
         logging.info("--------------------------------------")
 
     if args.mod_curv:
-        out_set = {'low_AF_gaussian_curvature.dat',
-                   'low_AF_mean_curvature.dat',
-                   'low_AF_surface.dat',
-                   'low_Avg_gaussian_curvature.dat',
-                   'low_Avg_mean_curvature.dat',
-                   'low_Avg_surface.dat',
-                   'up_AF_gaussian_curvature.dat',
-                   'up_AF_mean_curvature.dat',
-                   'up_AF_surface.dat',
-                   'up_Avg_gaussian_curvature.dat',
-                   'up_Avg_mean_curvature.dat',
-                   'up_Avg_surface.dat'}
-        mod_out_dir = path.join(out_dir, 'curv')
+        out_files = []
+        for leaflet in ('low', 'up'):
+            for calc in ('AF', 'Avg'):
+                for param in ('gaussian_curvature', 'mean_curvature', 'surface'):
+                    out_files.append(f'{leaflet}_{calc}_{param}.dat')
 
-        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+        if overwrite or output_check(out_dir, 'curv', out_files):
             logging.info("Analysis: Membrane Curvature")
             module_curvature(u,
                              parsed_yaml,
@@ -1076,20 +1086,18 @@ def main():
         if args.prot:
             # add enrichment analysis with a protein
             # do it if there is also the flag for the prot
-            out_set = set()
+            out_files = []
             for res in lipid_resnames:
-                out_set.add(f'{res}_lower_leaflet_enrich.dat')
-                out_set.add(f'{res}_upper_leaflet_enrich.dat')
-            mod_out_dir = path.join(out_dir, 'Enrichment')
+                out_files.append(f'{res}_lower_leaflet_enrich.dat')
+                out_files.append(f'{res}_upper_leaflet_enrich.dat')
             
-            if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+            if overwrite or output_check(out_dir, 'Enrichment', out_files):
                     logging.info("Analysis: Enrichment Analysis")
                     module_enrichment(u,
                                       leaflets,
                                       dict_selection,
                                       ncore,
                                       out_dir)
-
             else:
                 logging.info("Analysis: Enrichment Analysis already performed, skipping...")
         else:
@@ -1097,34 +1105,32 @@ def main():
         logging.info("--------------------------------------")
 
     if args.mod_mov:
-        out_set = {'Lower_leaflet_coordinates.dat',
-                   'Upper_leaflet_coordinates.dat'}
+        out_files = ['Lower_leaflet_coordinates.dat',
+                     'Upper_leaflet_coordinates.dat']
         mod_out_dir = path.join(out_dir, 'Diffusion_movements')
 
-        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+        if overwrite or output_check(out_dir, 'Diffusion_movements', out_files):
             logging.info("Analysis: Diffusion movements")
             module_movements(u,
-                            leaflets,
-                            out_dir)
+                             leaflets,
+                             out_dir)
         else:
             logging.info("Analysis: Diffusion movements already performed, skipping...")
         logging.info("--------------------------------------")
 
     if args.mod_ord:
-        out_set = set()
+        out_files = []
         if parsed_yaml['forcefield'] == 'CG':
             for res in lipid_resnames:
                 if parsed_yaml['lipids'][res].get('sn1') or parsed_yaml['lipids'][res].get('sn2'):
-                    out_set.add(f'Order_Parameter_{res}.csv')
+                    out_files.append(f'Order_Parameter_{res}.csv')
         elif parsed_yaml['forcefield'] == 'FA':
             def_files = pkg_resources.resource_listdir('LipidDyn', 'definitions_files')
-            res_def_files = set(name.split('.')[0] for name in def_files).intersection(lipid_resnames)
-            for res in res_def_files:
-                out_set.add(f'Order_Parameter_{res}.csv')
-
-        mod_out_dir = path.join(out_dir, 'Order_Parameter')
+            res_with_def_file = set(name.split('.')[0] for name in def_files).intersection(lipid_resnames)
+            for res in res_with_def_file:
+                out_files.append(f'Order_Parameter_{res}.csv')
         
-        if not path.exists(mod_out_dir) or out_set.difference(os.listdir(mod_out_dir)) or overwrite:
+        if overwrite or output_check(out_dir, 'Order_Parameter', out_files):
             logging.info("Analysis: Order Parameter")
             module_order_parameter(u,
                                    lipid_resnames,
