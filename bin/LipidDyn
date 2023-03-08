@@ -889,27 +889,28 @@ def main():
     species = args.species
     all_modules = args.all_modules
     
-     # Setup log module
-    logging.basicConfig(filename=os.path.join(out_dir, 'LipidDynRun.log'),
-                        level=logging.INFO,
-                        format='%(asctime)s:%(levelname)s:%(message)s')
-    
 
     # Check if the output directory exists 
     if not path.exists(out_dir):
-        logging.info("The output directory doesn't exist: it will be created")
+        print("The output directory doesn't exist: it will be created")
 
         # Create directory if it doesn't exist
         try:
             os.mkdir(out_dir)
         except:
-            logging.error("Error while creating output directory")
+            print("Error while creating output directory, aborting...")
             sys.exit(1)
     
     # Check if the selected output directory is actually a directory
-    if not path.isdir(out_dir):
-        logging.error(f"{out_dir} is not a directory")
+    elif not path.isdir(out_dir):
+        print(f"{out_dir} is not a directory, aborting...")
         sys.exit(1)
+
+    # Setup log module
+    logging.basicConfig(filename=os.path.join(out_dir, 'LipidDynRun.log'),
+                        level=logging.INFO,
+                        format='%(asctime)s:%(levelname)s:%(message)s')
+
 
     # setup of the MDA universe
     try:
