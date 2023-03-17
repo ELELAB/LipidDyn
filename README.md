@@ -215,7 +215,7 @@ LipidDyn -f file.xtc/trr -s file.gro -g file.yml -a -n "n" -c
 ```
 This command will run the full set of analysis (-a) and store all the output files in the working directory, using "n" cores and clean (-c) all intermediate files. <br/>
 The suggested minimum number of cores to run the analysis is ``` -n 4```, but it could be increased for longer trajectories. <br/>
-The output files will be organized in different folders each one representing a set of analysis. 
+The output files will be organized in different folders each one representing a set of analysis. By default, the program will skip an analysis module if it finds all its output files already in the output folder. In order to force the program to repeat the analysis and overwrite the output, use the flag ```-ow```.
 <br/>
 
 
