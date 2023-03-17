@@ -902,9 +902,9 @@ def main():
 
     
     # Define Flags
-    traj = os.path.abspath(args.trajectory)
-    topol = os.path.abspath(args.topology)
-    hg_sel = os.path.abspath(args.configuration)
+    traj = path.abspath(args.trajectory)
+    topol = path.abspath(args.topology)
+    hg_sel = path.abspath(args.configuration)
     out_dir = args.output_dir
     ncore = args.cores
     cleaning = args.clean
@@ -914,65 +914,78 @@ def main():
     raw = args.raw
     species = args.species
     all_modules = args.all_modules
+
+
+    # Check if the output directory exists 
+    if not path.exists(out_dir):
+        print("The output directory doesn't exist: it will be created")
+
+        # Create directory if it doesn't exist
+        try:
+            os.mkdir(out_dir)
+        except:
+            print("Error while creating output directory, aborting...")
+            sys.exit(1)
     
+    # Check if the selected output directory is actually a directory
+    elif not path.isdir(out_dir):
+        print(f"{out_dir} is not a directory, aborting...")
+        sys.exit(1)
+
+
     # Setup log module
     logging.basicConfig(filename=os.path.join(out_dir, 'LipidDynRun.log'),
                         level=logging.INFO,
                         format='%(asctime)s:%(levelname)s:%(message)s')
-    
 
-    starting_directory = os.getcwd()
- 
-
-    # Check if the output directory exists 
-    if not os.path.exists(out_dir):
-        logging.error("The output directory doesn't exist")
-        exit(1)
-    
-    # Check if the selected filename is actually a directory
-    if not os.path.isdir(out_dir):
-        logging.error(f"{out_dir} is not a directory")
-        exit(1)
 
     # setup of the MDA universe
-    u = mda.Universe(topol,traj,in_memory=True)
+    try:
+        u = mda.Universe(topol, traj, in_memory=True)
+
+    except IOError as error:
+        logging.error(f"Input file doesn't exist:\n{error}")
+        sys.exit(1)
+
+    except BaseException as error:
+        logging.error(f"MDAnalysis rejected input files:\n{error}")
+        sys.exit(1)
 
     # load config file for atom selections   
     try:
         with open(hg_sel) as config:
             parsed_yaml = yaml.load(config, Loader=yaml.FullLoader)
         
-            if not isinstance(parsed_yaml, dict):  
-                logging.error("Couldn't parse the configuration file \
-                               correctly; check its file format")
-                exit(1)
+        if not isinstance(parsed_yaml, dict):  
+            logging.error("Couldn't parse the configuration file \
+                           correctly; check its file format")
+            sys.exit(1)
     
     except IOError:
         logging.error("Configuration file doesn't exists \
                        or is not accessible")
-        exit(1)
+        sys.exit(1)
     
     except:
-        logging.error("Loading the configuration file failed;\
+        logging.error("Loading the configuration file failed; \
                        please check its format")
-        exit(1)
+        sys.exit(1)
     
     try:
         # define dictionary selections                
-        dict_selection=parsed_yaml["lipids"]    
-        dict_prot=(parsed_yaml["protein"])
+        dict_selection = parsed_yaml["lipids"]    
+        dict_prot = parsed_yaml["protein"]
         
     except KeyError:        
             logging.error("protein and lipids sections not found \
                            in configuration file")
-            exit(1)
+            sys.exit(1)
     
     # Means a protein is embedded in the bilayer
     if args.prot :
         # call utils module for heagroup selection
         g = select_lipid_headgroups(u, dict_selection)
         p = u.select_atoms(dict_prot)
-
         with mda.selections.gromacs.SelectionWriter(os.path.join(out_dir,
                                         'index_headgroups.ndx'),
                                          mode='a') as ndx:
