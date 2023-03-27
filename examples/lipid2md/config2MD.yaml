@@ -388,7 +388,7 @@ exceptions: {'Chol' : 'ST 27:1;O',
              'triHexCer 44:2;2' : 'Hex3Cer 44:2;O2',            
              'CL 64:4' : "CL(1'-[16:1(9Z)/16:1(9Z)],3'-[16:1(9Z)/16:1(9Z)])", # in the ff but not lipidmaps
              } 
-# Martini 2 CG lipid definition
+# Martini 2 CG lipid definition 
 martini2 :
     PA (phosphatidic acid) : [["LPPA","PA(12:0-14:0/16:0-18:0)","PA"],
                               ["PAPA","PA(16:0-18:0/20:4(5E,8E,11E,14E)-22:5(7Z,10Z,13Z,16Z,19Z))","PA"],
