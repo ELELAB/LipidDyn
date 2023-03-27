@@ -121,6 +121,7 @@ def find_match_ff(dataset,
             for lipid_species in def_lipids['martini3'][lipid_class]:
                 ffs_name = lipid_species[0]
                 ffs_chain = lipid_species[1]
+                class_lipid = lipid_species[2]
 
                 # If chains are ranges
                 if '-' in ffs_chain:
@@ -135,13 +136,13 @@ def find_match_ff(dataset,
                     lipid22 = re.sub('/(.*?)-', '/', lipid2)
 
                     # Saves 4 combinations in list:
-                    TempList.append([ffs_name, lipid11])
-                    TempList.append([ffs_name, lipid21])
-                    TempList.append([ffs_name, lipid12])
-                    TempList.append([ffs_name, lipid22])
+                    TempList.append([ffs_name, lipid11,class_lipid])
+                    TempList.append([ffs_name, lipid21,class_lipid])
+                    TempList.append([ffs_name, lipid12,class_lipid])
+                    TempList.append([ffs_name, lipid22,class_lipid])
 
                 else:
-                    TempList.append([ffs_name, ffs_chain])
+                    TempList.append([ffs_name, ffs_chain,class_lipid])
             # Update values
             def_lipids[force_field][lipid_class] = TempList
 
@@ -153,7 +154,7 @@ def find_match_ff(dataset,
             for lipid_species in def_lipids['martini2'][lipid_class]:
                 ffs_name = lipid_species[0]
                 ffs_chain = lipid_species[1]
-
+                class_lipid = lipid_species[2]
                 # If chains are ranges
                 if '-' in ffs_chain:
                     # The annotation for the first tail
@@ -167,13 +168,13 @@ def find_match_ff(dataset,
                     lipid22 = re.sub('/(.*?)-', '/', lipid2)
 
                     # Saves 4 combinations in list:
-                    TempList.append([ffs_name, lipid11])
-                    TempList.append([ffs_name, lipid21])
-                    TempList.append([ffs_name, lipid12])
-                    TempList.append([ffs_name, lipid22])
+                    TempList.append([ffs_name, lipid11,class_lipid])
+                    TempList.append([ffs_name, lipid21,class_lipid])
+                    TempList.append([ffs_name, lipid12,class_lipid])
+                    TempList.append([ffs_name, lipid22,class_lipid])
 
                 else:
-                    TempList.append([ffs_name, ffs_chain])
+                    TempList.append([ffs_name, ffs_chain,class_lipid])
             # Update values
             def_lipids[force_field][lipid_class] = TempList
 
@@ -185,6 +186,7 @@ def find_match_ff(dataset,
                                     filtered_dataset.name):
         name = str(name).rstrip()  # get name from lipidmaps
         abbrev = str(abbrev).rstrip()
+        
         try:
             # lipid_class = abbrev.split()[0] #get lipid class i.e PS, PA ...
             # cycle through the definitions of lipids of ff in the config fil
@@ -192,19 +194,22 @@ def find_match_ff(dataset,
                 for lipid_species in def_lipids[force_field][lipid_class]:
                     ffs_name = lipid_species[0].rstrip()
                     ffs_chain = lipid_species[1].rstrip()
+                    class_lipid = lipid_species[2].rstrip()
                     # check if the ffs defition correspond to lipidmaps
                     if ffs_chain == name:
                         match.append([lm_id,
                                       name,
                                       abbrev,
                                       ffs_name,
-                                      ffs_chain])
+                                      ffs_chain,
+                                      class_lipid])
                     elif ffs_chain == abbrev:
                         match.append([lm_id,
                                       name,
                                       abbrev,
                                       ffs_name,
-                                      ffs_chain])
+                                      ffs_chain,
+                                      class_lipid])
                     else:
                         continue
         except:
@@ -216,7 +221,8 @@ def find_match_ff(dataset,
                                'name',
                                'abbrev',
                                force_field,
-                               force_field + ' chain']).sort_values(by='abbrev')
+                               force_field + ' chain',
+                               'class']).sort_values(by='abbrev')
     # Drop useless columns
     df.drop(force_field + ' chain',
             axis=1,
@@ -247,7 +253,8 @@ def find_match_ff(dataset,
                            'name',
                            'abbrev',
                            force_field,
-                           'concentration']]
+                           'concentration',
+                           'class']]
 
     # Extract from the merged dataset the lipids that are in the original
     # dataset, but do not have a LIPIDMAPS ID, name etc.. associated
@@ -271,13 +278,15 @@ def find_match_ff(dataset,
                              'name_y',
                              'abbrev',
                              force_field,
-                             'concentration']]
+                             'concentration',
+                             'class']]
     df_matched.columns = ['Species',
                           'lm_id',
                           'name',
                           'abbrev',
                           force_field,
-                          'concentration']
+                          'concentration',
+                          'class']
     # df_merged = df_merged.append(df_matched)
     df_merged = pd.concat([df_merged, df_matched], axis=0)
     df_merged = df_merged.reset_index(drop=True)
@@ -292,6 +301,7 @@ def find_match_ff(dataset,
                       "Exceptions",
                       force_field,
                       "concentration",
+                      "class"
                       ]
     df_merged = df_merged.reindex(columns=columns_titles)  #  Reorder columns
 
@@ -337,7 +347,7 @@ def output_grouped(df,
     # under the same category
 
     d = {}
-    species, lm_id, abbrev, ff_name, conc, lm_id2, ff_name_2 = [], [], [], [], [], [], []
+    species, lm_id, abbrev, ff_name, conc, lm_id2, ff_name_2, class_lipid = [], [], [], [], [], [], [], []
     df.drop(['Exceptions'], axis=1, inplace=True)  # drop exception column
     df.loc[len(df)] = 0  # fake last row
 
@@ -497,7 +507,6 @@ if __name__ == '__main__':
                        force_field)
     else:
         logging.warning("Output name not selected. Please select.")
-
 
 
 
