@@ -145,6 +145,39 @@ def find_match_ff(dataset,
             # Update values
             def_lipids[force_field][lipid_class] = TempList
 
+    # in martini 2, some chain definitions are annotated as ranges
+    # the ones that are, are transformed to 4 combinations
+    if force_field == 'martini2':
+        for lipid_class in def_lipids[force_field]:
+            TempList = []
+            for lipid_species in def_lipids['martini2'][lipid_class]:
+                ffs_name = lipid_species[0]
+                ffs_chain = lipid_species[1]
+
+                # If chains are ranges
+                if '-' in ffs_chain:
+                    # The annotation for the first tail
+                    lipid1 = re.sub('-(.*?)/', '/', ffs_chain)
+                    lipid2 = re.sub('\((.*?)-', '(', ffs_chain, 1)
+
+                    # The annotation for the second tail
+                    lipid11 = re.sub('-[^-]*$', ')', lipid1)
+                    lipid21 = re.sub('-[^-]*$', ')', lipid2)
+                    lipid12 = re.sub('/(.*?)-', '/', lipid1)
+                    lipid22 = re.sub('/(.*?)-', '/', lipid2)
+
+                    # Saves 4 combinations in list:
+                    TempList.append([ffs_name, lipid11])
+                    TempList.append([ffs_name, lipid21])
+                    TempList.append([ffs_name, lipid12])
+                    TempList.append([ffs_name, lipid22])
+
+                else:
+                    TempList.append([ffs_name, ffs_chain])
+            # Update values
+            def_lipids[force_field][lipid_class] = TempList
+
+    
     match = []
     # Cycle through the ID, name, abbreviations
     for abbrev, lm_id, name, in zip(filtered_dataset.abbrev,
@@ -373,7 +406,14 @@ if __name__ == '__main__':
                         '--coarse_grained',
                         dest='cg',
                         action='store_true',
-                        help='Select to use coarse grained ffs',
+                        help='Select to use coarse grained martini 3 ffs',
+                        )
+    
+    parser.add_argument('-cg2',
+                        '--coarse_grained2',
+                        dest='cg2',
+                        action='store_true',
+                        help='Select to use coarse grained martini 2 ffs',
                         )
 
     parser.add_argument('-o',
@@ -401,6 +441,7 @@ if __name__ == '__main__':
     def_lipids = os.path.abspath(args.cfg)
     full_atom = args.fa
     coarse_grained = args.cg
+    coarse_grained2 = args.cg2
     out_name = args.out
     out_name_grouped = args.out_group
 
@@ -440,6 +481,8 @@ if __name__ == '__main__':
         force_field = 'charmm36'
     if coarse_grained:
         force_field = 'martini3'
+    if coarse_grained2:
+        force_field = 'martini2'
 
     df = find_match_ff(original_data,
                        parsed_yaml,
