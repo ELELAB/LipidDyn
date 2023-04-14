@@ -1,6 +1,7 @@
 The lipid2MD tools was designed with the aim to connect experimental lipidomics data
 to in silico data. With this tool we are able to connect categories of lipids from 
-lipidomics data to the definitions of the lipids available in the all-atom force field charmm36. 
+lipidomics data to the definitions of the lipids available in the all-atom force field charmm36
+as well as selected lipids in the coarse-grain force fields Martini v2. and v3. 
 The first input file should be in the following format:
 
 "species","ER"
@@ -14,10 +15,10 @@ The first input file should be in the following format:
 
 In one column we have the category of the lipid while on the other its concentration.
 The second input file is the config2MD.yaml available in the current folder in which
-the definitions of the lipids of charmm36 are stored.
+the definitions of the lipids of charmm36 and Martini are stored.
 To run the tool:
 
-lipid2MD -i dataset_species_ER_median.csv -c config2MD.yaml -fa -o trial -og trial
+lipid2MD -i dataset_species_ER_median.csv -c config2MD.yaml -fa -cg -cg2 -o trial -og trial -l 600
 
 The flag "-o" and "-og" specify the name of the output files. Only one or both
 flag can be selected.
@@ -55,3 +56,27 @@ name of the lipid and the concentration.
 In case of more than one species more name will be stored in the list i.e è ['DUPC', 'DLiPC].
 
 In the case of not matching species values are replaced with NA both in the non-grouped and grouped output.
+
+The flag "-fa", "-cg" and "-cg2" specify the force field. Only one can be selected.
+
+The flag "-l" is optional, and takes an integer as argument, specifying the desired number of lipids in the membrane. 
+
+An output file "filename_class.csv" is created, calculating for each membrane class the number of lipids to be selected for membrane simulation,
+based on the relative abundance of each lipid class. 
+The file has the following format:
+
+---------------------------------------
+Class, relative abundance %, adjusted relative, number of lipids, rounded number of lipid, most common lipid, Match in force field
+Cer, 0.418, 0.506, 2.025, 2.0, Cer 34:1;2, CER160
+Chol, 7.374, 8.929, 35.717, 36.0, Chol, Cholesterol
+Hexcer, 0.042, 0.051, 0.207, 0.0, HexCer 34:1;2, 
+.....
+---------------------------------------
+
+Here each membrane class is related to its relative abundance, adjusted abundance after removing non-membrane lipids.
+A number of lipids to match the relative abundance is calculated to reach 1000 lipids in total or the amount chosen by the user. 
+For each class, the most common lipid is selected from the original concentrations. 
+Finally, the most common lipid is matched to its name in the force field. For coarse grain force fields, there can be more than one name. 
+
+
+
