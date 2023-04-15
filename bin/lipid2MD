@@ -438,8 +438,7 @@ def output(df,
 
 
 def output_grouped(df,
-                   out_name_grouped,
-                   force_field):
+                   out_name_grouped):
     """Parameters
     -------------
     df : pd.DataFrame object
@@ -639,10 +638,9 @@ if __name__ == '__main__':
                 out_name)
     elif out_name_grouped:
         output_grouped(df,
-                       out_name_grouped,
-                       force_field)
+                       out_name_grouped)
         common_lipid_out(final_df_grouped,
-                out_name)
+                out_name_grouped)
     else:
         logging.warning("Output name not selected. Please select.")
 
