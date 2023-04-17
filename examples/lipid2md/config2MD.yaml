@@ -508,7 +508,49 @@ martini2 :
                                 ["DVPS","PS(16:1(9Z)-18:1(9Z)/16:1(9Z)-18:1(9Z))","PS"],
                                 ["DXPS","PS(24:0-26:0/24:0-26:0)","PS"],
                                 ["DYPS","PS(12:1-14:1(9Z)/12:1-14:1(9Z))","PS"]]                             
-                  
+    PI :
+                            [['DPP1','PI(16:0-18:0/16:0-18:0)','PI' ],
+                            ['DPP2','PI(16:0-18:0/16:0-18:0)','PI' ], 
+                            ['DPPI','PI(16:0-18:0/16:0-18:0)','PI'],
+                            ['PAPI','PI(16:0-18:0/20:4(5Z,8Z,11Z,14Z)-22:5)','PI'], 
+                            ['PIPI','PI(16:0-18:0/18:2(9Z,12Z))','PI'], 
+                            ['POP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI'], 
+                            ['POP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PUPI','PI(16:0-18:0/20:5(5Z,8Z,11Z,14Z,17Z)-22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PI'], 
+                            ['PVP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI']]    
+    ST :
+                                [['CHOL', 'Cholesterol','Chol'],
+                                ['CHOA' ,'Cholate','ST'],
+                                ['CHYO','Cholesteryl oleate','ST'], #not in lipid maps
+                                ['ERGO','Ergosterol','ST'],
+                                ['HBHT','bacteriohopanetetrol','ST']  ,
+                                ['HDPT','diploptene','ST']  ,
+                                ['HHOP' ,'hopane','ST'], #not in lipid maps
+                                ['HOPR','hopanoid polycyclic group','ST']] #not in lipid maps
+
+    Cer :
+                                [['DPCE','Cer(d16:1-d18:1/16:0-18:0)','Cer'], 
+                                ['DXCE','C(d24:1-26:1/24:0-26:0)','Cer'], #not in lipid maps
+                                ['PNCE','Cer(d16:1-d18:1/24:1(15Z)-26:1(17Z))','Cer'],
+                                ['XNCE','C(d24:1-26:1/24:1-26:1) ','Cer']] #not in lipid maps
+
+    SM :
+                     [['DPSM','SM(d16:1-d18:1/16:0-18:0)','SM'],
+                     ['DBSM','SM(d20:1-d22:1/20:0-22:0)','SM'], #not in lipid maps
+                     ['DXSM','SM(d24:1-d26:1/24:0-26:0)','SM'], #not in lipid maps
+                     ['PVSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['POSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['PGSM','SM(d16:1-d18:1/20:1-22:1)','SM'],
+                     ['PNSM','SM(d16:1-d18:1/24:1-26:1(17Z))','SM'], 
+                     ['BNSM','SM(d20:1-d22:1/24:1-26:1)','SM'], #not in lipid maps
+                     ['XNSM','SM(d24:1-d26:1/24:1-26:1)','SM']] #not in lipid maps
+
+
 # Martini 3 CG lipid definition
 martini3 :
     PA (phosphatidic acid) : [["LPPA","PA(12:0-14:0/16:0-18:0)","PA"],
@@ -633,6 +675,49 @@ martini3 :
                                 ["DVPS","PS(16:1(9Z)-18:1(9Z)/16:1(9Z)-18:1(9Z))","PS"],
                                 ["DXPS","PS(24:0-26:0/24:0-26:0)","PS"],
                                 ["DYPS","PS(12:1-14:1(9Z)/12:1-14:1(9Z))","PS"]]
+
+    PI :
+                            [['DPP1','PI(16:0-18:0/16:0-18:0)','PI' ],
+                            ['DPP2','PI(16:0-18:0/16:0-18:0)','PI' ], 
+                            ['DPPI','PI(16:0-18:0/16:0-18:0)','PI'],
+                            ['PAPI','PI(16:0-18:0/20:4(5Z,8Z,11Z,14Z)-22:5)','PI'], 
+                            ['PIPI','PI(16:0-18:0/18:2(9Z,12Z))','PI'], 
+                            ['POP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI'], 
+                            ['POP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PUPI','PI(16:0-18:0/20:5(5Z,8Z,11Z,14Z,17Z)-22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PI'], 
+                            ['PVP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI']]
+
+    ST :
+                                [['CHOL', 'Cholesterol','Chol'],
+                                ['CHOA' ,'Cholate','ST'],
+                                ['CHYO','Cholesteryl oleate','ST'], #not in lipid maps
+                                ['ERGO','Ergosterol','ST'],
+                                ['HBHT','bacteriohopanetetrol','ST']  ,  
+                                ['HDPT','diploptene','ST']  , 
+                                ['HHOP' ,'hopane','ST'], #not in lipid maps
+                                ['HOPR','hopanoid polycyclic group','ST']] #not in lipid maps
+    Cer :
+                                [['DPCE','Cer(d16:1-d18:1/16:0-18:0)','Cer'],
+                                ['DXCE','C(d24:1-26:1/24:0-26:0)','Cer'], #not in lipid maps
+                                ['PNCE','Cer(d16:1-d18:1/24:1(15Z)-26:1(17Z))','Cer'],
+                                ['XNCE','C(d24:1-26:1/24:1-26:1) ','Cer']] #not in lipid maps
+
+
+    SM :
+                     [['DPSM','SM(d16:1-d18:1/16:0-18:0)','SM'],
+                     ['DBSM','SM(d20:1-d22:1/20:0-22:0)','SM'], #not in lipid maps
+                     ['DXSM','SM(d24:1-d26:1/24:0-26:0)','SM'], #not in lipid maps
+                     ['PVSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['POSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['PGSM','SM(d16:1-d18:1/20:1-22:1)','SM'], 
+                     ['PNSM','SM(d16:1-d18:1/24:1-26:1(17Z))','SM'], 
+                     ['BNSM','SM(d20:1-d22:1/24:1-26:1)','SM'], #not in lipid maps
+                     ['XNSM','SM(d24:1-d26:1/24:1-26:1)','SM']] #not in lipid maps
 
 charmm36 : 
 

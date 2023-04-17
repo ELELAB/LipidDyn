@@ -343,7 +343,7 @@ def find_match_ff(dataset,
     return (df_merged)
 
 
-def Data_to_forcefield (df,number_lipids,force_field):
+def Data_to_forcefield (df,number_lipids,force_field,merge_lipids):
 
     """ Parameters
     -------------
@@ -354,8 +354,15 @@ def Data_to_forcefield (df,number_lipids,force_field):
                     (provided by user, else a default value of 1000)
     force_field: string
                  Name of the forcefield applied
-
+    merge_lipids: bool
+                Wether or not ether lipids should be merged
+                with related lipids, which are available in the force field
     """
+
+    # If user chose to avoid PCO- and PEO- lipids
+    if merge_lipids:
+        df['class'].replace('PC O-', 'PC', inplace=True)
+        df['class'].replace('PE O-', 'PE', inplace=True)
 
 
     #Temporarily drop duplicates to calculate relative abundances
@@ -568,6 +575,14 @@ if __name__ == '__main__':
                         help='Number of lipids in forcefield'
                         )
 
+    parser.add_argument('-m',
+                        '--merge_ether_lipids',
+                        dest='merge_lipids',
+                        required=False,
+                        action='store_true',
+                        help='Merge ether lipids with lipids available in forcefield',
+                        )
+
     args = parser.parse_args()
 
     # Define Flags
@@ -579,6 +594,7 @@ if __name__ == '__main__':
     out_name = args.out
     out_name_grouped = args.out_group
     number_lipids = args.no_lipid
+    merge_ether_lipids = args.merge_lipids
 
     logging.basicConfig(filename='lipid2MD.log',
                         level=logging.INFO,
@@ -624,12 +640,17 @@ if __name__ == '__main__':
     else:
         number_lipids = 1000
 
+    if merge_ether_lipids:
+        merge_lipids = True
+    else:
+        merge_lipids = False
+
     df = find_match_ff(original_data,
                        parsed_yaml,
                        filtered_dataset,
                        force_field)
     
-    final_df_grouped = Data_to_forcefield(df, number_lipids, force_field)
+    final_df_grouped = Data_to_forcefield(df, number_lipids, force_field,merge_lipids)
 
     if out_name:
         output(df,
