@@ -357,7 +357,9 @@ def Data_to_forcefield (df,number_lipids,force_field,merge_lipids):
     merge_lipids: bool
                 Wether or not ether lipids should be merged
                 with related lipids, which are available in the force field
-    """
+ """
+
+    df_copy = df.copy()
 
     # If user chose to avoid PCO- and PEO- lipids
     if merge_lipids:
@@ -404,7 +406,7 @@ def Data_to_forcefield (df,number_lipids,force_field,merge_lipids):
     rounded_df_grouped = pd.concat([grouped_df,sums],axis=0)
 
     # Filter out rows with classes not in the membrane
-    df_membrane = df.loc[df['class'].isin(classes_to_filter)]
+    df_membrane = df_copy.loc[df_copy['class'].isin(classes_to_filter)]
     
     # Find the species with the highest concentration for each class
     common_species = df_membrane.loc[df_membrane.groupby('class')['concentration'].idxmax()][['class', 'Species']]
