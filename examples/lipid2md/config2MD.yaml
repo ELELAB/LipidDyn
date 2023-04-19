@@ -792,11 +792,11 @@ charmm36 :
                                 ['DLiPC','PC(18:2(9Z,12Z)/18:2(9Z,12Z))','PC'],
                                 ['DHPCE','PC(O-16:0/O-16:0)' ,'PC O-'], # alkyl ether not on Lipidmaps
                                 ['DMPCE','PC(O-14:0/O-14:0)' ,'PC O-'], # alkyl ether not on Lipidmaps
-                                ['DOPCE','PC(O-18:1(9Z)/O-18:1(9Z))' ,'PC -O'], # alkyl ether not on Lipidmaps
+                                ['DOPCE','PC(O-18:1(9Z)/O-18:1(9Z))' ,'PC O-'], # alkyl ether not on Lipidmaps
                                 ['POPCE','PC(O-16:0/O-18:1(9Z))' ,'PC O-'], # alkyl ether not on Lipidmaps
-                                ['PLC18(PC)','PC(P-18:0/18:1(9Z))','PC'], #plasmalogen
-                                ['PLC20(PC)','PC(P-18:0/20:4(5Z,8Z,11Z,14Z))','PC'], #plasmalogen
-                                ['PLC22(PC)','PC(P-18:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PC'], #plasmalogen
+                                ['PLC18(PC)','PC(P-18:0/18:1(9Z))','PC O-'], #plasmalogen
+                                ['PLC20(PC)','PC(P-18:0/20:4(5Z,8Z,11Z,14Z))','PC O-'], #plasmalogen
+                                ['PLC22(PC)','PC(P-18:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PC O-'], #plasmalogen
                                 ['PLEPC','PC(16:0/18:3(9Z,12Z,15Z))','PC'],
                                 ['PAPC','PC(16:0/:20:4(5Z,8Z,11Z,14Z))','PC'],
                                 ['PDOPC','PC(16:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PC'],
@@ -836,8 +836,8 @@ charmm36 :
                                  ['DOPEE','PE(O-18:1(9Z)/O-18:1(9Z))','PE O-'], # alkyl ether not on Lipidmaps
                                  ['DPPEE','PE(O-16:0/O-16:0)','PE O-'], # alkyl ether not on Lipidmaps
                                  ['POPEE','PE(O-16:0/O-18:1(9Z))','PE O-'], # alkyl ether not on Lipidmaps
-                                 ['PLA18','PE(P-18:0/18:1(9Z))','PE'],   #plasmalogen
-                                 ['PLA20','PE(P-18:0/20:4(5Z,8Z,11Z,14Z))','PE'], #plasmalogen
+                                 ['PLA18','PE(P-18:0/18:1(9Z))','PE O-'],   #plasmalogen
+                                 ['PLA20','PE(P-18:0/20:4(5Z,8Z,11Z,14Z))','PE O-'], #plasmalogen
                                  ['PLEPE','PE(16:0/18:3(9Z,12Z,15Z))','PE'],
                                  ['PAPE','PE(16:0/20:4(5Z,8Z,11Z,14Z))','PE'],
                                  ['PDOPE','PE(16:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PE'],
