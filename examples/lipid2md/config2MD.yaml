@@ -1158,8 +1158,26 @@ charmm36 :
                       ['CER220','Cer(d18:1/22:0)','Cer'],
                       ['CER240','Cer(d18:1/24:0)','Cer'],
                       ['CER241','Cer(d18:1/24:1(15Z))','Cer'],
-                      ['CER3E','Cer(d18:2(4E,8E)(9Me)/18:1(3E)(2OH))','Cer']] # not on Lipidmaps
-    
+                      ['CER3E','Cer(d18:2(4E,8E)(9Me)/18:1(3E)(2OH))','Cer'], # not on Lipidmaps
+                      ['NA','HexCer 32:0;O2', 'HexCer'],
+                      ['NA','HexCer 34:0;O2','HexCer'],
+                      ['NA','HexCer 34:1;O2','HexCer'],
+                      ['NA','HexCer 34:2;O2','HexCer'],
+                      ['NA','HexCer 34:3;O3','HexCer'],
+                      ['NA','HexCer 36:0;O2','HexCer'],
+                      ['NA','HexCer 36:1;O2','HexCer'],
+                      ['NA','HexCer 38:2;O2','HexCer'],
+                      ['NA','HexCer 40:1;O2','HexCer'],
+                      ['NA','Hex2Cer 40:1;O2','diHexCer'],
+                      ['NA','HexCer 42:1;O2','HexCer'],
+                      ['NA','Hex2Cer 42:1;O2','diHexCer'],
+                      ['NA','HexCer 42:2;O2','HexCer'],
+                      ['NA','Hex2Cer 42:2;O2','diHexCer'],
+                      ['NA','Hex3Cer 34:1;O2','triHexCer'],
+                      ['NA','Hex3Cer 42:1;O2','triHexCer'],
+                      ['NA','Hex3Cer 42:2;O2','triHexCer'],
+                      ['NA','Hex3Cer 44:2;O2','triHexCer']]
+  
     # Bacterial Lipids: 
     #                 [['MAIPC','14:0/1ME14:0'],
     #                 ['MAIPG','14:0/1ME14:0'],

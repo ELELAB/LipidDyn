@@ -355,17 +355,17 @@ def Data_to_forcefield (df,number_lipids,force_field,merge_lipids):
     force_field: string
                  Name of the forcefield applied
     merge_lipids: bool
-                Wether or not ether lipids should be merged
+                Wether or not PCO- PEO- HexCer and diHexCer lipids should be merged
                 with related lipids, which are available in the force field
  """
-
     df_copy = df.copy()
 
     # If user chose to avoid PCO- and PEO- lipids
     if merge_lipids:
         df['class'].replace('PC O-', 'PC', inplace=True)
         df['class'].replace('PE O-', 'PE', inplace=True)
-
+        df['class'].replace('HexCer', 'Cer', inplace=True)
+        df['class'].replace('diHexCer', 'Cer', inplace=True)
 
     #Temporarily drop duplicates to calculate relative abundances
     data_unique = df.copy()
