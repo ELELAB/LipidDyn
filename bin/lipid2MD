@@ -215,6 +215,32 @@ def find_match_ff(dataset,
         except:
             continue
 
+        try:
+             #Add classes to all species including species not in the cg force field
+            for lipid_class in def_lipids['charmm36']:
+                for lipid_species in def_lipids['charmm36'][lipid_class]:
+                    ffs_chain1 = lipid_species[1].rstrip()
+                    class_lipid = lipid_species[2].rstrip()
+                 # check if the ffs defition correspond to lipidmaps
+                    if ffs_chain1 == name:
+                        match.append([lm_id,
+                                      name,
+                                      abbrev,
+                                      'NA',
+                                      'NA',
+                                      class_lipid])
+                    elif ffs_chain1 == abbrev:
+                        match.append([lm_id,
+                                      name,
+                                      abbrev,
+                                      'NA',
+                                      'NA',
+                                      class_lipid])
+                    else:
+                        continue
+        except:
+            continue
+
     # generate a dataframe out of all matches
     df = pd.DataFrame(match,
                       columns=['lm_id',
@@ -317,6 +343,95 @@ def find_match_ff(dataset,
     return (df_merged)
 
 
+def Data_to_forcefield (df,number_lipids,force_field,merge_lipids):
+
+    """ Parameters
+    -------------
+    lipid2md_file : pd.DataFrame
+                    the output of find_match_ff
+    number_lipids : Int
+                    Desired number of lipids in MD simulation
+                    (provided by user, else a default value of 1000)
+    force_field: string
+                 Name of the forcefield applied
+    merge_lipids: bool
+                Wether or not PCO- PEO- HexCer and diHexCer lipids should be merged
+                with related lipids, which are available in the force field
+ """
+    df_copy = df.copy()
+
+    # If user chose to avoid PCO- and PEO- lipids
+    if merge_lipids:
+        df['class'].replace('PC O-', 'PC', inplace=True)
+        df['class'].replace('PE O-', 'PE', inplace=True)
+        df['class'].replace('HexCer', 'Cer', inplace=True)
+        df['class'].replace('diHexCer', 'Cer', inplace=True)
+
+    #Temporarily drop duplicates to calculate relative abundances
+    data_unique = df.copy()
+    data_unique = data_unique.drop_duplicates(subset=["class", "Species"])
+
+
+    # Calculate relative abundance (%)
+    data_unique['relative abundance %'] = data_unique['concentration'] *100/ data_unique['concentration'].sum()
+
+    # Make new list  with lipid classes and their relative abundances
+    # Relative abundance of each class takes species duplicates into account
+    grouped_df = data_unique.groupby("class")["relative abundance %"].sum()
+
+    #Include only classes that are known to be in membrane
+    classes_to_filter = ["Cer","Chol","DAG","HexCer","PA","PC","PC O-","PE","PE O-","PG","PI","PS","SM"]
+    class_present = [row for row in grouped_df.index if row in classes_to_filter]
+    if class_present:
+        grouped_df=grouped_df.filter(class_present)
+
+    #Convert to df
+    grouped_df=grouped_df.to_frame()
+
+
+    #Correct to make sum of rel abundances reach 100%
+    #Because NA's and some non-membrane classes are excluded, this should be accounted for.
+    grouped_df['adjusted_relative']= grouped_df*100/(grouped_df.sum())
+
+
+    #Convert to number of lipids
+    grouped_df['number_of_lipids'] = number_lipids*grouped_df['adjusted_relative']/100
+
+    #round the number to integer
+    grouped_df['rounded_number_of_lipids'] = round(grouped_df['number_of_lipids'])
+
+    #Add row to represent sum
+    sums = pd.DataFrame({"Sum": grouped_df.sum()})
+    sums = sums.T
+    rounded_df_grouped = pd.concat([grouped_df,sums],axis=0)
+
+    # Filter out rows with classes not in the membrane
+    df_membrane = df_copy.loc[df_copy['class'].isin(classes_to_filter)]
+    
+    # Find the species with the highest concentration for each class
+    common_species = df_membrane.loc[df_membrane.groupby('class')['concentration'].idxmax()][['class', 'Species']]
+    common_species = common_species.set_index('class')
+
+    # Merge the common_species and df_membrane dataframes on the common column "Species"
+    merged_df = pd.merge(common_species, df_membrane[['Species', force_field]].drop_duplicates(), on='Species', how='left')
+    merged_df = merged_df.drop(merged_df[merged_df[force_field] == 'NA'].index)
+
+
+    # Group the resulting dataframe by "Species" and aggregate the "forcefield" values using join
+    forcefield_df = merged_df.groupby('Species')[force_field].apply(lambda x: ', '.join(x.dropna())).reset_index()
+
+    # Join the most common lipids dataframe with grouped_df
+    final_df_grouped = rounded_df_grouped.join(common_species)
+
+    final_df_grouped = pd.merge(final_df_grouped, forcefield_df, on="Species", how='left')
+    final_df_grouped = final_df_grouped.rename(columns={force_field: f"Matches in {force_field}"})
+    final_df_grouped = final_df_grouped.merge(df_membrane[['Species','class']].drop_duplicates(), on='Species', how='left')
+    final_df_grouped.set_index('class', inplace=True)
+    final_df_grouped = final_df_grouped.rename(columns={"Species": "most common lipid"})
+
+    return final_df_grouped
+
+
 def output(df,
            out_name):
     """Parameters
@@ -332,8 +447,7 @@ def output(df,
 
 
 def output_grouped(df,
-                   out_name_grouped,
-                   force_field):
+                   out_name_grouped):
     """Parameters
     -------------
     df : pd.DataFrame object
@@ -381,6 +495,17 @@ def output_grouped(df,
 
     df.to_csv(out_name_grouped + "_grouped.csv", index=False)
 
+def common_lipid_out(df,
+                    out_name):
+    """Parameters
+        -------------
+        df : pd.DataFrame object
+             dataset of the lipid classes with correspoding
+             elements in force field and most common lipid
+        out_name : string
+        Output name of the file
+    """
+    df.to_csv(out_name + "_class.csv", index=True)
 
 if __name__ == '__main__':
 
@@ -443,6 +568,22 @@ if __name__ == '__main__':
                         metavar='',
                         help='Grouped output name'
                         )
+    parser.add_argument('-l',
+                        '--number_lipid',
+                        dest='no_lipid',
+                        type=int,
+                        required=False,
+                        metavar='',
+                        help='Number of lipids in forcefield'
+                        )
+
+    parser.add_argument('-m',
+                        '--merge_ether_lipids',
+                        dest='merge_lipids',
+                        required=False,
+                        action='store_true',
+                        help='Merge ether lipids with lipids available in forcefield',
+                        )
 
     args = parser.parse_args()
 
@@ -454,6 +595,8 @@ if __name__ == '__main__':
     coarse_grained2 = args.cg2
     out_name = args.out
     out_name_grouped = args.out_group
+    number_lipids = args.no_lipid
+    merge_ether_lipids = args.merge_lipids
 
     logging.basicConfig(filename='lipid2MD.log',
                         level=logging.INFO,
@@ -494,24 +637,34 @@ if __name__ == '__main__':
     if coarse_grained2:
         force_field = 'martini2'
 
+    if number_lipids:
+        number_lipids = number_lipids
+    else:
+        number_lipids = 1000
+
+    if merge_ether_lipids:
+        merge_lipids = True
+    else:
+        merge_lipids = False
+
     df = find_match_ff(original_data,
                        parsed_yaml,
                        filtered_dataset,
                        force_field)
+    
+    final_df_grouped = Data_to_forcefield(df, number_lipids, force_field,merge_lipids)
+
     if out_name:
         output(df,
                out_name)
+        common_lipid_out(final_df_grouped,
+                out_name)
     elif out_name_grouped:
         output_grouped(df,
-                       out_name_grouped,
-                       force_field)
+                       out_name_grouped)
+        common_lipid_out(final_df_grouped,
+                out_name_grouped)
     else:
         logging.warning("Output name not selected. Please select.")
-
-
-
-
-
-
 
 

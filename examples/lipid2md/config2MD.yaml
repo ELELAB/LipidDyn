@@ -508,7 +508,49 @@ martini2 :
                                 ["DVPS","PS(16:1(9Z)-18:1(9Z)/16:1(9Z)-18:1(9Z))","PS"],
                                 ["DXPS","PS(24:0-26:0/24:0-26:0)","PS"],
                                 ["DYPS","PS(12:1-14:1(9Z)/12:1-14:1(9Z))","PS"]]                             
-                  
+    PI :
+                            [['DPP1','PI(16:0-18:0/16:0-18:0)','PI' ],
+                            ['DPP2','PI(16:0-18:0/16:0-18:0)','PI' ], 
+                            ['DPPI','PI(16:0-18:0/16:0-18:0)','PI'],
+                            ['PAPI','PI(16:0-18:0/20:4(5Z,8Z,11Z,14Z)-22:5)','PI'], 
+                            ['PIPI','PI(16:0-18:0/18:2(9Z,12Z))','PI'], 
+                            ['POP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI'], 
+                            ['POP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PUPI','PI(16:0-18:0/20:5(5Z,8Z,11Z,14Z,17Z)-22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PI'], 
+                            ['PVP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI']]    
+    ST :
+                                [['CHOL', 'Cholesterol','Chol'],
+                                ['CHOA' ,'Cholate','ST'],
+                                ['CHYO','Cholesteryl oleate','ST'], #not in lipid maps
+                                ['ERGO','Ergosterol','ST'],
+                                ['HBHT','bacteriohopanetetrol','ST']  ,
+                                ['HDPT','diploptene','ST']  ,
+                                ['HHOP' ,'hopane','ST'], #not in lipid maps
+                                ['HOPR','hopanoid polycyclic group','ST']] #not in lipid maps
+
+    Cer :
+                                [['DPCE','Cer(d16:1-d18:1/16:0-18:0)','Cer'], 
+                                ['DXCE','C(d24:1-26:1/24:0-26:0)','Cer'], #not in lipid maps
+                                ['PNCE','Cer(d16:1-d18:1/24:1(15Z)-26:1(17Z))','Cer'],
+                                ['XNCE','C(d24:1-26:1/24:1-26:1) ','Cer']] #not in lipid maps
+
+    SM :
+                     [['DPSM','SM(d16:1-d18:1/16:0-18:0)','SM'],
+                     ['DBSM','SM(d20:1-d22:1/20:0-22:0)','SM'], #not in lipid maps
+                     ['DXSM','SM(d24:1-d26:1/24:0-26:0)','SM'], #not in lipid maps
+                     ['PVSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['POSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['PGSM','SM(d16:1-d18:1/20:1-22:1)','SM'],
+                     ['PNSM','SM(d16:1-d18:1/24:1(15Z)-26:1(17Z))','SM'], 
+                     ['BNSM','SM(d20:1-d22:1/24:1-26:1)','SM'], #not in lipid maps
+                     ['XNSM','SM(d24:1-d26:1/24:1-26:1)','SM']] #not in lipid maps
+
+
 # Martini 3 CG lipid definition
 martini3 :
     PA (phosphatidic acid) : [["LPPA","PA(12:0-14:0/16:0-18:0)","PA"],
@@ -634,6 +676,49 @@ martini3 :
                                 ["DXPS","PS(24:0-26:0/24:0-26:0)","PS"],
                                 ["DYPS","PS(12:1-14:1(9Z)/12:1-14:1(9Z))","PS"]]
 
+    PI :
+                            [['DPP1','PI(16:0-18:0/16:0-18:0)','PI' ],
+                            ['DPP2','PI(16:0-18:0/16:0-18:0)','PI' ], 
+                            ['DPPI','PI(16:0-18:0/16:0-18:0)','PI'],
+                            ['PAPI','PI(16:0-18:0/20:4(5Z,8Z,11Z,14Z)-22:5)','PI'], 
+                            ['PIPI','PI(16:0-18:0/18:2(9Z,12Z))','PI'], 
+                            ['POP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI'], 
+                            ['POP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['POPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PUPI','PI(16:0-18:0/20:5(5Z,8Z,11Z,14Z,17Z)-22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PI'], 
+                            ['PVP1','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP2','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVP3','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI' ], 
+                            ['PVPI','PI(16:0-18:0/16:1(9Z)-18:1(9Z))','PI']]
+
+    ST :
+                                [['CHOL', 'Cholesterol','Chol'],
+                                ['CHOA' ,'Cholate','ST'],
+                                ['CHYO','Cholesteryl oleate','ST'], #not in lipid maps
+                                ['ERGO','Ergosterol','ST'],
+                                ['HBHT','bacteriohopanetetrol','ST']  ,  
+                                ['HDPT','diploptene','ST']  , 
+                                ['HHOP' ,'hopane','ST'], #not in lipid maps
+                                ['HOPR','hopanoid polycyclic group','ST']] #not in lipid maps
+    Cer :
+                                [['DPCE','Cer(d16:1-d18:1/16:0-18:0)','Cer'],
+                                ['DXCE','C(d24:1-26:1/24:0-26:0)','Cer'], #not in lipid maps
+                                ['PNCE','Cer(d16:1-d18:1/24:1(15Z)-26:1(17Z))','Cer'],
+                                ['XNCE','C(d24:1-26:1/24:1-26:1) ','Cer']] #not in lipid maps
+
+
+    SM :
+                     [['DPSM','SM(d16:1-d18:1/16:0-18:0)','SM'],
+                     ['DBSM','SM(d20:1-d22:1/20:0-22:0)','SM'], #not in lipid maps
+                     ['DXSM','SM(d24:1-d26:1/24:0-26:0)','SM'], #not in lipid maps
+                     ['PVSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['POSM','SM(d16:1-d18:1/16:1-18:1)','SM'], 
+                     ['PGSM','SM(d16:1-d18:1/20:1-22:1)','SM'], 
+                     ['PNSM','SM(d16:1-d18:1/24:1(15Z)-26:1(17Z))','SM'], 
+                     ['BNSM','SM(d20:1-d22:1/24:1-26:1)','SM'], #not in lipid maps
+                     ['XNSM','SM(d24:1-d26:1/24:1-26:1)','SM']] #not in lipid maps
+
 charmm36 : 
 
     ST : 
@@ -705,13 +790,13 @@ charmm36 :
                                 ['DEPC','PC(22:1(13Z)/22:1(13Z))','PC'], 
                                 ['DNPC','PC(24:1(15Z)/24:1(15Z))','PC'], 
                                 ['DLiPC','PC(18:2(9Z,12Z)/18:2(9Z,12Z))','PC'],
-                                ['DHPCE','PC(O-16:0/O-16:0)' ,'PC'], # alkyl ether not on Lipidmaps
-                                ['DMPCE','PC(O-14:0/O-14:0)' ,'PC'], # alkyl ether not on Lipidmaps
-                                ['DOPCE','PC(O-18:1(9Z)/O-18:1(9Z))' ,'PC'], # alkyl ether not on Lipidmaps
-                                ['POPCE','PC(O-16:0/O-18:1(9Z))' ,'PC'], # alkyl ether not on Lipidmaps
-                                ['PLC18(PC)','PC(P-18:0/18:1(9Z))','PC'], #plasmalogen
-                                ['PLC20(PC)','PC(P-18:0/20:4(5Z,8Z,11Z,14Z))','PC'], #plasmalogen
-                                ['PLC22(PC)','PC(P-18:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PC'], #plasmalogen
+                                ['DHPCE','PC(O-16:0/O-16:0)' ,'PC O-'], # alkyl ether not on Lipidmaps
+                                ['DMPCE','PC(O-14:0/O-14:0)' ,'PC O-'], # alkyl ether not on Lipidmaps
+                                ['DOPCE','PC(O-18:1(9Z)/O-18:1(9Z))' ,'PC O-'], # alkyl ether not on Lipidmaps
+                                ['POPCE','PC(O-16:0/O-18:1(9Z))' ,'PC O-'], # alkyl ether not on Lipidmaps
+                                ['PLC18(PC)','PC(P-18:0/18:1(9Z))','PC O-'], #plasmalogen
+                                ['PLC20(PC)','PC(P-18:0/20:4(5Z,8Z,11Z,14Z))','PC O-'], #plasmalogen
+                                ['PLC22(PC)','PC(P-18:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PC O-'], #plasmalogen
                                 ['PLEPC','PC(16:0/18:3(9Z,12Z,15Z))','PC'],
                                 ['PAPC','PC(16:0/:20:4(5Z,8Z,11Z,14Z))','PC'],
                                 ['PDOPC','PC(16:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PC'],
@@ -747,12 +832,12 @@ charmm36 :
                                  ['DEPE','PE(22:1(13Z)/22:1(13Z))','PE'], # not in lipidmaps
                                  ['DNPE','PE(24:1(15Z)/24:1(15Z))','PE'], # not in lipidmaps
                                  ['DLiPE','PE(18:2(9Z,12Z)/18:2(9Z,12Z))','PE'],
-                                 ['DMPEE','PE(O-14:0/O-14:0)' ,'PE'], # alkyl ether not on Lipidmaps
-                                 ['DOPEE','PE(O-18:1(9Z)/O-18:1(9Z))','PE' ], # alkyl ether not on Lipidmaps
-                                 ['DPPEE','PE(O-16:0/O-16:0)','PE' ], # alkyl ether not on Lipidmaps
-                                 ['POPEE','PE(O-16:0/O-18:1(9Z))','PE' ], # alkyl ether not on Lipidmaps
-                                 ['PLA18','PE(P-18:0/18:1(9Z))','PE'],   #plasmalogen
-                                 ['PLA20','PE(P-18:0/20:4(5Z,8Z,11Z,14Z))','PE'], #plasmalogen
+                                 ['DMPEE','PE(O-14:0/O-14:0)' ,'PE O-'], # alkyl ether not on Lipidmaps
+                                 ['DOPEE','PE(O-18:1(9Z)/O-18:1(9Z))','PE O-'], # alkyl ether not on Lipidmaps
+                                 ['DPPEE','PE(O-16:0/O-16:0)','PE O-'], # alkyl ether not on Lipidmaps
+                                 ['POPEE','PE(O-16:0/O-18:1(9Z))','PE O-'], # alkyl ether not on Lipidmaps
+                                 ['PLA18','PE(P-18:0/18:1(9Z))','PE O-'],   #plasmalogen
+                                 ['PLA20','PE(P-18:0/20:4(5Z,8Z,11Z,14Z))','PE O-'], #plasmalogen
                                  ['PLEPE','PE(16:0/18:3(9Z,12Z,15Z))','PE'],
                                  ['PAPE','PE(16:0/20:4(5Z,8Z,11Z,14Z))','PE'],
                                  ['PDOPE','PE(16:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))','PE'],
@@ -1073,8 +1158,26 @@ charmm36 :
                       ['CER220','Cer(d18:1/22:0)','Cer'],
                       ['CER240','Cer(d18:1/24:0)','Cer'],
                       ['CER241','Cer(d18:1/24:1(15Z))','Cer'],
-                      ['CER3E','Cer(d18:2(4E,8E)(9Me)/18:1(3E)(2OH))','Cer']] # not on Lipidmaps
-    
+                      ['CER3E','Cer(d18:2(4E,8E)(9Me)/18:1(3E)(2OH))','Cer'], # not on Lipidmaps
+                      ['NA','HexCer 32:0;O2', 'HexCer'],
+                      ['NA','HexCer 34:0;O2','HexCer'],
+                      ['NA','HexCer 34:1;O2','HexCer'],
+                      ['NA','HexCer 34:2;O2','HexCer'],
+                      ['NA','HexCer 34:3;O3','HexCer'],
+                      ['NA','HexCer 36:0;O2','HexCer'],
+                      ['NA','HexCer 36:1;O2','HexCer'],
+                      ['NA','HexCer 38:2;O2','HexCer'],
+                      ['NA','HexCer 40:1;O2','HexCer'],
+                      ['NA','Hex2Cer 40:1;O2','diHexCer'],
+                      ['NA','HexCer 42:1;O2','HexCer'],
+                      ['NA','Hex2Cer 42:1;O2','diHexCer'],
+                      ['NA','HexCer 42:2;O2','HexCer'],
+                      ['NA','Hex2Cer 42:2;O2','diHexCer'],
+                      ['NA','Hex3Cer 34:1;O2','triHexCer'],
+                      ['NA','Hex3Cer 42:1;O2','triHexCer'],
+                      ['NA','Hex3Cer 42:2;O2','triHexCer'],
+                      ['NA','Hex3Cer 44:2;O2','triHexCer']]
+  
     # Bacterial Lipids: 
     #                 [['MAIPC','14:0/1ME14:0'],
     #                 ['MAIPG','14:0/1ME14:0'],
@@ -1204,4 +1307,155 @@ charmm36 :
                 ['TPAP','9Z,12Z,15Z,18Z,21Z-tetracosapentaenoic acid' ,'FA'],
                 ['THAP','THA','FA']]
     
-
+    Missing lipids:
+                [
+                        ['NA','PA(18:0/18:3(9Z,12Z,15Z))','PA'],
+                        ['NA','PA(20:1(11Z)/18:2(9Z,12Z))','PA'],
+                        ['NA','Cer(d18:1/14:0)','Cer'],
+                        ['NA','Cer(d18:0/16:0)','Cer'],
+                        ['NA','Cer(d18:1/16:0)','Cer'],
+                        ['NA','Cer(d16:2(4E,6E)/18:0)','Cer'],
+                        ['NA','Cer(d14:1/22:0)','Cer'],
+                        ['NA','Cer(d14:2(4E,6E)/22:1(13Z))','Cer'],
+                        ['NA','Cer(d18:1/22:0)','Cer'],
+                        ['NA','Cer(d18:1/24:0)','Cer'],
+                        ['NA','Cer(d18:1/24:1(15Z))','Cer'],
+                        ['NA','Cer 42:3;2','Cer'],
+                        ['NA','Cer(d18:1/26:0)','Cer'],
+                        ['NA','Cer 44:3;2','Cer'],
+                        ['NA','5beta-cholestanone' ,'Chol'],
+                        ['NA','NA','GM'],
+                        ['NA','GM3(d18:1/16:0)','GM'],
+                        ['NA','GlcCer(d18:0/14:0)','HexCer'],
+                        ['NA','GlcCer(d18:0/16:0)','HexCer'],
+                        ['NA','GalCer(d18:1/16:0)','HexCer'],
+                        ['NA','GlcCer(d18:1/22:0)','HexCer'],
+                        ['NA','GalCer(d18:1/24:0)','HexCer'],
+                        ['NA','GlcCer(d18:1/24:1(15Z))','HexCer'],
+                        ['NA','PA(0:0/16:0)','LPA'],
+                        ['NA','PA(18:0/0:0)','LPA'],
+                        ['NA','PC(14:0/0:0)','LPC'],
+                        ['NA','PC(0:0/16:0)','LPC'],
+                        ['NA','PC(16:1(9Z)/0:0)','LPC'],
+                        ['NA','PC(18:1(9Z)/0:0)[rac]','LPC'],
+                        ['NA','PC(18:2(2E,4E)/0:0)','LPC'],
+                        ['NA', 'PC(O-16:0/0:0)', 'LPCO-'],
+                        ['NA', 'PC(P-16:0/0:0)', 'LPCO-'],
+                        ['NA', 'PC(O-18:1(9Z)/0:0)', 'LPCO-'],
+                        ['NA', 'PC(P-18:1(9Z)/0:0)', 'LPCO-'],
+                        ['NA', 'LPCO- 20:3', 'LPCO-'],
+                        ['NA', 'LPCO- 22:4', 'LPCO-'],
+                        ['NA', 'PE(16:0/0:0)', 'LPE'],
+                        ['NA', 'PE(0:0/16:1(9Z))', 'LPE'],
+                        ['NA', 'PE(18:0/0:0)', 'LPE'],
+                        ['NA', 'PE(18:1(11Z)/0:0)', 'LPE'],
+                        ['NA', 'PE(0:0/18:2(9Z,12Z))', 'LPE'],
+                        ['NA', 'PE(0:0/20:1(11Z))', 'LPE'],
+                        ['NA', 'PE(0:0/20:3(11Z,14Z,17Z))', 'LPE'],
+                        ['NA', 'PE(20:4(5Z,8Z,11Z,14Z)/0:0)', 'LPE'], 
+                        ['NA', 'PE(0:0/20:5(5Z,8Z,11Z,14Z,17Z))', 'LPE'], 
+                        ['NA', 'PE(0:0/22:2(13Z,16Z))', 'LPE'],
+                        ['NA', 'PE(22:4(7Z,10Z,13Z,16Z)/0:0)', 'LPE'],
+                        ['NA', 'PE(22:5(4Z,7Z,10Z,13Z,16Z)/0:0)', 'LPE'],
+                        ['NA', 'PE(0:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))', 'LPE'],
+                        ['NA', 'LPEO- 16:1', 'LPE O-'],
+                        ['NA', 'LPEO- 18:2', 'LPE O-'],
+                        ['NA', 'LPEO- 20:1', 'LPE O-'],
+                        ['NA', 'LPEO- 20:1', 'LPE O-'],
+                        ['NA', 'PG(16:0/0:0)', 'LPG'], 
+                        ['NA', 'PI(16:0/0:0)', 'LPI'], 
+                        ['NA', 'PI(16:1(9Z)/0:0)', 'LPI'], 
+                        ['NA', 'PI(18:0/0:0)', 'LPI'], 
+                        ['NA', 'PI(18:1(9Z)/0:0)', 'LPI'], 
+                        ['NA', 'PI(20:4(5Z,8Z,11Z,14Z)/0:0)', 'LPI'], 
+                        ['NA', 'PS(18:0/0:0)', 'LPS'],
+                        ['NA', 'PA(O-18:0/14:0)', 'PA O-'], 
+                        ['NA', 'PC(17:1(9Z)/13:0)', 'PC'], 
+                        ['NA', 'PC(18:3(9Z,12Z,15Z)/14:0)', 'PC'], 
+                        ['NA', 'PC(14:1(9Z)/20:2(11Z,14Z))', 'PC'], 
+                        ['NA', 'PC(20:3(8Z,11Z,14Z)/14:1(9Z))', 'PC'], 
+                        ['NA', 'PC(14:0/20:5(5Z,8Z,11Z,14Z,17Z))', 'PC'], 
+                        ['NA', 'PC(20:2(11Z,14Z)/16:1(9Z))', 'PC'], 
+                        ['NA', 'PC(18:3(9Z,12Z,15Z)/20:0)', 'PC'], 
+                        ['NA', 'PC(20:3(8Z,11Z,14Z)/18:4(6Z,9Z,12Z,15Z))', 'PC'], 
+                        ['NA', 'PC(20:0/20:3(11Z,14Z,17Z))', 'PC'], 
+                        ['NA', 'PC(20:2(11Z,14Z)/20:2(11Z,14Z))', 'PC'], 
+                        ['NA', 'PC(20:5(5Z,8Z,11Z,14Z,17Z)/20:2(11Z,14Z))', 'PC'], 
+                        ['NA', 'PC(20:1(13E)/22:0)', 'PC'], 
+                        ['NA', 'PC(20:3(8Z,11Z,14Z)/22:0)', 'PC'], 
+                        ['NA', 'PC(22:2(13Z,16Z)/20:5(5Z,8Z,11Z,14Z,17Z))', 'PC'], 
+                        ['NA', 'PC(22:6(4Z,7Z,10Z,13Z,16Z,19Z)/20:3(8Z,11Z,14Z))', 'PC'], 
+                        ['NA', 'PC(22:2(13Z,16Z)/22:1(11Z))', 'PC'], 
+                        ['NA', 'PCO- 28:0', 'PC O-'], 
+                        ['NA','PCO- 30:0', 'PC O-'], 
+                        ['NA','PCO- 30:1', 'PC O-'], 
+                        ['NA', 'PC(O-18:0/14:0)', 'PC O-'], 
+                        ['NA','PCO- 32:1', 'PC O-'], 
+                        ['NA','PCO- 32:2', 'PC O-'], 
+                        ['NA', 'PC(O-16:0/18:1(9Z))', 'PC O-'], 
+                        ['NA', 'PC(P-16:0/18:1(9Z))', 'PC O-'], 
+                        ['NA', 'PC(O-16:0/18:3(9Z,12Z,15Z))', 'PC O-'], 
+                        ['NA', 'PC(O-16:0/20:1(11Z))', 'PC O-'], 
+                        ['NA', 'PC(P-18:0/18:1(9Z))', 'PC O-'], 
+                        ['NA','PCO- 36:3', 'PC O-'], 
+                        ['NA','PCO- 36:4', 'PC O-'], 
+                        ['NA', 'PC(O-18:0/20:1(9Z))', 'PC O-'], 
+                        ['NA','PCO- 38:2', 'PC O-'], 
+                        ['NA','PCO- 38:3', 'PC O-'], 
+                        ['NA', 'PC(O-18:0/20:4(8Z,11Z,14Z,17Z))', 'PC O-'], 
+                        ['NA', 'PC(O-18:1(9Z)/20:4(5Z,8Z,11Z,14Z))', 'PC O-'], 
+                        ['NA','PCO- 38:6', 'PC O-'], 
+                        ['NA', 'PCO- 44:3', 'PC O-'], 
+                        ['NA', 'PCO- 44:4', 'PC O-'], 
+                        ['NA', 'PC(P-18:0/22:4(7Z,10Z,13Z,16Z))', 'PC O-'],
+                        ['NA', 'PC(O-18:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))', 'PC O-'], 
+                        ['NA', 'PC(P-18:0/22:6(4Z,7Z,10Z,13Z,16Z,19Z))', 'PC O-'], 
+                        ['NA', 'PCO- 42:6', 'PC O-'], 
+                        ['NA', 'PCO- 40:8', 'PC O-'], 
+                        ['NA', 'PCO- 40:1', 'PC O-'], 
+                        ['NA', 'PCO- 38:7', 'PC O-'], 
+                        ['NA', 'PE(12:0/18:1(9Z))', 'PE'], 
+                        ['NA', 'PE(16:0/18:3(9Z,12Z,15Z))', 'PE'], 
+                        ['NA', 'PE(22:2(13Z,16Z)/16:0)', 'PE'], 
+                        ['NA', 'PE(16:1(9Z)/22:6(4Z,7Z,10Z,13Z,16Z,19Z))', 'PE'], 
+                        ['NA', 'PE(18:3(9Z,12Z,15Z)/22:4(7Z,10Z,13Z,16Z))', 'PE'], 
+                        ['NA', 'PE(20:2(11Z,14Z)/22:0)', 'PE'], 
+                        ['NA', 'PE(22:4(7Z,10Z,13Z,16Z)/22:6(4Z,7Z,10Z,13Z,16Z,19Z))', 'PE'], 
+                        ['NA','PEO- 32:2', 'PE O-'], 
+                        ['NA','PEO- 34:2', 'PE O-'],  
+                        ['NA','PEO- 36:5', 'PE O-'], 
+                        ['NA','PEO- 36:6', 'PE O-'], 
+                        ['NA', 'PEO- 36:3', 'PE O-'], 
+                        ['NA','PEO- 38:6', 'PE O-'], 
+                        ['NA','PEO- 38:7', 'PE O-'], 
+                        ['NA', 'PEO- 40:7', 'PE O-'], 
+                        ['NA', 'PEO- 40:8', 'PE O-'], 
+                        ['NA', 'PI(15:1(9Z)/15:0)', 'PI'], 
+                        ['NA', 'PI(14:0/18:1(9Z))', 'PI'], 
+                        ['NA', 'PI(15:0/17:2(9Z,12Z))', 'PI'], 
+                        ['NA', 'PI(20:0/14:1(9Z))', 'PI'], 
+                        ['NA', 'PI(16:0/18:2(9Z,12Z))', 'PI'], 
+                        ['NA', 'PI(16:0/18:3(9Z,12Z,15Z))', 'PI'], 
+                        ['NA', 'PI(16:1(9Z)/20:0)', 'PI'], 
+                        ['NA', 'PI(14:0/22:2(13Z,16Z))', 'PI'], 
+                        ['NA', 'PI(18:1(9Z)/18:2(9Z,12Z))', 'PI'], 
+                        ['NA', 'PI(18:1(9Z)/18:3(9Z,12Z,15Z))', 'PI'], 
+                        ['NA', 'PI(18:1(9Z)/18:4(6Z,9Z,12Z,15Z))', 'PI'], 
+                        ['NA', 'PI(22:1(11Z)/16:0)', 'PI'], 
+                        ['NA', 'PI(22:1(11Z)/16:1(9Z))', 'PI'],
+                        ['NA', 'PI(18:3(9Z,12Z,15Z)/20:0)', 'PI'], 
+                        ['NA', 'PI(20:4(5Z,8Z,11Z,14Z)/18:0)', 'PI'], 
+                        ['NA', 'PI(18:1(9Z)/20:4(5Z,8Z,11Z,14Z))', 'PI'], 
+                        ['NA', 'PI(18:4(6Z,9Z,12Z,15Z)/20:2(11Z,14Z))', 'PI'], 
+                        ['NA', 'PI(18:1(9Z)/22:1(11Z))', 'PI'], 
+                        ['NA', 'PI(18:3(6Z,9Z,12Z)/22:2(13Z,16Z))', 'PI'], 
+                        ['NA', 'PI(20:2(11Z,14Z)/20:4(5Z,8Z,11Z,14Z))', 'PI'], 
+                        ['NA', 'PI(20:2(11Z,14Z)/20:5(5Z,8Z,11Z,14Z,17Z))', 'PI'], 
+                        ['NA', 'SM(d18:0/14:0)', 'SM'], 
+                        ['NA', 'SM(d16:1/16:0)', 'SM'], 
+                        ['NA', 'SM(d18:0/16:0)', 'SM'], 
+                        ['NA', 'SM(d18:1/16:0)', 'SM'], 
+                        ['NA', 'SM(d18:1/16:1)', 'SM'], 
+                        ['NA', 'SM(d18:2/18:1)', 'SM'], 
+                        ['NA', 'SM(d18:1/24:1(15Z))', 'SM'], 
+                        ['NA', 'SM(d18:2/24:1)', 'SM']]
