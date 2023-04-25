@@ -711,6 +711,62 @@ def module_curvature(universe,
     pbar.finish()
 
 
+def module_interaction(u,
+                       p,
+                       out_dir,
+                       lipid_resnames,
+                       int_doms=None):
+    """
+    Parameters
+    -------------
+    u: MDAnalysis universe class
+        Universe for the system
+    
+    p: MDAnalysis selection group
+        Selection group for the protein from the Universe u
+    
+    out_dir: str
+        Name of the output folder
+    
+    lipid_resnames: iterable of str
+        List-like containing residue names of lipids to perform the analysis
+
+    int_doms: iterable of str
+        List-like containing selection of protein sub-groups to perform the analysis.
+        If the string is of the form X-Y (X and Y being numbers), the range of residue
+        indices (both included) will be selected. If not, the string will be treated
+        as a MDAnalysis selection command. Then all the selections are joined to
+        provide the target protein group.
+
+        N.B. residue indices correspond to the unique index of residues that MDAnalysis
+        assigns (staring by 0). It does not correspond necessarily with residue id or
+        number! This allows differenciating different chains from homopolymers.  
+    """
+
+    # output directory
+    folder = path.abspath(os.path.join(out_dir, 'Interaction'))
+    if not path.exists(folder):
+        try:
+            os.mkdir(folder)
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+    pbar = ProgressBar().start()
+    total_step = 2
+    step = 1
+
+    interaction = prot_lip_interaction(u, p, lipid_resnames, int_doms=int_doms)
+
+    DE = interaction.compute_DE(lipid_resnames)
+    pbar.update((1/total_step)*100)
+    # DE_byres = interaction.compute_DE_byres(lipid_resnames)
+
+    DE.to_csv(path.join(folder, 'd_e.tsv'), sep='\t')
+
+    pbar.finish()
+
+
 def output_check(out_dir, mod_out_dir, out_files):
     '''
     Check that whether if all the output files are present in the
@@ -832,6 +888,13 @@ def main():
                         help='Execute only the enrichment analysis module \
                               of the pipeline'
                        )
+    
+    parser.add_argument('-int',
+                        '--mod_int',
+                        action='store_true',
+                        dest='mod_int',
+                        help='Execute only the interaction analysis module \
+                              of the pipeline')
 
     parser.add_argument('-p',
                         '--protein',
@@ -1037,6 +1100,7 @@ def main():
         args.mod_mov = True
         args.mod_ord = True
         args.mod_curv = True
+        args.mod_int = True
 
     logging.info("Starting now with the calculation, please stand by")
     logging.info(u"\u2622")
@@ -1151,6 +1215,24 @@ def main():
                                    out_dir)
         else:
             logging.info("Analysis: Order Parameter already performed, skipping...")
+        logging.info("--------------------------------------")
+    
+    if args.mod_int:
+        if args.prot:
+            int_doms = parsed_yaml.get('interaction_domains')
+            out_files = ['d_e.tsv']
+            if overwrite or output_check(out_dir, 'Interaction', out_files):
+                logging.info("Analysis: Protein-lipid interaction")
+                module_interaction(u,
+                                p,
+                                out_dir,
+                                lipid_resnames,
+                                int_doms)
+            else:
+                logging.info("Analysis: Order Parameter already performed, skipping...")
+        else:
+            logging.error("Protein-lipid interaction can only be performed on " \
+                          "simulations with proteins embedded in the membrane")
         logging.info("--------------------------------------")
 
     if args.clean :
