@@ -1,0 +1,63 @@
+import sys
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+import argparse
+from LipidDyn.core import *
+import logging
+
+
+def line_plot_d_e(d_e, lipids, out_name):
+    x = d_e['frame']
+    for lipid in lipids:
+        y = d_e[lipid]
+        plt.plot(x, y, linewidth=1, label=lipid)
+    plt.legend()
+    plt.xlabel('Time (ps)')
+    plt.ylabel('Depletion/enrichment factor')
+    plt.savefig(f'{out_name}_line.pdf')
+
+
+def box_plot_d_e(d_e, lipids, out_name):
+    plt.figure()
+    dat = d_e.loc[:, lipids]
+    plt.boxplot(dat, labels=lipids)
+    plt.xlabel('Lipid')
+    plt.ylabel('Depletion/enrichment factor')
+    plt.savefig(f'{out_name}_box.pdf')
+
+
+
+if __name__ == '__main__':
+    description = 'This script plots depletion-enrichment values ' \
+                  'obtained in the protein-interaction module. ' \
+                  'It allows to plot the evolution through the frames' \
+                  'and a boxplot with the distribution of values.'
+
+    parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument('-i', '--input', dest='input',
+                        type=str, required=True,
+                        help='Name of the input file (tsv)')
+
+    parser.add_argument('-l', '--lipids', dest='lipids',
+                        type=str, required=True, nargs='+',
+                        help='Lipid names to plot')
+
+    parser.add_argument('-o', '--output', dest='output',
+                        type=str, required=False,
+                        default='depletion_enrichment',
+                        help='Prefix for the output file name')
+    
+    parser.add_argument('-r', '--byres', dest='byres',
+                        action='store_true', default=False,
+                        help='Whether the input contains d/e factor by residue')
+
+    args = parser.parse_args()
+    d_e = pd.read_csv(args.input, sep='\t', header=0)
+    lipids = args.lipids
+    out_name = args.output
+    byres = args.byres
+
+    line_plot_d_e(d_e, lipids, out_name)
+    box_plot_d_e(d_e, lipids, out_name)
