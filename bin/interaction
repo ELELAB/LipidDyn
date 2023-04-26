@@ -31,7 +31,7 @@ def box_plot_d_e(d_e, lipids, out_name):
 if __name__ == '__main__':
     description = 'This script plots depletion-enrichment values ' \
                   'obtained in the protein-interaction module. ' \
-                  'It allows to plot the evolution through the frames' \
+                  'It allows to plot the evolution through the frames ' \
                   'and a boxplot with the distribution of values.'
 
     parser = argparse.ArgumentParser(description=description)
@@ -53,11 +53,13 @@ if __name__ == '__main__':
                         action='store_true', default=False,
                         help='Whether the input contains d/e factor by residue')
 
+    # Retrieve input
     args = parser.parse_args()
     d_e = pd.read_csv(args.input, sep='\t', header=0)
     lipids = args.lipids
     out_name = args.output
     byres = args.byres
 
+    # Plot
     line_plot_d_e(d_e, lipids, out_name)
     box_plot_d_e(d_e, lipids, out_name)

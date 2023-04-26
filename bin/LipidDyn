@@ -756,12 +756,15 @@ def module_interaction(u,
     total_step = 2
     step = 1
 
+    # Create interaction analysis class
     interaction = prot_lip_interaction(u, p, lipid_resnames, int_doms=int_doms)
 
+    # Perform depletion-enrichment factor calculation
     DE = interaction.compute_DE(lipid_resnames)
     pbar.update((1/total_step)*100)
     # DE_byres = interaction.compute_DE_byres(lipid_resnames)
 
+    # Write ouptut file in the module output folder
     DE.to_csv(path.join(folder, 'd_e.tsv'), sep='\t')
 
     pbar.finish()
