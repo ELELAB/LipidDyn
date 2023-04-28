@@ -32,7 +32,6 @@ import pandas as pd
 import logging
 from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
-import warnings
 from MDAnalysis.analysis.base import AnalysisBase
 import re
 mp.set_start_method("fork")
@@ -891,10 +890,6 @@ def derive_surface(atoms,
                          x_range = (0, max_width_x),
                          y_range = (0, max_width_y)))
 
-mda.start_logging()
-logger = logging.getLogger("MDAnalysis.MDAKit.membrane_curvature")
-
-
 
 def get_z_surface(coordinates, 
                   n_x_bins = 10, 
@@ -945,25 +940,20 @@ def get_z_surface(coordinates,
         try: 
             # negative coordinates
             if l < 0 or m < 0:
-                msg = ("Atom with negative coordinates falls "
-                        "outside grid boundaries. Element "
-                        "({},{}) in grid can't be assigned."
-                        " Skipping atom.").format(l, m)
-                warnings.warn(msg)
-                logger.warning(msg)
-                continue
-
-            grid_z_coordinates[l, m] += z
-            grid_norm_unit[l, m] += 1
+                logging.warning(("Atom with negative coordinates falls " \
+                                "outside grid boundaries. Element " \
+                                "({},{}) in grid can't be assigned." \
+                                " Skipping atom.").format(l, m))
+            else:
+                grid_z_coordinates[l, m] += z
+                grid_norm_unit[l, m] += 1
 
         # too large positive coordinates
         except IndexError:
-            msg = ("Atom coordinates exceed size of grid "
-                    "and element ({},{}) can't be assigned. "
-                    "Maximum (x,y) coordinates must be < ({}, {}). "
-                    "Skipping atom.").format(l, m, x_range[1], y_range[1])
-            warnings.warn(msg)
-            logger.warning(msg)
+            logging.warning(("Atom coordinates exceed size of grid " \
+                            "and element ({},{}) can't be assigned. " \
+                            "Maximum (x,y) coordinates must be < ({}, {}). " \
+                            "Skipping atom.").format(l, m, x_range[1], y_range[1]))
 
     z_surface = normalized_grid(grid_z_coordinates, grid_norm_unit)
     return z_surface
@@ -1017,17 +1007,6 @@ def curvature_data_extraction(mc):
             Avg_mean_curvature, 
             Avg_gaussian_curvature])
 
-
-#------- More from MembraneCurvature Github --------
-"""
-:Author: Estefania Barreto-Ojeda
-:Year: 2021
-:Copyright: GNU Public License v3
-
-"""
-
-mda.start_logging()
-logger = logging.getLogger("MDAnalysis.MDAKit.membrane_curvature")
 
 class MembraneCurvature(AnalysisBase):
 
@@ -1112,22 +1091,18 @@ class MembraneCurvature(AnalysisBase):
         for dim_string, dim_range, num in [('x', self.x_range, 0), 
                                            ('y', self.y_range, 1)]:
             if (dim_range[1] < universe.dimensions[num]):
-                msg = (f"Grid range in {dim_string} does not cover entire "
-                       "dimensions of simulation box.\n Minimum dimensions "
-                       "must be equal to simulation box.")
-                warnings.warn(msg)
-                logger.warn(msg)
+                logging.warning(f"Grid range in {dim_string} does not cover " \
+                                "entire dimensions of simulation box.\n" \
+                                "Minimum dimensions must be equal to " \
+                                "simulation box.")
 
         # Apply wrapping coordinates
         if not self.wrap:
-            # Warning
-            msg = (" `wrap == False` may result in inaccurate calculation "
-                   "of membrane curvature. Surfaces will be derived from "
-                   "a reduced number of atoms. \n "
-                   " Ignore this warning if your trajectory has "
-                   " rotational/translational fit rotations! ")
-            warnings.warn(msg)
-            logger.warn(msg)
+            logging.warning("`wrap == False` may result in inaccurate calculation " \
+                            "of membrane curvature. Surfaces will be derived from " \
+                            "a reduced number of atoms. \n " \
+                            " Ignore this warning if your trajectory has " \
+                            " rotational/translational fit rotations! ")
 
     def _prepare(self):
         # Initialize empty np.array with results
@@ -1158,4 +1133,3 @@ class MembraneCurvature(AnalysisBase):
         self.results.average_z_surface = np.nanmean(self.results.z_surface, axis=0)
         self.results.average_mean = np.nanmean(self.results.mean, axis=0)
         self.results.average_gaussian = np.nanmean(self.results.gaussian, axis=0)
-
