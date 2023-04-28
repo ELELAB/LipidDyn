@@ -7,19 +7,24 @@ from LipidDyn.core import *
 import logging
 
 
-def line_plot_d_e(d_e, lipids, out_name):
-    x = d_e['frame']
+def line_plot_d_e(d_e, lipids=None, out_name='depletion_enrichment'):
+    plt.figure()
+    x = d_e['frame']/1000
+    if lipids is None:
+        lipids = d_e.columns[1:]
     for lipid in lipids:
         y = d_e[lipid]
         plt.plot(x, y, linewidth=1, label=lipid)
     plt.legend()
-    plt.xlabel('Time (ps)')
+    plt.xlabel('Time (ns)')
     plt.ylabel('Depletion/enrichment factor')
     plt.savefig(f'{out_name}_line.pdf')
 
 
-def box_plot_d_e(d_e, lipids, out_name):
+def box_plot_d_e(d_e, lipids=None, out_name='depletion_enrichment'):
     plt.figure()
+    if lipids is None:
+        lipids = d_e.columns[1:]
     dat = d_e.loc[:, lipids]
     plt.boxplot(dat, labels=lipids)
     plt.xlabel('Lipid')
@@ -41,25 +46,22 @@ if __name__ == '__main__':
                         help='Name of the input file (tsv)')
 
     parser.add_argument('-l', '--lipids', dest='lipids',
-                        type=str, required=True, nargs='+',
+                        type=str, default=None, nargs='+',
                         help='Lipid names to plot')
 
     parser.add_argument('-o', '--output', dest='output',
-                        type=str, required=False,
-                        default='depletion_enrichment',
+                        type=str, default='depletion_enrichment',
                         help='Prefix for the output file name')
     
     parser.add_argument('-r', '--byres', dest='byres',
                         action='store_true', default=False,
                         help='Whether the input contains d/e factor by residue')
 
-    # Retrieve input
     args = parser.parse_args()
     d_e = pd.read_csv(args.input, sep='\t', header=0)
     lipids = args.lipids
     out_name = args.output
     byres = args.byres
 
-    # Plot
     line_plot_d_e(d_e, lipids, out_name)
     box_plot_d_e(d_e, lipids, out_name)
