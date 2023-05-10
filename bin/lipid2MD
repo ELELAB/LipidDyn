@@ -223,14 +223,20 @@ def find_match_ff(dataset,
                     class_lipid = lipid_species[2].rstrip()
                  # check if the ffs defition correspond to lipidmaps
                     if ffs_chain1 == name:
-                        match.append([lm_id,
+                        if force_field == 'charmm36':
+                            match.append([class_lipid])
+                        else:
+                            match.append([lm_id,
                                       name,
                                       abbrev,
                                       'NA',
                                       'NA',
                                       class_lipid])
                     elif ffs_chain1 == abbrev:
-                        match.append([lm_id,
+                        if force_field =='charmm36':
+                            match.append([class_lipid])
+                        else:
+                            match.append([lm_id,
                                       name,
                                       abbrev,
                                       'NA',
