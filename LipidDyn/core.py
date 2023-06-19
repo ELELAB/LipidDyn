@@ -1154,10 +1154,10 @@ class prot_lip_interaction:
 
     int_doms: list of str
         Iterable containing the sections of the protein to analyse. The
-        selections may be MDAnalysis selection commands or ranges (X-Y)
-        that will select the range of residue indices automatically. If
-        the int_doms is None or empty, the whole protein group will be
-        analysed.
+        selections may be MDAnalysis selection commands or ranges (e.g.,
+        35-48) that will select the range of residue indices
+        automatically. If the int_doms is None or empty, the whole
+        protein group will be analysed.
 
     Attributes
     ----------
@@ -1243,8 +1243,11 @@ class prot_lip_interaction:
         total_around = np.sum(around, axis=1, keepdims=True)
 
         # Apply adjusted depletion-enrichment formula
-        DE = np.empty((F, L), dtype=np.float64)
-        np.divide(around/total_around, (anywhere - around)/(total_anywhere - total_around), out=DE)
+        around_DE = np.zeros((F, L), dtype=np.float64)
+        where = np.array(total_around, dtype=bool)
+        np.divide(around, total_around, out=around_DE, where=where)
+        total_DE = np.divide((anywhere - around), (total_anywhere - total_around))
+        DE = around_DE / total_DE
         
         # Create dataframe
         columns = pd.Index(lipid_resnames, name='lipid')
@@ -1256,15 +1259,11 @@ class prot_lip_interaction:
 
     def compute_DE_byres(self, lipid_resnames, cutoff=6):
         frames = self.u.trajectory
-        if not self.prot_residues:
-            prot_residues = np.unique(self.prot.resindices)
-        else:
-            prot_residues = self.prot_residues
         lips = self.lips
         
         # Get data dimensions
         L = len(lipid_resnames)
-        P = len(prot_residues)
+        P = len(self.prot_idxs)
         F = frames.n_frames
         
         # Calculate global specific lipid count
@@ -1278,7 +1277,7 @@ class prot_lip_interaction:
         # Calculate specific lipid count around selected protein residues
         around = np.zeros((F, P, L), dtype=np.int64)
         for f,ts in enumerate(frames):
-            for p,res in enumerate(prot_residues):
+            for p,res in enumerate(self.prot_idxs):
                 # Selection is performed from the lipid group, but taking the protein residue numbers as reference
                 around_by_resnames = lips.select_atoms(f'around {cutoff} global resnum {res}').groupby('resnames')
                 for l,lipid in enumerate(lipid_resnames):
@@ -1289,11 +1288,14 @@ class prot_lip_interaction:
         total_around = np.sum(around, axis=2, keepdims=True)
 
         # Apply adjusted depletion-enrichment formula
-        DE = np.empty((F, P, L), dtype=np.float64)
-        np.divide(around/total_around, (anywhere - around)/(total_anywhere - total_around), out=DE)
+        around_DE = np.zeros((F, P, L), dtype=np.float64)
+        where = np.array(total_around, dtype=bool)
+        np.divide(around, total_around, out=around_DE, where=where)
+        total_DE = np.divide((anywhere - around), (total_anywhere - total_around))
+        DE = around_DE / total_DE
         
         # Create dataframe
-        columns = pd.MultiIndex.from_product((prot_residues, lipid_resnames), names=('position', 'lipid'))
+        columns = pd.MultiIndex.from_product((self.prot_idxs, lipid_resnames), names=('position', 'lipid'))
         indices = pd.Index([ts.time for ts in frames], name='frame')
         DE_df = pd.DataFrame(DE.reshape((F, P*L)), index=indices, columns=columns)
 

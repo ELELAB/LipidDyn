@@ -1,10 +1,6 @@
-import sys
-import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import argparse
-from LipidDyn.core import *
-import logging
 
 
 def line_plot_d_e(d_e, lipids=None, out_name='depletion_enrichment'):
@@ -52,16 +48,16 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', dest='output',
                         type=str, default='depletion_enrichment',
                         help='Prefix for the output file name')
-    
-    parser.add_argument('-r', '--byres', dest='byres',
-                        action='store_true', default=False,
-                        help='Whether the input contains d/e factor by residue')
 
     args = parser.parse_args()
-    d_e = pd.read_csv(args.input, sep='\t', header=0)
     lipids = args.lipids
     out_name = args.output
-    byres = args.byres
+    
+    try:
+        d_e = pd.read_csv(args.input, sep='\t', header=0)
+    except BaseException as err:
+        print(f'Error loading dataframe. *By-residue DE plotting is not implemented.\n{err}')
 
     line_plot_d_e(d_e, lipids, out_name)
     box_plot_d_e(d_e, lipids, out_name)
+    

@@ -695,7 +695,9 @@ def module_interaction(u,
                        p,
                        out_dir,
                        lipid_resnames,
-                       int_doms=None):
+                       int_doms=None,
+                       cutoff=None,
+                       by_res=False):
     """
     Parameters
     -------------
@@ -720,7 +722,14 @@ def module_interaction(u,
 
         N.B. residue indices correspond to the unique index of residues that MDAnalysis
         assigns (staring by 0). It does not correspond necessarily with residue id or
-        number! This allows differenciating different chains from homopolymers.  
+        number! This allows differenciating different chains from homopolymers.
+    
+    cutoff: float
+        Maximum distance in Å to define an interaction. Default is 6 Å.
+
+    by_res: boolean
+        If True, calculates depletion-enrichment factor for each residue in the protein,
+        resulting in a 3D nested dataframe. This option is quite cpu intensive and slow.
     """
 
     # output directory
@@ -732,20 +741,24 @@ def module_interaction(u,
             if exc.errno != errno.EEXIST:
                 raise
 
+    if cutoff is None:
+        cutoff = 6
+
     pbar = ProgressBar().start()
-    total_step = 2
+    total_step = 2 if by_res else 1
     step = 1
 
     # Create interaction analysis class
     interaction = prot_lip_interaction(u, p, lipid_resnames, int_doms=int_doms)
 
     # Perform depletion-enrichment factor calculation
-    DE = interaction.compute_DE(lipid_resnames)
-    pbar.update((1/total_step)*100)
-    # DE_byres = interaction.compute_DE_byres(lipid_resnames)
-
-    # Write ouptut file in the module output folder
+    DE = interaction.compute_DE(lipid_resnames, cutoff=cutoff)
     DE.to_csv(path.join(folder, 'd_e.tsv'), sep='\t')
+    pbar.update((1/total_step)*100)
+    if by_res:
+        DE_byres = interaction.compute_DE_byres(lipid_resnames, cutoff=cutoff)
+        DE_byres.to_csv(path.join(folder, 'd_e_by_res.tsv'), sep='\t')
+        pbar.update((2/total_step)*100)
 
     pbar.finish()
 
@@ -1203,14 +1216,21 @@ def main():
     if args.mod_int:
         if args.prot:
             int_doms = parsed_yaml.get('interaction_domains')
+            cutoff = parsed_yaml.get('interaction_cutoff')
             out_files = ['d_e.tsv']
+            if parsed_yaml.get('interaction_by_res'):
+                by_res = True
+            else:
+                by_res = False
             if overwrite or output_check(out_dir, 'Interaction', out_files):
                 logging.info("Analysis: Protein-lipid interaction")
                 module_interaction(u,
                                 p,
                                 out_dir,
                                 lipid_resnames,
-                                int_doms)
+                                int_doms,
+                                cutoff,
+                                by_res)
             else:
                 logging.info("Analysis: Order Parameter already performed, skipping...")
         else:
