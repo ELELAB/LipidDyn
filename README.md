@@ -75,6 +75,9 @@ This analysis tool allows the investigation of how lipid composition and membran
 ### Protein-lipid interaction
 Tracks and measures the contacts between the defined protein group and the lipids, calculating the depletion-enrichment factor, that compares the concentration of lipid species around the protein with that in the system.
 
+### Lipid scrambling
+Tracks and measures the z-coordinate of lipids, comparing it to an estimation of the membrane surface. Allows to easily identify lipids changing from one leaflet to another and tracks their contacts with the protein (if present). Both estimation of the surface and tracking of z-coordinate are performed based on the lipid headgroup position.
+
 
 ## Installing LipidDyn UNIX users
 
@@ -185,8 +188,14 @@ Referring to the configuration files provided by LipidDyn as templates and desig
 5) lipid ```sn1: ``` and ```sn2: ``` acyl chains: for CG systems only, the user can define the CC-atom pairs to be used for the SCC order parameter calculation. <br/>
 6) ```forcefield:``` specify if the system analysed has been simulated in CG or FA forcefield <br/>
 7) ```interaction_domains:``` additive list of items that indicate which residues of the protein to use in the protein-lipid interaction and scrambling module. Two dash-separated integers are interpreted as a range of residue indices. Any other string is interpreted as a MDAnalysis selection command. Defaults to None, which indicates to use the full protein. N.B. Remember to define ```protein```, as the selection will be performed on the resulting group.
-8) ```interaction_cutoff:``` float indicating interaction cutoff. Atoms within the cutoff distance (in Å) will be regarded as contact for the protein-lipid interaction and scrambling module. Defaults to 6 Å.
+8) ```interaction_cutoff:``` float indicating interaction cutoff. Atoms within the cutoff distance (in Å) will be regarded as contact for the protein-lipid interaction module. Defaults to 6 Å.
 9) ```interaction_by_res:``` any. If defined with a True value (e.g., 1), computes depletion-enrichment factor for each residue in the selection for the protein-lipid interaction module. This can be very cpu intensive and slow for large selections.
+10) ```scrambling_lipids``` list of lipid residue names to analyse for scrambling. If not defined, every lipid is analyzed.
+11) ```scrambling_domains:``` similar to ```interaction_domains```, employed by the scrambling module to compute lipid-protein contacts.
+12) ```scrambling_cutoff:``` similar to ```interaction_cutoff```, employed by the scrambling module to compute lipid-protein contacts.
+13) ```scrambling_upper_z:``` and ```scrambling_upper_rel_z:``` float boundary to define scrambling. If at a given frame, a lipid is above the given value, it is considered to be on the upper side of the membrane. If both are defined, both need to be fulfilled (logical and); if neither is defined, and all lipids will be considered. z (absolute) is the coordinate in Å, while relative z takes the leaflets as reference (0 is the lower leaflet, 0.5 the middle, and 1 the upper leaflet)
+14) ```scrambling_lower_z:``` and ```scrambling_lower_rel_z:``` float boundary to define scrambling. If at a given frame, a lipid is below the given value, it is considered to be on the lower side of the membrane. If both are defined, both need to be fulfilled (logical and); if neither is defined, and all lipids will be considered. z (absolute) is the coordinate in Å, while relative z takes the leaflets as reference (0 is the lower leaflet, 0.5 the middle, and 1 the upper leaflet)
+15) ```scrambling_upper_ratio:``` and ```scrambling_lower_ratio:``` portion of the trajectory (float between 0 and 1) that a lipid needs to be in the upper or lower side of the membrane (see previous parameters) to be considered scrambling. If not defined, defaults to one frame.
 
 **N.B.** <br/> 
 To allow LipidDyn to run correctly it is neccessary to keep the selection strings as they are presented in the config file templates provided here. 
@@ -264,6 +273,10 @@ LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -op -n "n" -c
 LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mc -n "n" -c
 ```
 7) Protein-lipid interaction: calculation of depletion-enrichment factor:
+```
+LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -int -n "n" -p -c
+```
+8) Lipid scrambling: characterization of lipids undergoing scrambling:
 ```
 LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -int -n "n" -c
 ```
@@ -411,6 +424,24 @@ interaction -i d_e.tsv -l <lipid1> <lipid2> ... -o <ouput_prefix>
 ```
 
 Output files include <ouput_prefix>_line.pdf and <ouput_prefix>_box.pdf with the evolution and distribution of the depletion enrichment factor, respectively. Note that the visualization of by-residue data is not implemented.
+
+#### 8) Lipid scrambling
+
+The output of this step can be found in the directory ```Scrambling/```.
+The folder contains ```z_data.tsv``` with the data of each lipid. It is used to filter the lipids that undergo scrambling. To be loaded as a numpy.ndarray, must be reshaped to (n_frames, n_lipids, 4) to form a 3D array (per-frame, per-lipid headgroup). It contains time (ps), estimated z coordinate for upper and lower leaflet, and z coordinate of the headgroup.
+Further results of the module are in the subfolder ```lipids/```, where there is a file for every lipid found to be scrambling, according to the input parameters (<resname>_<resid>.tsv). This files contain the fraction of ```z_data.tsv``` corresponding to a single lipid.
+
+To plot the results, access the folder with the terminal and run:
+
+```
+scrambling -i lipids/* -o <ouput_name>
+scrambling -i lipids/<resname>_<resid>.tsv -o <ouput_name> -c
+```
+
+-a displays the absolute z coordinate instead the relative z to the leaflets
+-l hides the leaflets positions in the plot
+-c creates a heatmap in the background representing the contacts of the lipid with the protein (if the analysis had a defined protein). Only available for one lipid.
+-r allows to specify a range of protein residues if ```-c``` is called. Useful to zoom in or out for better visualization
 
 
 ## License
