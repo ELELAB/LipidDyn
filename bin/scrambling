@@ -138,7 +138,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument('-i', '--input', dest='input_files',
-                        type=str, nargs='+',
+                        type=str, nargs='+', required=True,
                         help='One or more lipids to plot, using the tsv output files from the ' \
                              'scrambling module (Scrambling/lipids/<resname>_<resid>.tsv). ' \
                              'If a folder is provided, every file at the folder will be used.')
@@ -179,6 +179,8 @@ if __name__ == '__main__':
     if len(input_files) == 1 and path.isdir(input_files[0]):
         folder = input_files[0]
         input_files = [path.join(folder, file) for file in os.listdir(folder)]
+        if len(input_files) == 0:
+            raise ValueError('Empty input folder')
 
     if show_contacts:
         if len(input_files) == 1:
