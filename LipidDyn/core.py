@@ -1441,7 +1441,7 @@ class lipid_scrambling:
                         repeat = False
 
             if cutoff < min_cutoff or L.sizes().get(idx1) + L.sizes().get(idx2) < 0.8*n_g:
-                print(f'Not able to differentiate leaflets, skipping frame {i}')
+                logging.warning(f'Not able to differentiate leaflets, skipping frame {i} at {ts.time} ps')
                 continue
 
             leaf1 = L.group(idx1)
