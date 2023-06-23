@@ -72,9 +72,6 @@ For coarse-grained systems, the Order Parameter SCC is computed. Its implementat
 ### Membrane Curvature
 This analysis tool allows the investigation of how lipid composition and membrane proteins generate membrane curvature. It provides visual representation of how the shape and curvature of the membrane changes along the simulation time. The surface, mean curvature and Gaussian curvature values are computed for each leaflet constituting the bilayer, and the graphical outputs consist of average plots for all frames in the trajectory as well as single- and multi-frame graphical outputs. The latter reveal the frame-by-frame alterations in membrane curvature.
 
-### Lipid scrambling
-Tracks and measures the z-coordinate of lipids, comparing it to an estimation of the membrane surface. Allows to easily identify lipids changing from one leaflet to another and tracks their contacts with the protein (if present). Both estimation of the surface and tracking of z-coordinate are performed based on the lipid headgroup position.
-
 ### Protein-lipid interaction
 Tracks and measures the contacts between the defined protein group and the lipids, calculating the depletion-enrichment factor, that compares the concentration of lipid species around the protein with that in the system.
 
