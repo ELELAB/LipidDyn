@@ -767,6 +767,154 @@ def module_scrambling(u,
     pbar.finish()
 
 
+def module_interaction(u,
+                       p,
+                       out_dir,
+                       lipid_resnames,
+                       int_doms=None,
+                       cutoff=None,
+                       by_res=False):
+    """
+    Parameters
+    -------------
+    u: MDAnalysis universe class
+        Universe for the system
+    
+    p: MDAnalysis selection group
+        Selection group for the protein from the Universe u
+    
+    out_dir: str
+        Name of the output folder
+    
+    lipid_resnames: iterable of str
+        List-like containing residue names of lipids to perform the analysis
+
+    int_doms: iterable of str
+        List-like containing selection of protein sub-groups to perform the analysis.
+        If the string is of the form X-Y (X and Y being numbers), the range of residue
+        indices (both included) will be selected. If not, the string will be treated
+        as a MDAnalysis selection command. Then all the selections are joined to
+        provide the target protein group.
+
+        N.B. residue indices correspond to the unique index of residues that MDAnalysis
+        assigns (staring by 0). It does not correspond necessarily with residue id or
+        number! This allows differenciating different chains from homopolymers.
+    
+    cutoff: float
+        Maximum distance in Å to define an interaction. Default is 6 Å.
+
+    by_res: boolean
+        If True, calculates depletion-enrichment factor for each residue in the protein,
+        resulting in a 3D nested dataframe. This option is quite cpu intensive and slow.
+    """
+
+    # output directory
+    folder = path.abspath(os.path.join(out_dir, 'Interaction'))
+    if not path.exists(folder):
+        try:
+            os.mkdir(folder)
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+    if cutoff is None:
+        cutoff = 6
+
+    pbar = ProgressBar().start()
+    total_step = 2 if by_res else 1
+    step = 1
+
+    # Create interaction analysis class
+    interaction = prot_lip_interaction(u, p, lipid_resnames, int_doms=int_doms)
+
+    # Perform depletion-enrichment factor calculation
+    DE = interaction.compute_DE(lipid_resnames, cutoff=cutoff)
+    DE.to_csv(path.join(folder, 'd_e.tsv'), sep='\t')
+    pbar.update((1/total_step)*100)
+    if by_res:
+        DE_byres = interaction.compute_DE_byres(lipid_resnames, cutoff=cutoff)
+        DE_byres.to_csv(path.join(folder, 'd_e_by_res.tsv'), sep='\t')
+        pbar.update((2/total_step)*100)
+
+    pbar.finish()
+
+
+def module_scrambling(u,
+                      p,
+                      g,
+                      out_dir,
+                      parsed_yaml,
+                      overwrite=False):
+
+    # output directory
+    folder = path.abspath(path.join(out_dir, 'Scrambling'))
+    if not path.exists(folder):
+        try:
+            os.mkdir(folder)
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+    pbar = ProgressBar().start()
+    total_step = 2
+    step = 1
+
+    # Create scrambling analysis class
+    scrambling = lipid_scrambling(u, g, parsed_yaml.get('scrambling_lipids'),
+                                  p, parsed_yaml.get('scrambling_domains'))
+
+    # Compute z_data. Since this takes the most time (because running LeafletFinder
+    # on each frame), the output is saved to a file, so the next step can be performed
+    # quickly with changing parameters (unless --overwrite)
+    z_data_file = path.join(folder, 'z_data.tsv')
+    if overwrite or not path.isfile(z_data_file):
+        z_data = scrambling.compute_z_data(parsed_yaml.get('scrambling_reg_params'))
+        n_frames, n_lips, _ = z_data.shape
+        if n_lips > 0:
+            np.savetxt(z_data_file, z_data.reshape((n_frames, n_lips*4)), delimiter='\t', fmt='%.18e')
+    else:
+        z_data_ = np.loadtxt(z_data_file, delimiter='\t')
+        n_frames, n_lips_ = z_data_.shape
+        n_lips = int(n_lips_ / 4)
+        z_data = z_data_.reshape((n_frames, n_lips, 4))
+
+    pbar.update(1 / total_step)
+
+    # From the z_data and custom parameters, decide which lipids are undergoing scrambling
+    if n_lips > 0:
+        scrambling_list = scrambling.filter_scrambling(z_data,
+                                parsed_yaml.get('scrambling_upper_z'),
+                                parsed_yaml.get('scrambling_lower_z'),
+                                parsed_yaml.get('scrambling_upper_rel_z'),
+                                parsed_yaml.get('scrambling_lower_rel_z'),
+                                parsed_yaml.get('scrambling_upper_ratio'),
+                                parsed_yaml.get('scrambling_lower_ratio'),
+                                parsed_yaml.get('scrambling_cutoff'))
+
+        if not path.isdir(path.join(out_dir, 'Scrambling', 'lipids')):
+            os.mkdir(path.join(out_dir, 'Scrambling', 'lipids'))
+        
+        # Write file with z_data evolution and contacts for each scrambling lipid
+        for i, resname, resid, z_data_head, contacts in scrambling_list:
+            lipid_file_name = path.join(out_dir, 'Scrambling', 'lipids', f'{resname}_{resid}.tsv')
+            with open(lipid_file_name, 'w') as lipid_file:
+                for f in range(z_data_head.shape[0]):
+                    if contacts is None:
+                        contact = ''
+                    else:
+                        contact = contacts[f]
+
+                    line = '\t'.join([str(z_data_head[f, 0]), str(z_data_head[f, 1]),
+                                      str(z_data_head[f, 2]), str(z_data_head[f, 3]),
+                                      contact])
+                    lipid_file.write(line + '\n')
+
+        if len(scrambling_list) == 0:
+            logging.info('No scrambling lipids were found with current parameters')
+                    
+    pbar.finish()
+
+
 def output_check(out_dir, mod_out_dir, out_files):
     '''
     Check that whether if all the output files are present in the
@@ -888,6 +1036,20 @@ def main():
                         help='Execute only the enrichment analysis module \
                               of the pipeline'
                        )
+    
+    parser.add_argument('-scr',
+                        '--mod_scramb',
+                        action='store_true',
+                        dest='mod_scramb',
+                        help='Execute only the scrambling analysis module \
+                              of the pipeline')
+
+    parser.add_argument('-int',
+                        '--mod_int',
+                        action='store_true',
+                        dest='mod_int',
+                        help='Execute only the interaction analysis module \
+                              of the pipeline')
 
     parser.add_argument('-scr',
                         '--mod_scramb',
@@ -1100,6 +1262,7 @@ def main():
         args.mod_mov = True
         args.mod_ord = True
         args.mod_curv = True
+        args.mod_int = True
 
     logging.info("Starting now with the calculation, please stand by")
     logging.info(u"\u2622")

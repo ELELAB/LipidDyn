@@ -75,6 +75,12 @@ This analysis tool allows the investigation of how lipid composition and membran
 ### Lipid scrambling
 Tracks and measures the z-coordinate of lipids, comparing it to an estimation of the membrane surface. Allows to easily identify lipids changing from one leaflet to another and tracks their contacts with the protein (if present). Both estimation of the surface and tracking of z-coordinate are performed based on the lipid headgroup position.
 
+### Protein-lipid interaction
+Tracks and measures the contacts between the defined protein group and the lipids, calculating the depletion-enrichment factor, that compares the concentration of lipid species around the protein with that in the system.
+
+### Lipid scrambling
+Tracks and measures the z-coordinate of lipids, comparing it to an estimation of the membrane surface. Allows to easily identify lipids changing from one leaflet to another and tracks their contacts with the protein (if present). Both estimation of the surface and tracking of z-coordinate are performed based on the lipid headgroup position.
+
 
 ## Installing LipidDyn UNIX users
 
@@ -278,6 +284,7 @@ LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -int -n "n" -p -c
 LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -int -n "n" -c
 ```
 
+
 ### Visualization of data
 
 For the visualization of the output data LipidDyn includes a set of tools for graphical representation.
@@ -360,7 +367,6 @@ ordpar -i Order_Parameter_lipid_residue.csv -o custom_name.pdf -s [scc/sch]
 
 **N.B.**<br/>
 If you want to customize the range of order parameter values to visualize in the ```ordpar``` output plot, you can adjust the upper and lower limits of the SCH/SCC values specifying the flag ```-min``` and ```-max```
-
 
 #### 6) Membrane Curvature 
 
