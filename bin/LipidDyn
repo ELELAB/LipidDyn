@@ -793,14 +793,15 @@ def module_scrambling(u,
     z_data_file = path.join(folder, 'z_data.tsv')
     if overwrite or not path.isfile(z_data_file):
         z_data = scrambling.compute_z_data(parsed_yaml.get('scrambling_reg_params'))
-        n_frames, n_lips, _ = z_data.shape
+        n_lips = int((z_data.shape[1] - 1) / 3)
         if n_lips > 0:
-            np.savetxt(z_data_file, z_data.reshape((n_frames, n_lips*4)), delimiter='\t', fmt='%.18e')
+            np.savetxt(z_data_file, z_data, delimiter='\t', fmt='%.6e')
+        else:
+            logging.warning('No lipids found with current settings. Please revise ' \
+                            '"scrambling_lipids" field in configuration file.')
     else:
-        z_data_ = np.loadtxt(z_data_file, delimiter='\t')
-        n_frames, n_lips_ = z_data_.shape
-        n_lips = int(n_lips_ / 4)
-        z_data = z_data_.reshape((n_frames, n_lips, 4))
+        z_data = np.loadtxt(z_data_file, delimiter='\t')
+        n_lips = int((z_data.shape[1] - 1) / 3)
 
     pbar.update(1 / total_step)
 
@@ -822,14 +823,14 @@ def module_scrambling(u,
         for i, resname, resid, z_data_head, contacts in scrambling_list:
             lipid_file_name = path.join(out_dir, 'Scrambling', 'lipids', f'{resname}_{resid}.tsv')
             with open(lipid_file_name, 'w') as lipid_file:
-                for f in range(z_data_head.shape[0]):
+                for f in range(z_data.shape[0]):
                     if contacts is None:
                         contact = ''
                     else:
                         contact = contacts[f]
 
-                    line = '\t'.join([str(z_data_head[f, 0]), str(z_data_head[f, 1]),
-                                      str(z_data_head[f, 2]), str(z_data_head[f, 3]),
+                    line = '\t'.join([str(z_data[f, 0]), str(z_data_head[f, 0]),
+                                      str(z_data_head[f, 1]), str(z_data_head[f, 2]),
                                       contact])
                     lipid_file.write(line + '\n')
 

@@ -1420,7 +1420,7 @@ class lipid_scrambling:
         n_lips = len(self.heads)
         ones = np.ones((n_lips, 1))
         powers = np.arange(1, reg_params+1)
-        z_data = np.empty((0, n_lips, 4))
+        z_data = np.empty((0, 1 + n_lips * 3))
         for i,ts in enumerate(self.u.trajectory):
             repeat = False
             cutoff = 15.0
@@ -1467,7 +1467,7 @@ class lipid_scrambling:
             z_up = np.max((z1, z2), axis=0)
             z_low = np.min((z1, z2), axis=0)
 
-            z_data = np.r_[z_data, np.c_[np.repeat(ts.time, n_lips), z_up, z_low, coords[:, 2]][None, :]]
+            z_data = np.r_[z_data, np.r_[ts.time, np.c_[z_up, z_low, coords[:, 2]].flatten()][None, :]]
 
         return z_data
 
@@ -1476,10 +1476,9 @@ class lipid_scrambling:
                           upper_rel_z=None, lower_rel_z=None,
                           upper_ratio=None, lower_ratio=None,
                           cutoff=None):
-        n_frames = self.u.trajectory.n_frames
-
-        assert z_data.shape[1] == len(self.heads), 'Data size do not match number of target lipids'
-        assert z_data.shape[2] == 4, 'Data size do not have the required number of fields'
+        n_frames = z_data.shape[0]
+        n_lips = int((z_data.shape[1] - 1) / 3)
+        z_data = z_data[:, 1:].reshape((n_frames, n_lips, 3))
 
         # Define parameters and defaults
         if upper_ratio is None:
@@ -1501,11 +1500,11 @@ class lipid_scrambling:
         if cutoff is None:
             cutoff = 6
 
-        rel_z = (z_data[:,:,3] - z_data[:,:,2]) / (z_data[:,:,1] - z_data[:,:,2])
+        rel_z = (z_data[:,:,2] - z_data[:,:,1]) / (z_data[:,:,0] - z_data[:,:,1])
         
         # Determine per-frame for each lipid if it is up/low
-        is_up = np.logical_and(z_data[:,:,3] > upper_z, rel_z > upper_rel_z)
-        is_low = np.logical_and(z_data[:,:,3] < lower_z, rel_z < lower_rel_z)
+        is_up = np.logical_and(z_data[:,:,2] > upper_z, rel_z > upper_rel_z)
+        is_low = np.logical_and(z_data[:,:,2] < lower_z, rel_z < lower_rel_z)
 
         # Determine per-lipid if it has been up or low for the minimum time required
         is_up_filt = np.count_nonzero(is_up, axis=0) >= min_frames_up
