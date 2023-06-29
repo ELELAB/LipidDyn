@@ -1,8 +1,6 @@
-
 Cancer Structural Biology, Danish Cancer Society Research Center, 2100, Copenhagen, Denmark 
 
 Cancer Systems Biology, Health and Technology Department, Section for Bioinformatics, 2800, Lyngby, Denmark
-
 
 # LipidDyn: A computational microscope to scrutinize membrane properties at the organelle-level
 
@@ -38,7 +36,6 @@ In this step we employed FatSlim software that relies on the calculation of loca
 for the estimation of the parameters [2], making it very efficient in terms 
 of both execution speed and memory consumption.<br/>
 
-
 ### 2D density maps
 
 2D density maps are a visual representation of how the density of the membrane change
@@ -46,11 +43,10 @@ along the simulation time.
 These are computed for each leaflet constituting the bilayer,
 giving insight on the system phase. <br/>
 
-
 ### Enrichment/Depletion Analysis
- 
+
 When proteins are embedded in a lipid bilayer they modulates their local lipid environment.<br/> 
-This happens through enrichment or depletion of specific lipid residues,that may result 
+This happens through enrichment or depletion of specific lipid residues, that may result
 in thickness and curvature modifications.<br/>
 This step was implemented as presented in [3].
 
@@ -68,13 +64,18 @@ It is  used for estimating the overall order of the membrane and
 details of the conformations that the atoms in the lipid tails adopt. <br/>
 The calculation of the Order Parameter is done for full-atom systems taking into account the SCH parameter based on the algorithm originally developed by J. Melcr. with the contribution from  H. Antila for NMRlipids project and readapted for the purpose of this work [4].
 For coarse-grained systems, the Order Parameter SCC is computed. Its implementation is based on the usage of the Lipyphilic class SCC() [5]. <br/>
- 
+
 ### Membrane Curvature
+
 This analysis tool allows the investigation of how lipid composition and membrane proteins generate membrane curvature. It provides visual representation of how the shape and curvature of the membrane changes along the simulation time. The surface, mean curvature and Gaussian curvature values are computed for each leaflet constituting the bilayer, and the graphical outputs consist of average plots for all frames in the trajectory as well as single- and multi-frame graphical outputs. The latter reveal the frame-by-frame alterations in membrane curvature.
 
 ### Protein-lipid interaction
+
 Tracks and measures the contacts between the defined protein group and the lipids, calculating the depletion-enrichment factor, that compares the concentration of lipid species around the protein with that in the system.
 
+### Lipid scrambling
+
+Tracks and measures the z-coordinate of lipids, comparing it to an estimation of the membrane surface. Allows to easily identify lipids changing from one leaflet to another and tracks their contacts with the protein (if present). Both estimation of the surface and tracking of z-coordinate are performed based on the lipid headgroup position.
 
 ## Installing LipidDyn UNIX users
 
@@ -132,6 +133,7 @@ command into the terminal.
 ```
 deactivate
 ``` 
+
 ## Installing LipidDyn MacOS users
 
 To install the pipeline on pc with MacOS installed, the user should follow these passages:
@@ -146,6 +148,7 @@ Once installed the user needs to activate the environment on a terminal with :
 ```
 conda activate base
 ```
+
 ### Setup of the virtual environment
 
 Create the virtual environment using :
@@ -172,24 +175,31 @@ cd ../
 In order to use LipidDyn and all its tools the user must activate the virtual environment each time.
 
 ## Configuration file
+
 LipidDyn provides the usage of configuration files designed to work with full-atom and coarse-grained systems. The supported format is ```.yml```.
 
 Besides giving insight on how the lipid categories and atoms selections are handled by the program, it can also be edited by the user to run the analysis according to the system requirements. <br/>
 
 Referring to the configuration files provided by LipidDyn as templates and designed for  full-atom (FA) and coarse-grained (CG) systems, we describe here the structure and the usage of the different levels by which they are defined: <br/>
 
-1) ```lipids:``` the user can add lipid categories if missing in this  section of the config file <br/>
-2) ```protein: ``` protein atoms selection can be specified 
-3) lipid ```headgroups: ``` for each lipid category the user has to define the lipid headgroup atoms for the definition of the bilayer system within the program;  <br/>
-4) lipid ```bulk_ratio```:  for each lipid type the user can insert the ratio in bulk of each lipid for enrichment maps calculation. If not provided it will be computed by the program. Since the ratio in bulk is a value taken only when computing the enrichment analysis it could be specified when a protein is present in the system <br/>
-5) lipid ```sn1: ``` and ```sn2: ``` acyl chains: for CG systems only, the user can define the CC-atom pairs to be used for the SCC order parameter calculation. <br/>
-6) ```forcefield:``` specify if the system analysed has been simulated in CG or FA forcefield <br/>
-7) ```interaction_domains:``` additive list of items that indicate which residues of the protein to use in the protein-lipid interaction and scrambling module. Two dash-separated integers are interpreted as a range of residue indices. Any other string is interpreted as a MDAnalysis selection command. Defaults to None, which indicates to use the full protein. N.B. Remember to define ```protein```, as the selection will be performed on the resulting group.
-8) ```interaction_cutoff:``` float indicating interaction cutoff. Atoms within the cutoff distance (in Å) will be regarded as contact for the protein-lipid interaction and scrambling module. Defaults to 6 Å.
-9) ```interaction_by_res:``` any. If defined with a True value (e.g., 1), computes depletion-enrichment factor for each residue in the selection for the protein-lipid interaction module. This can be very cpu intensive and slow for large selections.
+1) ```lipids:``` the user can add lipid categories if missing in this  section of the config file. <br/>
+2) ```protein:``` protein atoms selection can be specified.
+3) lipid ```headgroups:``` for each lipid category the user has to define the lipid headgroup atoms for the definition of the bilayer system within the program;  <br/>
+4) lipid ```bulk_ratio```:  for each lipid type the user can insert the ratio in bulk of each lipid for enrichment maps calculation. If not provided it will be computed by the program. Since the ratio in bulk is a value taken only when computing the enrichment analysis it could be specified when a protein is present in the system. <br/>
+5) lipid ```sn1:``` and ```sn2:``` acyl chains: for CG systems only, the user can define the CC-atom pairs to be used for the SCC order parameter calculation. <br/>
+6) ```forcefield:``` specify if the system analysed has been simulated in CG or FA forcefield. <br/>
+7) ```interaction_domains:``` additive list of items that indicate which residues of the protein to use in the protein-lipid interaction and scrambling module. Two dash-separated integers are interpreted as a range of residue indices. Any other string is interpreted as a MDAnalysis selection command. Defaults to None, which indicates to use the full protein. N.B. Remember to define ```protein```, as the selection will be performed on the resulting group. <br/>
+8) ```interaction_cutoff:``` float indicating interaction cutoff. Atoms within the cutoff distance (in Å) will be regarded as contact for the protein-lipid interaction module. Defaults to 6 Å. <br/>
+9) ```interaction_by_res:``` any. If defined with a True value (e.g., 1), computes depletion-enrichment factor for each residue in the selection for the protein-lipid interaction module. This can be very cpu intensive and slow for large selections. <br/>
+10) ```scrambling_lipids``` list of lipid residue names to analyse for scrambling. If not defined, every lipid is analyzed. <br/>
+11) ```scrambling_upper_z:``` and ```scrambling_upper_rel_z:``` float boundary to define scrambling. If at a given frame, a lipid is above the given value, it is considered to be on the upper side of the membrane. If both are defined, both need to be fulfilled (logical and); if neither is defined, and all lipids will be considered. z (absolute) is the coordinate in Å, while relative z takes the leaflets as reference (0 is the lower leaflet, 0.5 the middle, and 1 the upper leaflet). <br/>
+12) ```scrambling_lower_z:``` and ```scrambling_lower_rel_z:``` float boundary to define scrambling. If at a given frame, a lipid is below the given value, it is considered to be on the lower side of the membrane. If both are defined, both need to be fulfilled (logical and); if neither is defined, and all lipids will be considered. z (absolute) is the coordinate in Å, while relative z takes the leaflets as reference (0 is the lower leaflet, 0.5 the middle, and 1 the upper leaflet). <br/>
+13) ```scrambling_upper_ratio:``` and ```scrambling_lower_ratio:``` portion of the trajectory (float between 0 and 1) that a lipid needs to be in the upper or lower side of the membrane (see previous parameters) to be considered scrambling. If not defined, defaults to one frame. <br/>
+14) ```scrambling_domains:``` similar to ```interaction_domains```, employed by the scrambling module to compute lipid-protein contacts. <br/>
+15) ```scrambling_cutoff:``` similar to ```interaction_cutoff```, employed by the scrambling module to compute lipid-protein contacts. <br/>
 
 **N.B.** <br/> 
-To allow LipidDyn to run correctly it is neccessary to keep the selection strings as they are presented in the config file templates provided here. 
+To allow LipidDyn to run correctly it is neccessary to keep the selection strings as they are presented in the config file templates provided here.
 
 ## Running the pipeline
 
@@ -239,35 +249,53 @@ LipidDyn -f file.xtc/trr -s file.gro -g file.yml -a -n "n" -c -p
 
 This section lists the command-lines to run LipidDyn on each single analysis <br/>
 
-1) APL and Thickness calculation with fatslim:  
-```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -fatslim -n "n"  -c
-```
-2) 2Density maps calculation for upper and lower leaflets:
-```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -2d -n "n"  -c
-```
-3) Enrichment maps calculation for each lipid category in upper and lower leaflets:
-```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -enr -n "n" -p -c
-```
-4) Diffusion movements calculation for upper and lower leaflets:
-```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mov -n "n" -c
-```
-5) Order Parameter calculation for each lipid category:
-```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -op -n "n" -c
-```
-6) Membrane Curvature calculation for upper and lower leaflets:
-```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mc -n "n" -c
-```
-7) Protein-lipid interaction: calculation of depletion-enrichment factor:
-```
-LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -int -n "n" -c
-```
+1) APL and Thickness calculation with fatslim:
 
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -fatslim -n "n"  -c
+    ```
+
+2) 2Density maps calculation for upper and lower leaflets:
+
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -2d -n "n"  -c
+    ```
+
+3) Enrichment maps calculation for each lipid category in upper and lower leaflets:
+
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -enr -n "n" -p -c
+    ```
+
+4) Diffusion movements calculation for upper and lower leaflets:
+
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mov -n "n" -c
+    ```
+
+5) Order Parameter calculation for each lipid category:
+
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -op -n "n" -c
+    ```
+
+6) Membrane Curvature calculation for upper and lower leaflets:
+
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -mc -n "n" -c
+    ```
+
+7) Protein-lipid interaction: calculation of depletion-enrichment factor:
+
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -int -n "n" -p -c
+    ```
+
+8) Lipid scrambling: characterization of lipids undergoing scrambling:
+
+    ```
+    LipidDyn -f file.xtc/.trr -s file.gro -g file.yml -int -n "n" -c
+    ```
 
 ### Visualization of data
 
@@ -324,11 +352,11 @@ If you want to gain a better visualization of the densities of the system for bo
 
 #### 4) Diffusion Movements
 
-The output of this step can be found in the directory ```Diffusion_movements```. 
+The output of this step can be found in the directory ```Diffusion_movements```.
 The folder contains ```Lower_leaflet_coordinates.dat``` and ```Upper_leaflet_coordinates.dat```.
 These files contains the x and y coordinates of all the lipid residue constituting the bilayer.<br/>
 We can use the ```diffusion``` tool to plot the data. Depending on the of bilayer composition we need to select the ```-t``` flag that takes as arguments ```ho``` (homogeneous) or ```he``` (heterogeneous). <br/>
-Access the folder with the terminal and run : 
+Access the folder with the terminal and run :
 
 ```
 diffusion -i Lower_leaflet_coordinates.dat -o suffix_output_name -t  -[he/ho] 
@@ -343,7 +371,7 @@ In the case of heterogeneous systems, the plot will produce a ```.pdf``` file fo
 The output of this step can be found in the directory ```Order_parameter```. 
 The folder contains ```.csv``` files named after the composition of the membrane **i.e** "Order_parameter_POPC.csv", "Order_parameter_SSM.csv".<br/>
 According to the force-field used (CG or FA) it is required to specify the ```-s``` flag which takes the argument "sch" in case of full-atom systems and "scc" in case of coarse-grained systems.<br/>
-Access the folder with the terminal and run : 
+Access the folder with the terminal and run :
 
 ```
 ordpar -i Order_Parameter_lipid_residue.csv -o custom_name.pdf -s [scc/sch]
@@ -368,33 +396,32 @@ curvature -l1 up_Avg_mean_curvature.dat -l2 low_Avg_mean_curvature.dat -o custom
 curvature -l1 up_Avg_gaussian_curvature.dat -l2 low_Avg_gaussian_curvature.dat -o custom_name.pdf -plot gaussian 
 curvature -l1 low_Avg_surface.dat -l2 low_Avg_mean_curvature.dat -l3 low_Avg_gaussian_curvature.dat -o custom_name.pdf -plot 3_curvatures -t 'custom title lower leaflet'
 curvature -l1 up_Avg_surface.dat -l2 up_Avg_mean_curvature.dat -l3 up_Avg_gaussian_curvature.dat -o custom_name.pdf -plot 3_curvatures -t 'custom title upper leaflet' 
-
 ```
 
 For single frame plots:
 The ```-frame``` flag can be used to plot a specific frame in the trajectory.
+
 ```
 curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custom_name.pdf -plot basic -frame [int] 
 curvature -l1 up_AF_surface.dat -l2 curv/low_AF_surface.dat -o custom_name.pdf -plot smooth -frame [int]
 curvature -l1 up_AF_gaussian_curvature.dat -l2 low_AF_gaussian_curvature.dat -o custom_name.pdf -plot gaussian -frame [int] 
 curvature -l1 up_AF_mean_curvature.dat -l2 low_AF_mean_curvature.dat -o custom_name.pdf -plot mean -frame [int]
-
 ```
 
 For multi-frame plots:
-The ```-plot``` flag can be used to plot the first, middle and last six frames of the trajectory for surface. 
+The ```-plot``` flag can be used to plot the first, middle and last six frames of the trajectory for surface.
+
 ```
 curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custom_name_upper.pdf -o2 custom_name_lower.pdf -plot first_6
 curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custum_name_upper.pdf -o2 custom_name_lower.pdf -plot middle_6
 curvature -l1 up_AF_surface.dat -l2 low_AF_surface.dat -o custom_name_upper.pdf -o2 custom_name_lower.pdf -plot last_6
-
 ```
 
 **N.B.** <br/>
 When running membrane curvature calculations on long simulation systems it is suggested to use a small subset of frames for the average plots (i.e. last 1 us from the entire trajectory) according to the user requirments, so as to obtain a more clear output where the curvature has not evened out to much.
 
 **N.B.**<br/>
-If you want to gain a better visualization of the curvature of the system for mean and Gaussian curvature plots, you can adjust the upper and lower limits of the plots color bar by specifying the flag ```-lim```. 
+If you want to gain a better visualization of the curvature of the system for mean and Gaussian curvature plots, you can adjust the upper and lower limits of the plots color bar by specifying the flag ```-lim```.
 
 **N.B.**<br/>
 The user can deviate from default settings by using the ```-t``` argument to define the title of the plot, ```-c``` for the color spectrum on the colorbar, and ```-label``` for the label on the colorbar. For the outputs of mean and Gaussian curvature, the user can also specify the number of contour lines via ```-level```.
@@ -412,6 +439,23 @@ interaction -i d_e.tsv -l <lipid1> <lipid2> ... -o <ouput_prefix>
 
 Output files include <ouput_prefix>_line.pdf and <ouput_prefix>_box.pdf with the evolution and distribution of the depletion enrichment factor, respectively. Note that the visualization of by-residue data is not implemented.
 
+#### 8) Lipid scrambling
+
+The output of this step can be found in the directory ```Scrambling/```.
+The folder contains ```z_data.tsv``` with the data of each lipid. It is used to filter the lipids that undergo scrambling. To be loaded as a numpy.ndarray, must be reshaped to (n_frames, n_lipids, 4) to form a 3D array (per-frame, per-lipid headgroup). It contains time (ps), estimated z coordinate for upper and lower leaflet, and z coordinate of the headgroup.
+Further results of the module are in the subfolder ```lipids/```, where there is a file for every lipid found to be scrambling, according to the input parameters (```<resname>_<resid>.tsv```). This files contain the fraction of ```z_data.tsv``` corresponding to a single lipid.
+
+To plot the results, access the folder with the terminal and run:
+
+```
+scrambling -i lipids/* -o <ouput_name>
+scrambling -i lipids/<resname>_<resid>.tsv -o <ouput_name> -c
+```
+
+-a displays the absolute z coordinate instead the relative z to the leaflets
+-l hides the leaflets positions in the plot
+-c creates a heatmap in the background representing the contacts of the lipid with the protein (if the analysis had a defined protein). Only available for one lipid.
+-r allows to specify a range of protein residues if ```-c``` is called. Useful to zoom in or out for better visualization
 
 ## License
 
@@ -425,10 +469,7 @@ Unravelling membrane properties at the organelle-level with LipidDyn
 
 Simone Scrima, Matteo Tiberti, Alessia Campo, Elisabeth Corcelle-Termeau, Delphine Judith, Mads Moller Foged, Knut Kristoffer Bungaard Clemmens, Sharon A Tooze, Marja Jaattela, Kenji Maeda, Matteo Lambrughi*, Elena Papaleo*
 
-Comput. Struct. Biotechnol. J. 2022 Jun 30;20:3604-3614. doi: 10.1016/j.csbj.2022.06.054 PMID: 35860415 PMCID: PMC9283888`
-
-```
-
+Comput. Struct. Biotechnol. J. 2022 Jun 30;20:3604-3614. doi: 10.1016/j.csbj.2022.06.054 PMID: 35860415 PMCID: PMC9283888
 
 ## References
 
@@ -441,9 +482,3 @@ Comput. Struct. Biotechnol. J. 2022 Jun 30;20:3604-3614. doi: 10.1016/j.csbj.202
 [4] https://github.com/NMRLipids/MATCH/scripts
 
 [5] Smith, Paul and Lorenz, Christian D. (2021), LiPyphilic: A Python Toolkit for the Analysis of Lipid Membrane Simulations, Journal of Chem. Theory Comput., 17,9, 5907-5919. https://doi.org/10.1021/acs.jctc.1c00447
-
-
-
-
-
-
