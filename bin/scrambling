@@ -1,0 +1,192 @@
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+import numpy as np
+import argparse
+import os
+import os.path as path
+
+# Heatmap with protein contacts. Only one lipid per plot
+def heatmap_plot(input_name, output_name, show_abs_z=True, show_leaflets=True, contacts_range=[None, None]):
+
+    # Load data
+    z_data = np.loadtxt(input_name, delimiter='\t', usecols=(0, 1, 2, 3))
+    contacts_str = np.loadtxt(input_name, delimiter='\t', usecols=4, dtype=str)
+    n_frames = len(contacts_str)
+    try:
+        label = path.basename(input_name).split('.')[0].replace('_', ' ')
+    except:
+        label = path.basename(input_name)
+
+    # Read contact information and get min/max residue indices
+    contacts_list = []
+    P = -1
+    min_P = np.inf
+    for line in contacts_str:
+        contacts_list.append([int(r) for r in line.split(',') if line])
+        if line:
+            m = max(contacts_list[-1])
+            if m > P:
+                P = m
+            n = min(contacts_list[-1])
+            if n < min_P:
+                min_P = n
+
+    contacts = np.zeros((P+1, n_frames))
+    for f in range(n_frames):
+        if contacts_list[f]:
+            contacts[contacts_list[f], f] = 1
+
+    if P == -1:
+        raise ValueError('No contacts were found in input file for contact heatmap plot.')
+
+    min_y, max_y = contacts_range
+    if min_y is None:
+        min_y = min_P
+    if max_y is None:
+        max_y = P
+
+    # Get plotting data
+    x = z_data[:, 0] / 1000     # Convert to ns (normally is in ps)
+    z_up = z_data[:, 1]
+    z_low = z_data[:, 2]
+    z = z_data[:, 3]
+
+    # Plot heatmap to left axis
+    fig, ax1 = plt.subplots()
+    ax1.imshow(contacts, cmap='Greys', aspect='auto', interpolation='nearest',
+               extent=(x[0], x[-1], P+0.5, -0.5), vmax=1.3)
+    ax1.set_ylim(max_y+0.5, min_y-0.5)
+    ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+    # Plot z-coordinate evolition line to right axis
+    ax2 = ax1.twinx()
+    if show_abs_z:
+        line, = ax2.plot(x, z, linewidth=0.7)
+        color = line.get_color()
+        if show_leaflets:
+            ax2.plot(x, z_up, linestyle='--', color=color, alpha=0.7, linewidth=0.7)
+            ax2.plot(x, z_low, linestyle='--', color=color, alpha=0.7, linewidth=0.7)
+        ax2.set_ylabel('z coordinate (Å)')
+    else:
+        rel_z = (z - z_low) / (z_up - z_low)
+        line, = ax2.plot(x, rel_z, linewidth=0.7)
+        color = line.get_color()
+        if show_leaflets:
+            ax2.plot((x[0], x[-1]), (1, 1), linestyle='--', color=color, alpha=0.7, linewidth=0.7)
+            ax2.plot((x[0], x[-1]), (0, 0), linestyle='--', color=color, alpha=0.7, linewidth=0.7)
+        ax2.set_ylabel('Relative z coordinate to leaflets')
+
+    # Final labels and save
+    ax1.set_xlabel('Time (ns)')
+    ax1.set_ylabel('Protein residue index')
+    plt.title(f'Trajectory and protein contacts for {label}')
+    plt.savefig(output_name)
+
+
+# Line plot with z-coordinate evolution. Allows multiple lipids.
+def line_plot(input_names, output_name, show_abs_z=False, show_leaflets=False):
+    fig, ax = plt.subplots()
+    lines = []
+    labels = []
+    for file in input_names:
+        # Load input data per input file
+        z_data = np.loadtxt(file, delimiter='\t', usecols=(0, 1, 2, 3))
+        try:
+            labels.append(path.basename(file).split('.')[0].replace('_', ' '))
+        except:
+            labels.append(path.basename(file))
+
+        # Get plotting data
+        x = z_data[:, 0] / 1000     # Convert to ns (normally is in ps)
+        z_up = z_data[:, 1]
+        z_low = z_data[:, 2]
+        z = z_data[:, 3]
+
+        # Plot line-plot
+        if show_abs_z:
+            line, = ax.plot(x, z, linewidth=0.7)
+            color = line.get_color()
+            if show_leaflets:
+                ax.plot(x, z_up, linestyle='--', color=color, alpha=0.5, linewidth=0.7)
+                ax.plot(x, z_low, linestyle='--', color=color, alpha=0.5, linewidth=0.7)
+            ax.set_ylabel('z coordinate (Å)')
+        else:
+            rel_z = (z - z_low) / (z_up - z_low)
+            line, = ax.plot(x, rel_z, linewidth=0.7)
+            ax.set_ylabel('Relative z coordinate to leaflets')
+
+        ax.set_xlabel('Time (ns)')
+        plt.title('')
+        lines.append(line)
+
+    if show_leaflets and not show_abs_z:
+        ax.plot((x[0], x[-1]), (1, 1), linestyle='--', color='black', alpha=0.5, linewidth=0.7)
+        ax.plot((x[0], x[-1]), (0, 0), linestyle='--', color='black', alpha=0.5, linewidth=0.7)
+    
+    ax.legend(lines, labels)
+    plt.title('Lipid trajectories (z-coordinate)')
+    plt.savefig(output_name)
+
+
+
+if __name__ == '__main__':
+    description = 'This script plots z-coordinate evolution of lipid ' \
+                  'headgroups, obtained in the scrambling module. ' \
+                  'It allows to plot the evolution through the frames ' \
+                  'and a heatmap of the contacts with the protein residues.'
+
+    parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument('-i', '--input', dest='input_files',
+                        type=str, nargs='+', required=True,
+                        help='One or more lipids to plot, using the tsv output files from the ' \
+                             'scrambling module (Scrambling/lipids/<resname>_<resid>.tsv). ' \
+                             'If a folder is provided, every file at the folder will be used.')
+
+    parser.add_argument('-c', '--contacts', dest='contacts',
+                        action='store_true',
+                        help='Plot a heatmap in the background with the contacts ' \
+                             'between the headgroup and the protein residues. ' \
+                             'Only available if one input file is specified.')
+    
+    parser.add_argument('-r', '--contacts-range', dest='contacts_range',
+                        action='store', nargs=2, default=[None, None], type=int,
+                        help='If contacts is enabled, specify the limits to ' \
+                             'plot in the heatmap. Useful to zoom in/out at ' \
+                             'protein regions.')
+
+    parser.add_argument('-a', '--abs-z', dest='abs_z',
+                        action='store_true',
+                        help='Plot absolute z coordinates instead of relative z coordinate' \
+                             'to the leaflets.')
+
+    parser.add_argument('-l', '--hide-leaflets', dest='hide_leaflets',
+                        action='store_true',
+                        help='Do not show leaflets in the plot as a dashed line.')
+
+    parser.add_argument('-o', '--output', dest='output',
+                        type=str, required=True,
+                        help='Prefix for the output file name')
+
+    args = parser.parse_args()
+    input_files = args.input_files
+    show_contacts = args.contacts
+    contacts_range = args.contacts_range
+    show_abs_z = args.abs_z
+    show_leaflets = not args.hide_leaflets
+    out_name = args.output
+
+    if len(input_files) == 1 and path.isdir(input_files[0]):
+        folder = input_files[0]
+        input_files = [path.join(folder, file) for file in os.listdir(folder)]
+        if len(input_files) == 0:
+            raise ValueError('Empty input folder')
+
+    if show_contacts:
+        if len(input_files) == 1:
+            heatmap_plot(input_files[0], out_name, show_abs_z, show_leaflets, contacts_range)
+        else:
+            raise ValueError('Contacts plot is only available for one input file, ' \
+                             f'but {len(input_files)} were detected')
+    else:
+        line_plot(input_files, out_name, show_abs_z, show_leaflets)
