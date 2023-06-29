@@ -1133,3 +1133,170 @@ class MembraneCurvature(AnalysisBase):
         self.results.average_z_surface = np.nanmean(self.results.z_surface, axis=0)
         self.results.average_mean = np.nanmean(self.results.mean, axis=0)
         self.results.average_gaussian = np.nanmean(self.results.gaussian, axis=0)
+
+
+class prot_lip_interaction:
+    """
+    Protein-lipid interaction analysis class
+    Class for storing the protein and lipid information to perform the
+    interaction analysis
+
+    Parameters
+    ----------
+    u: MDAnalysis universe class
+        Universe containing the system for the analysis
+
+    p: MDAnalysis AtomGroup
+        Selection from u containing the protein to analyse
+
+    lipid_resnames: list of str
+        Iterable containing the name of the lipid residues to analyse
+
+    int_doms: list of str
+        Iterable containing the sections of the protein to analyse. The
+        selections may be MDAnalysis selection commands or ranges (e.g.,
+        35-48) that will select the range of residue indices
+        automatically. If the int_doms is None or empty, the whole
+        protein group will be analysed.
+
+    Attributes
+    ----------
+
+    compute_DE -> pandas.DataFrame
+        calculates the depletion-enrichment factor for each frame for each
+        lipid residue
+
+    compte_DE_byres -> pandas.DataFrame
+        calculates the depletion-enrichment factor for each frame for each
+        lipid residue and for each individual protein residue
+
+    """
+
+    def __init__(self, u, p, lipid_resnames, int_doms=None):
+        self.u = u
+
+        # Parse interaction domains
+        if int_doms:
+            self.prot = mda.AtomGroup([], u)
+            for dom in int_doms:
+                try:
+                    # Default range of residue indices
+                    if re.search('^\d+\-\d+$', dom):
+                        dom_group = p.select_atoms(f'resindex {dom}')
+                    
+                    # General MDAnalysis selection command
+                    else:
+                        dom_group = p.select_atoms(dom)
+
+                    if dom_group:
+                        self.prot = self.prot.union(dom_group)
+                    else:
+                        logging.warning(f'Selection command {dom} resulted in empty group')
+
+                except BaseException as error:
+                    logging.warning(f'Selection command {dom} produced error: {error}')
+
+        # Select all the protein if no domains are provided      
+        else:
+            self.prot = p
+
+        if not self.prot:
+            logging.error("Error: couldn't find protein. Plase review protein" \
+                          "selection and interaction domains in the configuration file")
+        
+        self.prot_idxs = np.unique(self.prot.resindices)
+
+        # Store lipid residues
+        self.lipid_resnames = lipid_resnames
+        self.lips = mda.AtomGroup([], u)
+        for lipid in lipid_resnames:
+            self.lips = self.lips.union(u.select_atoms(f'resname {lipid}'))
+
+
+    def compute_DE(self, lipid_resnames, cutoff=6):
+        frames = self.u.trajectory
+        prot = self.prot
+        lips = self.lips
+
+        # Get data dimensions
+        L = len(lipid_resnames)
+        F = frames.n_frames
+        
+        # Calculate global specific lipid count
+        anywhere = np.empty((1, L), dtype=np.int64)
+        for l,lipid in enumerate(lipid_resnames):
+            anywhere[0, l] = lips.select_atoms(f'resname {lipid}').n_atoms
+        
+        # Calculate total lipid count
+        total_anywhere = np.sum(anywhere)
+
+        # Calculate specific lipid count around selected protein residues
+        around = np.zeros((F, L), dtype=np.int64)
+        for f,ts in enumerate(frames):
+            # Selection is performed from the lipid group, but taking the protein group as reference
+            around_by_resnames = lips.select_atoms(f'around {cutoff} global group prot', prot=prot).groupby('resnames')
+            for l,lipid in enumerate(lipid_resnames):
+                if lipid in around_by_resnames:
+                    around[f, l] = around_by_resnames[lipid].n_atoms
+
+        # Calculate total lipid count around selected protein residues
+        total_around = np.sum(around, axis=1, keepdims=True)
+
+        # Apply adjusted depletion-enrichment formula
+        around_DE = np.zeros((F, L), dtype=np.float64)
+        where = np.array(total_around, dtype=bool)
+        np.divide(around, total_around, out=around_DE, where=where)
+        total_DE = np.divide((anywhere - around), (total_anywhere - total_around))
+        DE = around_DE / total_DE
+        
+        # Create dataframe
+        columns = pd.Index(lipid_resnames, name='lipid')
+        indices = pd.Index([ts.time for ts in frames], name='frame')
+        DE_df = pd.DataFrame(DE, index=indices, columns=columns)
+
+        return DE_df
+
+
+    def compute_DE_byres(self, lipid_resnames, cutoff=6):
+        frames = self.u.trajectory
+        lips = self.lips
+        
+        # Get data dimensions
+        L = len(lipid_resnames)
+        P = len(self.prot_idxs)
+        F = frames.n_frames
+        
+        # Calculate global specific lipid count
+        anywhere = np.empty((1, 1, L), dtype=np.int64)
+        for l,lipid in enumerate(lipid_resnames):
+            anywhere[0, 0, l] = lips.select_atoms(f'resname {lipid}').n_atoms
+
+        # Calculate total lipid count
+        total_anywhere = np.sum(anywhere)
+
+        # Calculate specific lipid count around selected protein residues
+        around = np.zeros((F, P, L), dtype=np.int64)
+        for f,ts in enumerate(frames):
+            for p,res in enumerate(self.prot_idxs):
+                # Selection is performed from the lipid group, but taking the protein residue numbers as reference
+                around_by_resnames = lips.select_atoms(f'around {cutoff} global resnum {res}').groupby('resnames')
+                for l,lipid in enumerate(lipid_resnames):
+                    if lipid in around_by_resnames:
+                        around[f, p, l] = around_by_resnames[lipid].n_atoms
+
+        # Calculate total lipid count around selected protein residues
+        total_around = np.sum(around, axis=2, keepdims=True)
+
+        # Apply adjusted depletion-enrichment formula
+        around_DE = np.zeros((F, P, L), dtype=np.float64)
+        where = np.array(total_around, dtype=bool)
+        np.divide(around, total_around, out=around_DE, where=where)
+        total_DE = np.divide((anywhere - around), (total_anywhere - total_around))
+        DE = around_DE / total_DE
+        
+        # Create dataframe
+        columns = pd.MultiIndex.from_product((self.prot_idxs, lipid_resnames), names=('position', 'lipid'))
+        indices = pd.Index([ts.time for ts in frames], name='frame')
+        DE_df = pd.DataFrame(DE.reshape((F, P*L)), index=indices, columns=columns)
+
+        return DE_df

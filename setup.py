@@ -16,32 +16,35 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 setup(
     name="LipidDyn",
     version="0.3",
-    packages=find_packages(include=['LipidDyn',
-                                    'LipidDyn.*']),
+    packages=find_namespace_packages(include=['LipidDyn',
+                                              'LipidDyn.*'
+                                             ]),
     scripts=['bin/LipidDyn',
              'bin/profiler',
              'bin/ordpar',
              'bin/diffusion',
              'bin/dmaps',
              'bin/lipid2MD',
-             'bin/curvature'],
-    install_requires=[ 'matplotlib',
-                       'MDAnalysis',
-                       'progressbar',
-                       'seaborn',
-                       'pyyaml',
-                       'lipyphilic',
-                       'fatslim',
-                       'pyyaml',
-                       'requests'
-                       ],
+             'bin/curvature',
+             'bin/interaction'
+             ],
+    install_requires=['matplotlib',
+                      'MDAnalysis',
+                      'progressbar',
+                      'seaborn',
+                      'pyyaml',
+                      'lipyphilic',
+                      'fatslim',
+                      'pyyaml',
+                      'requests'
+                      ],
     include_package_data=True,
-    zip_safe = False,
+    zip_safe=False,
     author= "Simone Scrima, Matteo Tiberti" \
             "Alessia Campo, Matteo Lambrughi" \
             "Elena Papaleo",
