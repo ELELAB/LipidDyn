@@ -27,3 +27,11 @@ protein: ""
 forcefield: 'FA'
 bins: 
     
+scrambling_lipids:
+    - 'CHL1'
+scrambling_upper_z:
+scrambling_lower_z:
+scrambling_upper_rel_z: 0.2
+scrambling_lower_rel_z: 0.5
+scrambling_upper_ratio:
+scrambling_lower_ratio:

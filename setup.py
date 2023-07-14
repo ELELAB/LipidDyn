@@ -31,7 +31,8 @@ setup(
              'bin/dmaps',
              'bin/lipid2MD',
              'bin/curvature',
-             'bin/interaction'
+             'bin/interaction',
+             'bin/scrambling',
              ],
     install_requires=['matplotlib',
                       'MDAnalysis',

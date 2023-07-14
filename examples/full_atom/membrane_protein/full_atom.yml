@@ -27,3 +27,17 @@ protein: "protein and not name H*"
 forcefield: 'FA'
 bins: 
     
+interaction_domains:
+interaction_cutoff: 6
+interaction_by_res: 1
+
+scrambling_lipids:
+    - 'POPC'
+scrambling_domains:
+scrambling_cutoff: 6
+scrambling_upper_z:
+scrambling_lower_z:
+scrambling_upper_rel_z: 0.2
+scrambling_lower_rel_z: 0.5
+scrambling_upper_ratio:
+scrambling_lower_ratio:

@@ -454,3 +454,18 @@ lipids:
 protein: "protein and not name H*"
 forcefield: 'CG'
 bins: 
+
+interaction_domains:
+interaction_cutoff: 6
+interaction_by_res: 1
+
+scrambling_lipids:
+    - 'CHOL'
+scrambling_domains:
+scrambling_cutoff: 6
+scrambling_upper_z:
+scrambling_lower_z:
+scrambling_upper_rel_z: 0.3
+scrambling_lower_rel_z: 0.7
+scrambling_upper_ratio:
+scrambling_lower_ratio:

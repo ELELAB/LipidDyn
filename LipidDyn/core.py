@@ -33,6 +33,7 @@ import logging
 from lipyphilic.lib.order_parameter import SCC
 import multiprocessing as mp
 from MDAnalysis.analysis.base import AnalysisBase
+from MDAnalysis.analysis.leaflet import LeafletFinder
 import re
 mp.set_start_method("fork")
  
@@ -1300,3 +1301,237 @@ class prot_lip_interaction:
         DE_df = pd.DataFrame(DE.reshape((F, P*L)), index=indices, columns=columns)
 
         return DE_df
+
+
+
+class lipid_scrambling:
+    """
+    Lipid scrambling analysis class
+    Class for storing the lipid and information to perform the
+    scrambling analysis based on the lipid headgroups z-coordinate
+
+    Parameters
+    ----------
+    u: MDAnalysis universe class
+        Universe containing the system for the analysis
+    
+    g: MDanalysis AtomGroup
+        Selection from u with the lipid headgroups of the system. It is used to
+        estimate the surface of the membrane.
+
+    lipid_resnames: list of str or None
+        Iterable containing the name of the lipid residues to analyse. If None
+        or empty list is provided, all resnames in g will be used.
+
+    p: MDAnalysis AtomGroup or None
+        Selection from u containing the protein to analyse. If None is provided,
+        contact analysis will not be available.
+
+    int_doms: list of str
+        Iterable containing the sections of the protein to analyse. The
+        selections may be MDAnalysis selection commands or ranges (X-Y)
+        that will select the range of residue indices automatically. If
+        the int_doms is None or empty, the whole protein group will be
+        analysed.
+
+    Attributes
+    ----------
+
+    compute_z_data -> np.ndarray
+        Estimates membrane surface by linear regression and calculates the
+        leaflet z-positions for each target lipid
+    
+    filter_scrambling -> list
+        From the z_data array obtained in compute_z_data, designates as scrambling
+        lipids those that fulfill certain requirements depending on input parameters.
+        Returns list with information about scrambling lipids.
+
+    """
+
+    def __init__(self, u, g, lipid_resnames=[], p=None, int_doms=None):
+        self.u = u
+
+        # Store lipid residues
+        self.g = g
+        if not lipid_resnames:
+            self.heads = g
+        else:
+            self.heads = mda.AtomGroup([], u)
+            for lipid in lipid_resnames:
+                self.heads = self.heads.union(g.select_atoms(f'resname {lipid}'))
+        
+        # Parse interaction domains
+        if p and int_doms:
+            self.prot = mda.AtomGroup([], u)
+            for dom in int_doms:
+                try:
+                    # Default range of residue indices
+                    if re.search('^\d+\-\d+$', dom):
+                        dom_group = p.select_atoms(f'resindex {dom}')
+                    
+                    # General MDAnalysis selection command
+                    else:
+                        dom_group = p.select_atoms(dom)
+
+                    if dom_group:
+                        self.prot = self.prot.union(dom_group)
+                    else:
+                        logging.warning(f'Selection command {dom} resulted in empty group')
+
+                except BaseException as error:
+                    logging.error(f'Selection command {dom} produced error: {error}')
+        
+        # Select all the protein if no domains are provided
+        else:
+            self.prot = p
+
+        if self.prot:
+            self.prot_idxs = np.unique(self.prot.resindices)
+        else:
+            self.prot_idxs = np.empty(0)
+
+    
+    def compute_z_data(self, reg_params=None):
+        """
+        Estimates membrane surface through linear regression, and calculates
+        leaflet position for each lipid in self.heads. Regression is polynomial
+        regression with degree <reg_params>, default 4 (fairly smooth surface).
+        This regression is not perfect, but produces satisfactory results if the
+        shape is not too irregular, like those with simple grooves. Each leaflet
+        is estimated independently.
+        The data for regression is taken from the leaflets obtained by MDAnalysis'
+        LeafletFinder. This can fail if the leaflets are connected. The function
+        will retry with different cutoffs until two big groups are differentiated.
+        If the groups become too small before, the program is unable to get the
+        groups in that frame and it will be skipped.
+
+        Parameters
+        ----------
+        reg_params: int
+            Polynomial degree for linear regression. E.g., reg_params=2 will use
+            [a + x + x^2 + y + y^2 = z] to estimate the surface, a being the
+            intercept and x, y and z the atom coordinates.
+
+        """
+        if reg_params is None:
+            reg_params = 4
+
+        n_g = len(self.g)
+        n_lips = len(self.heads)
+        ones = np.ones((n_lips, 1))
+        powers = np.arange(1, reg_params+1)
+        z_data = np.empty((0, 1 + n_lips * 3))
+        for i,ts in enumerate(self.u.trajectory):
+            repeat = False
+            cutoff = 15.0
+            min_cutoff = 7.0
+            L = LeafletFinder(self.u, self.g, cutoff=cutoff)
+            if len(L.groups()) > 1:
+                idx1, idx2 = sorted(range(len(L.groups())), key=L.sizes().get, reverse=True)[:2]
+                if L.sizes().get(idx1) > 0.8*n_g:
+                    repeat = True
+            else:
+                repeat = True
+
+            while repeat and cutoff >= min_cutoff:
+                cutoff -= 2
+                L.update(cutoff=cutoff)
+                if len(L.groups()) > 1:
+                    idx1, idx2 = sorted(range(len(L.groups())), key=L.sizes().get, reverse=True)[:2]
+                    if L.sizes().get(idx1) <= 0.8*n_g:
+                        repeat = False
+
+            if cutoff < min_cutoff or L.sizes().get(idx1) + L.sizes().get(idx2) < 0.8*n_g:
+                logging.warning(f'Not able to differentiate leaflets, skipping frame {i} at {ts.time} ps')
+                continue
+
+            leaf1 = L.group(idx1)
+            leaf2 = L.group(idx2)
+            coords1 = leaf1.positions
+            coords2 = leaf2.positions
+
+            ones1 = np.ones((len(leaf1), 1))
+            ones2 = np.ones((len(leaf2), 1))
+            x1 = np.c_[ones1, np.power(coords1[:, 0:1], powers), np.power(coords1[:, 1:2], powers)]
+            x2 = np.c_[ones2, np.power(coords2[:, 0:1], powers), np.power(coords2[:, 1:2], powers)]
+            y1 = coords1[:, 2]
+            y2 = coords2[:, 2]
+
+            sol1, res1, _, _ = np.linalg.lstsq(x1, y1, rcond=None)
+            sol2, res2, _, _ = np.linalg.lstsq(x2, y2, rcond=None)
+
+            coords = self.heads.positions
+            x = np.c_[ones, np.power(coords[:,0:1], powers), np.power(coords[:,1:2], powers)]
+            z1 = np.matmul(x, sol1)
+            z2 = np.matmul(x, sol2)
+            z_up = np.max((z1, z2), axis=0)
+            z_low = np.min((z1, z2), axis=0)
+
+            z_data = np.r_[z_data, np.r_[ts.time, np.c_[z_up, z_low, coords[:, 2]].flatten()][None, :]]
+
+        return z_data
+
+
+    def filter_scrambling(self, z_data, upper_z=None, lower_z=None,
+                          upper_rel_z=None, lower_rel_z=None,
+                          upper_ratio=None, lower_ratio=None,
+                          cutoff=None):
+        n_frames = z_data.shape[0]
+        n_lips = int((z_data.shape[1] - 1) / 3)
+        z_data = z_data[:, 1:].reshape((n_frames, n_lips, 3))
+
+        # Define parameters and defaults
+        if upper_ratio is None:
+            min_frames_up = 1
+        else:
+            min_frames_up = upper_ratio * n_frames
+        if lower_ratio is None:
+            min_frames_low = 1
+        else:
+            min_frames_low = lower_ratio * n_frames
+        if upper_z is None:
+            upper_z=-np.inf
+        if lower_z is None:
+            lower_z=np.inf
+        if upper_rel_z is None:
+            upper_rel_z=-np.inf
+        if lower_rel_z is None:
+            lower_rel_z=np.inf
+        if cutoff is None:
+            cutoff = 6
+
+        rel_z = (z_data[:,:,2] - z_data[:,:,1]) / (z_data[:,:,0] - z_data[:,:,1])
+        
+        # Determine per-frame for each lipid if it is up/low
+        is_up = np.logical_and(z_data[:,:,2] > upper_z, rel_z > upper_rel_z)
+        is_low = np.logical_and(z_data[:,:,2] < lower_z, rel_z < lower_rel_z)
+
+        # Determine per-lipid if it has been up or low for the minimum time required
+        is_up_filt = np.count_nonzero(is_up, axis=0) >= min_frames_up
+        is_low_filt = np.count_nonzero(is_low, axis=0) >= min_frames_low
+
+        # Declare as scrambled lipids those that have been both up and low for the minimum time required
+        scrmb = np.logical_and(is_up_filt, is_low_filt)
+        scrmb_idxs = np.nonzero(scrmb)[0]
+
+        scrmb_list = []
+        for i in scrmb_idxs:
+            resname = self.heads.resnames[i]
+            resid = self.heads.resids[i]
+            z_data_head = z_data[:, i]
+
+            # If protein is defined, compute per-frame contacts with headgroup
+            # Protein residue indices (probably starting by 0) are stored!!!
+            # This allows differentiating between chains
+            if self.prot:
+                contacts = []
+                head = self.heads.select_atoms(f'resid {resid}')
+                for f,ts in enumerate(self.u.trajectory):
+                    prot_res = np.unique(self.prot.select_atoms(f'around {cutoff} global group head', head=head).resindices)
+                    contacts.append(','.join([str(res) for res in prot_res]))
+            else:
+                contacts = None
+
+            scrmb_list.append([i, resname, resid, z_data_head, contacts])
+
+        return scrmb_list

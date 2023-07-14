@@ -46,3 +46,13 @@ curvature -l1 curv/up_AF_mean_curvature.dat -l2 curv/low_AF_mean_curvature.dat -
 curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6f_up_smooth_surface.pdf -o2 curv/6f_low_smooth_surface.pdf -plot first_6
 curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6m_up_smooth_surface.pdf -o2 curv/6m_low_smooth_surface.pdf -plot middle_6
 curvature -l1 curv/up_AF_surface.dat -l2 curv/low_AF_surface.dat -o curv/6l_up_smooth_surface.pdf -o2 curv/6l_low_smooth_surface.pdf -plot last_6
+
+# Interaction
+interaction -i Interaction/d_e.tsv -o Interaction/depletion_enrichment
+
+# Scrambling plot (if scrambling lipids are detected)
+scrambling -i Scrambling/lipids/ -o Scrambling/z_trajectory_all_relative.pdf
+scrambling -i Scrambling/lipids/ -o Scrambling/z_trajectory_all.pdf -a
+# Scrambling contacts plot
+scrambling -i Scrambling/lipids/POPC_139.tsv -o Scrambling/z_trajectory_POPC139_relative.pdf -c
+scrambling -i Scrambling/lipids/POPC_139.tsv -o Scrambling/z_trajectory_POPC139.pdf -a -c -r 0 20

@@ -451,6 +451,15 @@ lipids:
         headgroup: PO41
         bulk_ratio:
 
-protein: 
+protein: "protein and not name H*"
 forcefield: 'CG'
-bins:  
+bins:
+
+scrambling_lipids:
+    - 'CHOL'
+scrambling_upper_z:
+scrambling_lower_z:
+scrambling_upper_rel_z: 0.8
+scrambling_lower_rel_z: 0.2
+scrambling_upper_ratio: 0.35
+scrambling_lower_ratio: 0.35
