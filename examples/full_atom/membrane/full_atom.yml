@@ -26,6 +26,7 @@ lipids:
 protein: ""
 forcefield: 'FA'
 bins: 
+wrapping: True
     
 scrambling_lipids:
     - 'CHL1'
