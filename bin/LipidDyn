@@ -641,7 +641,6 @@ def module_curvature(universe,
                                                                        # keep atoms in the 
                                                                        # main unit cell
     pbar.update((1/total_step)*100) # current step/total steps * 100
-    print(wrap)
     curvature_lower_leaflet = MembraneCurvature(universe,
                                                 select = lower_string,
                                                 n_x_bins = bins,
