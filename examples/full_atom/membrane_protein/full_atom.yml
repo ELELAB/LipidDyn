@@ -26,6 +26,7 @@ lipids:
 protein: "protein and not name H*"
 forcefield: 'FA'
 bins: 
+wrapping: True
     
 interaction_domains:
 interaction_cutoff: 6

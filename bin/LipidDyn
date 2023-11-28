@@ -571,6 +571,9 @@ def module_curvature(universe,
     
     # define headgroups
     g = select_lipid_headgroups(universe, dict_selection)  
+
+    # define wrapping for curvature if processed traj or not
+    wrap = dict_selection = parsed_yaml["wrapping"]
     
     # output directory
     out_folder = os.path.abspath(os.path.join(out_dir, "curv"))
@@ -634,16 +637,15 @@ def module_curvature(universe,
                                                 select = upper_string, # selection of reference
                                                 n_x_bins = bins,       # bins in the x_dim
                                                 n_y_bins = bins,       # bins in the y_dim
-                                                wrap = True).run()     # wrap coordinated to 
+                                                wrap = wrap).run()     # wrap coordinated to 
                                                                        # keep atoms in the 
                                                                        # main unit cell
     pbar.update((1/total_step)*100) # current step/total steps * 100
-
     curvature_lower_leaflet = MembraneCurvature(universe,
                                                 select = lower_string,
                                                 n_x_bins = bins,
                                                 n_y_bins = bins,
-                                                wrap = True).run()
+                                                wrap = wrap).run()
     pbar.update((2/total_step)*100) # current step/total steps * 100
 
     # extract data 
