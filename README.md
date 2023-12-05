@@ -86,7 +86,7 @@ These instructions will get you a copy of the project running on your machine.
 
 In a directory of the user's choice open a terminal and type:
 ```
-virtualenv "LipidDyn_env" -p /usr/bin/python3.8
+virtualenv "LipidDyn_env" -p /usr/bin/python3.9
 ```
 
 Once created activate the environment with:
