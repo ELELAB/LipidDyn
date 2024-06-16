@@ -812,7 +812,7 @@ def gaussian_curvature(Z):
       array object with values of gaussian curvature of shape `(n, n)`. 
     """
 
-    Zy, Zx = np.gradient(Z)
+    Zy, Zx = np.gradient(Z*0.1) # converted in nm
     Zxy, Zxx = np.gradient(Zx)
     Zyy, _ = np.gradient(Zy)
 
@@ -838,7 +838,7 @@ def mean_curvature(Z):
       array object with values of gaussian curvature of shape `(n, n)`.
     """
 
-    Zy, Zx = np.gradient(Z)
+    Zy, Zx = np.gradient(Z*0.1) # converted in nm
     Zxy, Zxx = np.gradient(Zx)
     Zyy, _ = np.gradient(Zy)
 
