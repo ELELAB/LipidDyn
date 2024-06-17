@@ -345,7 +345,7 @@ else:
 
 # --------------------------- Plotting Mean Curvature --------------------------- 
 if args.plot == 'mean':    
-    label = '$H$ ($\AA^{-1}$)'
+    label = '$H$ ($\/nm^{-1}$)'
     title = 'Mean Curvature Plots'
     
     # conditonal statement to check if arg doesn't exist
@@ -394,7 +394,7 @@ if args.plot == 'mean':
 
 # ------------------------- Plotting Gaussian Curvature -------------------------
 if args.plot == 'gaussian':    
-    label = '$K$ ($\AA^{-2}$)'
+    label = '$K$ ($\/nm^{-2}$)'
     title = 'Gaussian Curvature Plots'
 
     # conditonal statement to check if arg doesn't exist
